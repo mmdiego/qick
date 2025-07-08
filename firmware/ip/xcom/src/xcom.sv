@@ -78,12 +78,12 @@ module xcom import qick_pkg::*;
    input  logic             i_time_rstn        ,
 // QICK PERIPHERAL INTERFACE (i_core_clk)
    input  logic             i_core_en          , 
-   input  logic  [5-1:0]    i_core_op          , 
+   input  logic   [5-1:0]   i_core_op          , 
    input  logic  [32-1:0]   i_core_data1       , 
    input  logic  [32-1:0]   i_core_data2       , 
    output logic             o_core_ready       , 
-   output logic   [32-1:0]  o_core_data1       , 
-   output logic   [32-1:0]  o_core_data2       , 
+   output logic  [32-1:0]   o_core_data1       , 
+   output logic  [32-1:0]   o_core_data2       , 
    output logic             o_core_valid       , 
    output logic             o_core_flag        , 
 // Qick CONTROL
@@ -96,30 +96,30 @@ module xcom import qick_pkg::*;
    output logic             o_core_start       ,
    output logic             o_core_stop        ,
 // XCOM 
-   output logic  [ 4-1:0]   o_xcom_id          ,
+   output logic   [4-1:0]   o_xcom_id          ,
 // IO XCOM (i_time_clk)
-   input  logic  [NCH-1:0]   i_xcom_clk         ,
-   input  logic  [NCH-1:0]   i_xcom_data        ,
+   input  logic [NCH-1:0]   i_xcom_clk         ,
+   input  logic [NCH-1:0]   i_xcom_data        ,
    output logic             o_xcom_clk         ,
    output logic             o_xcom_data        ,
 // AXI-Lite DATA Slave I/F (i_ps_clk)
-   input  logic [6-1:0]     s_axi_awaddr       ,
-   input  logic [3-1:0]     s_axi_awprot       ,
+   input  logic   [6-1:0]   s_axi_awaddr       ,
+   input  logic   [3-1:0]   s_axi_awprot       ,
    input  logic             s_axi_awvalid      ,
    output logic             s_axi_awready      ,
-   input  logic [32-1:0]    s_axi_wdata        ,
-   input  logic [ 4-1:0]    s_axi_wstrb        ,
+   input  logic  [32-1:0]   s_axi_wdata        ,
+   input  logic  [ 4-1:0]   s_axi_wstrb        ,
    input  logic             s_axi_wvalid       ,
    output logic             s_axi_wready       ,
-   output logic [ 2-1:0]    s_axi_bresp        ,
+   output logic  [ 2-1:0]   s_axi_bresp        ,
    output logic             s_axi_bvalid       ,
    input  logic             s_axi_bready       ,
-   input  logic [ 6-1:0]    s_axi_araddr       ,
-   input  logic [ 3-1:0]    s_axi_arprot       ,
+   input  logic  [ 6-1:0]   s_axi_araddr       ,
+   input  logic  [ 3-1:0]   s_axi_arprot       ,
    input  logic             s_axi_arvalid      ,
    output logic             s_axi_arready      ,
-   output logic [32-1:0]    s_axi_rdata        ,
-   output logic [ 2-1:0]    s_axi_rresp        ,
+   output logic  [32-1:0]   s_axi_rdata        ,
+   output logic  [ 2-1:0]   s_axi_rresp        ,
    output logic             s_axi_rvalid       ,
    input  logic             s_axi_rready        
 );
@@ -133,14 +133,14 @@ logic [ 4-1:0] s_data_cntr;
 logic [ 4-1:0] s_xcom_id;
 logic [ 4-1:0] s_xcom_id_ps;
 logic [32-1:0] s_xcom_ctrl ;
-logic [6-1:0]  s_xcom_ctrl_sync ;
+logic [32-1:0] s_xcom_ctrl_sync ;
 logic [32-1:0] s_xcom_cfg ;
-logic [4-1:0]  s_xcom_cfg_sync ;
+logic [32-1:0] s_xcom_cfg_sync ;
 logic [32-1:0] s_axi_data1;
 logic [32-1:0] s_axi_data1_sync;
 logic [32-1:0] s_axi_data2 ;
 logic [32-1:0] s_axi_data2_sync;
-logic [ 4-1:0] s_axi_addr ;
+logic [32-1:0] s_axi_addr ;
 logic          s_core_en;
 logic [ 5-1:0] s_core_op;
 logic [2-1:0][32-1:0] s_core_data ; 
@@ -153,7 +153,7 @@ logic          s_ack_net;
 logic          s_core_ready;
 logic          s_core_valid;
 logic          s_core_flag;
-logic          s_xcom_flag_ps;
+logic [32-1:0] s_xcom_flag_ps;
 logic [32-1:0] s_core_data1;
 logic [32-1:0] s_core_data1_sync;
 logic [32-1:0] s_core_data2;
@@ -166,16 +166,15 @@ logic [32-1:0] axi_mem_data;
 
 logic [32-1:0] xreg_debug;
 logic [32-1:0] xreg_status;
-logic [32-1:0] xreg_status_sync_r;
-logic [32-1:0] xreg_status_sync_n;
 
 logic [32-1:0] s_dbg_rx_data      ;
 logic [32-1:0] s_dbg_tx_data      ;
 logic [21-1:0] s_dbg_status       ;
 logic [32-1:0] s_dbg_data         ;
+logic [32-1:0] s_dbg_debug        ;
 logic [32-1:0] s_dbg_rx_data_ps   ;
 logic [32-1:0] s_dbg_tx_data_ps   ;
-logic [21-1:0] s_dbg_status_ps    ;
+logic [32-1:0] s_dbg_status_ps    ;
 logic [32-1:0] s_dbg_data_ps      ;
 logic [32-1:0] s_dbg_debug_ps     ;
 
@@ -212,17 +211,17 @@ xcom_axil_slv#(
    .o_xcom_axi_data2( s_axi_data2        ),
    .o_xcom_axi_addr ( s_axi_addr         ),
    .i_board_id      ( {28'h000_0000,s_xcom_id_ps} ),
-   .i_xcom_flag     ( s_xcom_flag_ps     ),
+   .i_xcom_flag     ( s_xcom_flag_ps[0]  ),
    .i_xcom_data1    ( s_core_data1_ps    ),
    .i_xcom_data2    ( s_core_data2_ps    ),
    .i_xcom_mem      ( axi_mem_data       ),
    .i_xcom_rx_data  ( s_dbg_rx_data_ps   ),
    .i_xcom_tx_data  ( s_dbg_tx_data_ps   ),
-   .i_xcom_status   ( xreg_status        ),//s_dbg_status_ps    ),
-   .i_xcom_debug    ( xreg_debug         ) //s_dbg_debug_ps     )
+   .i_xcom_status   ( xreg_status        ),
+   .i_xcom_debug    ( xreg_debug         ) 
    ); 
 
-assign axi_mem_data = xcom_mem_data[s_axi_addr];
+assign axi_mem_data = xcom_mem_data[s_axi_addr[4-1:0]];
 
 xcom_cdc u_xcom_cdc(
    .i_ps_clk           ( i_ps_clk         ),
@@ -240,15 +239,18 @@ xcom_cdc u_xcom_cdc(
    .o_core_op_sync     ( s_core_op        ), 
    .o_core_data1_sync  ( s_core_data1_sync), 
    .o_core_data2_sync  ( s_core_data2_sync), 
+   //time domain - core domain
    .i_core_ready       ( s_core_ready     ), 
    .i_core_valid       ( s_core_valid     ), 
    .i_core_flag        ( s_core_flag      ), 
+   .i_core_data1_core  ( s_core_data1     ), 
+   .i_core_data2_core  ( s_core_data2     ), 
    .o_core_ready_sync  ( o_core_ready     ), 
    .o_core_valid_sync  ( o_core_valid     ), 
    .o_core_flag_sync   ( o_core_flag      ), 
-   //time domain - PS time domain
-   .i_xcom_id          ( s_xcom_id        ),
-   .o_xcom_id_sync     ( s_xcom_id_ps     ), 
+   .o_core_data1_core  ( o_core_data1     ), 
+   .o_core_data2_core  ( o_core_data2     ), 
+   //PS time domain - time domain
    .i_xcom_ctrl        ( s_xcom_ctrl      ), 
    .i_xcom_cfg         ( s_xcom_cfg       ),
    .i_axi_data1        ( s_axi_data1      ), 
@@ -257,13 +259,17 @@ xcom_cdc u_xcom_cdc(
    .o_xcom_cfg_sync    ( s_xcom_cfg_sync  ), 
    .o_axi_data1_sync   ( s_axi_data1_sync ), 
    .o_axi_data2_sync   ( s_axi_data2_sync ), 
+   //core domain - PS time domain
    .o_xcom_flag_sync   ( s_xcom_flag_ps   ), 
    .o_xcom_data1_sync  ( s_core_data1_ps  ), 
    .o_xcom_data2_sync  ( s_core_data2_ps  ), 
+   //time domain - PS time domain
+   .i_xcom_id          ( s_xcom_id        ),
    .i_xcom_rx_data     ( s_dbg_rx_data    ), 
    .i_xcom_tx_data     ( s_dbg_tx_data    ), 
    .i_xcom_status      ( s_dbg_status     ), 
    .i_xcom_debug       ( s_dbg_debug      ),
+   .o_xcom_id_sync     ( s_xcom_id_ps     ), 
    .o_xcom_rx_data_sync( s_dbg_rx_data_ps ),
    .o_xcom_tx_data_sync( s_dbg_tx_data_ps ),
    .o_xcom_status_sync ( s_dbg_status_ps  ), 
@@ -279,7 +285,7 @@ xcom_cmd u_xcom_cmd(
    .i_core_en       ( s_core_en        ),
    .i_core_op       ( s_core_op        ),
    .i_core_data     ( s_core_data      ),
-   .i_ps_ctrl       ( s_xcom_ctrl_sync ),
+   .i_ps_ctrl       ( s_xcom_ctrl_sync[6-1:0] ),
    .i_ps_data       ( s_ps_data        ), 
    .o_req_loc       ( s_req_loc        ),
    .i_ack_loc       ( s_ack_loc        ),
@@ -315,9 +321,9 @@ xcom_txrx#(
   .o_time_update_data( o_time_update_data ),
   .o_core_start      ( o_core_start       ),
   .o_core_stop       ( o_core_stop        ),
-  .i_cfg_tick        ( s_xcom_cfg_sync    ),
+  .i_cfg_tick        ( s_xcom_cfg_sync[4-1:0] ),
   .o_xcom_id         ( s_xcom_id          ),
-  .o_xcom_mem        ( xcom_mem_data      ),//FIXME: review this because here we are crossing clock domains
+  .o_xcom_mem        ( xcom_mem_data      ),
   .i_xcom_data       ( i_xcom_data        ),
   .i_xcom_clk        ( i_xcom_clk         ),
   .o_xcom_data       ( o_xcom_data        ),
@@ -329,7 +335,7 @@ xcom_txrx#(
 );
 
 assign o_xcom_id   = s_xcom_id;
-assign xreg_status = {7'd0,s_data_cntr, s_dbg_status_ps};
+assign xreg_status = {7'd0,s_data_cntr, s_dbg_status_ps[21-1:0]};
 
 //end of SYNC STAGES
 ///////////////////////////////////////////////////////////////////////////////

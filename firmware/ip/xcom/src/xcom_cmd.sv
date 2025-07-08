@@ -59,6 +59,7 @@ module xcom_cmd (
    output logic [ 4-1:0]         o_data_cntr    
 );
 
+logic          s_ack; 
 logic          s_valid; 
 logic  [5-1:0] s_op; 
 logic  [4-1:0] s_addr; 

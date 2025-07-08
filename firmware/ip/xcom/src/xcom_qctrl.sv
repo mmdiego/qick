@@ -128,6 +128,14 @@ always_comb begin
             3'b101  : s_core_stop   = 1'b1;
             3'b110  : s_proc_start  = 1'b1;
             3'b111  : s_proc_stop   = 1'b1;
+            default : begin
+               s_proc_start  = 1'b0;
+               s_proc_stop   = 1'b0;
+               s_time_rst    = 1'b0;
+               s_time_update = 1'b0;
+               s_core_start  = 1'b0;
+               s_core_stop   = 1'b0;
+            end
          endcase
          if ( qctrl_pulse_end ) state_n = IDLE;     
       end

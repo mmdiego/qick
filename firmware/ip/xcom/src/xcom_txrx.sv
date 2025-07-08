@@ -132,8 +132,8 @@ logic          rx_no_dt, rx_wflg, rx_wreg, rx_wmem ;
 logic          rx_wflg_en, rx_wreg_en, rx_wmem_en;
 logic          rx_qsync, rx_qctrl, rx_auto_id, rx_rst; 
 
-logic          s_data_flag;
-logic          data_flag, wreg_r ;
+logic          s_data_flag, rst_flg, s_rx_valid, wflg_en;
+logic          data_flag, wreg_r, wreg_en, wmem_en;
 logic [32-1:0] reg_dt_s;
 logic [ 4-1:0] mem_addr;
 logic [32-1:0] reg1_dt, reg2_dt;
@@ -329,6 +329,7 @@ synchronizer#(
   .i_async    ( i_xcom_clk      ),
   .o_sync     ( s_xcom_clk_sync )
 );
+
 synchronizer#(
    .NB(NCH)
    ) sync_xcom_data(

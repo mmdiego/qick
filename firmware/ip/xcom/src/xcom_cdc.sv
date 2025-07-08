@@ -74,9 +74,13 @@ module xcom_cdc
    input  logic           i_core_ready       , 
    input  logic           i_core_valid       , 
    input  logic           i_core_flag        , 
+   input  logic [32-1:0]  i_core_data1_core  , 
+   input  logic [32-1:0]  i_core_data2_core  , 
    output logic           o_core_ready_sync  , 
    output logic           o_core_valid_sync  , 
    output logic           o_core_flag_sync   , 
+   output logic [32-1:0]  o_core_data1_core  , 
+   output logic [32-1:0]  o_core_data2_core  , 
 // XCOM 
    input  logic [ 4-1:0]  i_xcom_id          ,
    output logic [ 4-1:0]  o_xcom_id_sync     ,
@@ -152,12 +156,17 @@ synchronizer#(
   .o_sync     ( o_xcom_debug_sync )
 );
 
-narrow_en_signal xcom_flag(
-  .i_clk  ( i_ps_clk     ),
-  .i_rstn ( i_ps_rstn    ),
-  .i_en   ( i_core_flag  ),
-  .o_en   ( o_xcom_flag_sync[0] )
+///////////////////////////////////////////////////////////////////////////////
+//Core domain -> PS domain
+synchronizer#(
+   .NB(1)
+   ) xcom_flag(
+  .i_clk      ( i_ps_clk            ),
+  .i_rstn     ( i_ps_rstn           ),
+  .i_async    ( i_core_flag         ),
+  .o_sync     ( o_xcom_flag_sync[0] )
 );
+
 assign o_xcom_flag_sync[32-1:1] = '0;
 
 synchronizer#(
@@ -165,7 +174,7 @@ synchronizer#(
    ) sync_data1_ps(
   .i_clk      ( i_ps_clk          ),
   .i_rstn     ( i_ps_rstn         ),
-  .i_async    ( i_core_data1      ),
+  .i_async    ( i_core_data1_core ),
   .o_sync     ( o_xcom_data1_sync )
 );
 
@@ -174,7 +183,7 @@ synchronizer#(
    ) sync_data2_ps(
   .i_clk      ( i_ps_clk          ),
   .i_rstn     ( i_ps_rstn         ),
-  .i_async    ( i_core_data2      ),
+  .i_async    ( i_core_data2_core ),
   .o_sync     ( o_xcom_data2_sync )
 );
 
@@ -248,33 +257,57 @@ synchronizer#(
 synchronizer#(
    .NB(32)
    ) sync_core_data2(
-  .i_clk      ( i_time_clk       ),
-  .i_rstn     ( i_time_rstn      ),
+  .i_clk      ( i_time_clk        ),
+  .i_rstn     ( i_time_rstn       ),
   .i_async    ( i_core_data2      ),
   .o_sync     ( o_core_data2_sync )
 );
 
 ///////////////////////////////////////////////////////////////////////////////
 //Time domain -> Core domain
-narrow_en_signal sync_core_ready(
-  .i_clk  ( i_core_clk        ),
-  .i_rstn ( i_core_rstn       ),
-  .i_en   ( i_core_ready      ),
-  .o_en   ( o_core_ready_sync )
+synchronizer#(
+   .NB(1)
+   ) sync_core_ready(
+  .i_clk      ( i_core_clk        ),
+  .i_rstn     ( i_core_rstn       ),
+  .i_async    ( i_core_ready      ),
+  .o_sync     ( o_core_ready_sync )
 );
 
-narrow_en_signal sync_core_flag(
-  .i_clk  ( i_core_clk        ),
-  .i_rstn ( i_core_rstn       ),
-  .i_en   ( i_core_flag       ),
-  .o_en   ( o_core_flag_sync  )
+synchronizer#(
+   .NB(1)
+   ) sync_core_flag(
+  .i_clk      ( i_core_clk       ),
+  .i_rstn     ( i_core_rstn      ),
+  .i_async    ( i_core_flag      ),
+  .o_sync     ( o_core_flag_sync )
 );
 
-narrow_en_signal sync_core_valid(
-  .i_clk  ( i_core_clk        ),
-  .i_rstn ( i_core_rstn       ),
-  .i_en   ( i_core_valid      ),
-  .o_en   ( o_core_valid_sync )
+synchronizer#(
+   .NB(1)
+   ) sync_core_valid(
+  .i_clk      ( i_core_clk        ),
+  .i_rstn     ( i_core_rstn       ),
+  .i_async    ( i_core_valid      ),
+  .o_sync     ( o_core_valid_sync )
+);
+
+synchronizer#(
+   .NB(32)
+   ) sync_data1_core(
+  .i_clk      ( i_core_clk        ),
+  .i_rstn     ( i_core_rstn       ),
+  .i_async    ( i_core_data1_core ),
+  .o_sync     ( o_core_data1_core )
+);
+
+synchronizer#(
+   .NB(32)
+   ) sync_data2_core(
+  .i_clk      ( i_core_clk        ),
+  .i_rstn     ( i_core_rstn       ),
+  .i_async    ( i_core_data2_core ),
+  .o_sync     ( o_core_data2_core )
 );
 
 //end of SYNC STAGES
