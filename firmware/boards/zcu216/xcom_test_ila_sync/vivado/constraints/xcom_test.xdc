@@ -30,11 +30,11 @@ set_property IOSTANDARD LVCMOS18   [get_ports "i_sync"]
 
 ## GREEN LED
 #######################################
-set_property PACKAGE_PIN C13       [get_ports "o_xcom_id_o_0[0]"] ;# Bank 87 RGB_G_LED_0
-set_property PACKAGE_PIN D14       [get_ports "o_xcom_id_o_0[1]"] ;# Bank 87 RGB_G_LED_1
-set_property PACKAGE_PIN D12       [get_ports "o_xcom_id_o_0[2]"] ;# Bank 87 RGB_G_LED_2
-set_property PACKAGE_PIN D13       [get_ports "o_xcom_id_o_0[3]"] ;# Bank 87 RGB_G_LED_3
-set_property IOSTANDARD  LVCMOS18  [get_ports "o_xcom_id_o*"]
+set_property PACKAGE_PIN C13       [get_ports "o_xcom_id_0[0]"] ;# Bank 87 RGB_G_LED_0
+set_property PACKAGE_PIN D14       [get_ports "o_xcom_id_0[1]"] ;# Bank 87 RGB_G_LED_1
+set_property PACKAGE_PIN D12       [get_ports "o_xcom_id_0[2]"] ;# Bank 87 RGB_G_LED_2
+set_property PACKAGE_PIN D13       [get_ports "o_xcom_id_0[3]"] ;# Bank 87 RGB_G_LED_3
+set_property IOSTANDARD  LVCMOS18  [get_ports "o_xcom_id*"]
 #set_property PACKAGE_PIN AK24       [get_ports "o_xcom_id_0[0]"] ;# Bank 87 RGB_G_LED_0
 #set_property PACKAGE_PIN AJ23       [get_ports "o_xcom_id_0[1]"] ;# Bank 87 RGB_G_LED_1
 #set_property PACKAGE_PIN AJ24       [get_ports "o_xcom_id_0[2]"] ;# Bank 87 RGB_G_LED_2
