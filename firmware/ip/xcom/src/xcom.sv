@@ -62,6 +62,7 @@
 //                 05/13/25 - Refactored by @lharnaldi
 //                          - the sync_n core was removed to sync all signals
 //                            in one place (external).
+//                 09/08/25 - @lharnaldi add differential I/O ports
 //
 ///////////////////////////////////////////////////////////////////////////////
 module xcom import qick_pkg::*;
@@ -98,10 +99,14 @@ module xcom import qick_pkg::*;
 // XCOM 
    output logic   [4-1:0]   o_xcom_id          ,
 // IO XCOM (i_time_clk)
-   input  logic [NCH-1:0]   i_xcom_clk         ,
-   input  logic [NCH-1:0]   i_xcom_data        ,
-   output logic             o_xcom_clk         ,
-   output logic             o_xcom_data        ,
+   input  logic [NCH-1:0]   i_xcom_clk_p       ,
+   input  logic [NCH-1:0]   i_xcom_clk_n       ,
+   input  logic [NCH-1:0]   i_xcom_data_p      ,
+   input  logic [NCH-1:0]   i_xcom_data_n      ,
+   output logic             o_xcom_clk_p       ,
+   output logic             o_xcom_clk_n       ,
+   output logic             o_xcom_data_p      ,
+   output logic             o_xcom_data_n      ,
 // AXI-Lite DATA Slave I/F (i_ps_clk)
    input  logic   [6-1:0]   s_axi_awaddr       ,
    input  logic   [3-1:0]   s_axi_awprot       ,
@@ -332,6 +337,38 @@ xcom_txrx#(
   .o_dbg_tx_data     ( s_dbg_tx_data      ),
   .o_dbg_status      ( s_dbg_status       ),
   .o_dbg_data        ( s_dbg_debug        )                                                               
+);
+
+i_diff_nb #(
+    .NB( NCH ) 
+) dt_i_diff_nb(
+    .i_diff_in_p( i_xcom_data_p), 
+    .i_diff_in_n( i_xcom_data_n), 
+    .o_se       ( i_xcom_data     )  
+);
+
+i_diff_nb #(
+    .NB( NCH ) 
+) ck_i_diff_nb(
+    .i_diff_in_p( i_xcom_clk_p), 
+    .i_diff_in_n( i_xcom_clk_n), 
+    .o_se       ( i_xcom_clk     )  
+);
+
+o_diff_nb #(
+    .NB( NCH ) 
+) dt_o_diff_nb(
+    .o_diff_in_p( o_xcom_data_p), 
+    .o_diff_in_n( o_xcom_data_n), 
+    .i_se       ( o_xcom_data     )  
+);
+
+o_diff_nb #(
+    .NB( NCH ) 
+) ck_o_diff_nb(
+    .o_diff_in_p( o_xcom_clk_p), 
+    .o_diff_in_n( o_xcom_clk_n), 
+    .i_se       ( o_xcom_clk     )  
 );
 
 assign o_xcom_id   = s_xcom_id;
