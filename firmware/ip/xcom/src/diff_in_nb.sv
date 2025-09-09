@@ -28,8 +28,8 @@
 module i_diff_nb #(
     parameter integer NB = 16 // The width of the differential bus.
 ) (
-    input  logic [NB-1:0] i_diff_in_p, // Positive differential input
-    input  logic [NB-1:0] i_diff_in_n, // Negative differential input
+    input  logic [NB-1:0] i_diff_p, // Positive differential input
+    input  logic [NB-1:0] i_diff_n, // Negative differential input
     output logic [NB-1:0] o_se         // Single-ended output
 );
 
@@ -38,9 +38,9 @@ module i_diff_nb #(
         genvar i;
         for (i = 0; i < NB; i = i + 1) begin : ibufds_gen
             IBUFDS ibuf_ds_inst (
-                .O  (o_se[i]       ),
-                .I  (i_diff_in_p[i]),
-                .IB (i_diff_in_n[i])
+                .O  (o_se[i]    ),
+                .I  (i_diff_p[i]),
+                .IB (i_diff_n[i])
             );
         end
     endgenerate

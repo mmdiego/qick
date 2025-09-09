@@ -342,33 +342,33 @@ xcom_txrx#(
 i_diff_nb #(
     .NB( NCH ) 
 ) dt_i_diff_nb(
-    .i_diff_in_p( i_xcom_data_p), 
-    .i_diff_in_n( i_xcom_data_n), 
-    .o_se       ( i_xcom_data     )  
+    .i_diff_p( i_xcom_data_p ), 
+    .i_diff_n( i_xcom_data_n ), 
+    .o_se    ( i_xcom_data   )  
 );
 
 i_diff_nb #(
     .NB( NCH ) 
 ) ck_i_diff_nb(
-    .i_diff_in_p( i_xcom_clk_p), 
-    .i_diff_in_n( i_xcom_clk_n), 
-    .o_se       ( i_xcom_clk     )  
+    .i_diff_p( i_xcom_clk_p ), 
+    .i_diff_n( i_xcom_clk_n ), 
+    .o_se       ( i_xcom_clk   )  
 );
 
 o_diff_nb #(
     .NB( NCH ) 
 ) dt_o_diff_nb(
-    .o_diff_in_p( o_xcom_data_p), 
-    .o_diff_in_n( o_xcom_data_n), 
-    .i_se       ( o_xcom_data     )  
+    .o_diff_p( o_xcom_data_p ), 
+    .o_diff_n( o_xcom_data_n ), 
+    .i_se    ( o_xcom_data   )  
 );
 
 o_diff_nb #(
     .NB( NCH ) 
 ) ck_o_diff_nb(
-    .o_diff_in_p( o_xcom_clk_p), 
-    .o_diff_in_n( o_xcom_clk_n), 
-    .i_se       ( o_xcom_clk     )  
+    .o_diff_p( o_xcom_clk_p ), 
+    .o_diff_n( o_xcom_clk_n ), 
+    .i_se    ( o_xcom_clk   )  
 );
 
 assign o_xcom_id   = s_xcom_id;
