@@ -183,6 +183,10 @@ logic [32-1:0] s_dbg_status_ps    ;
 logic [32-1:0] s_dbg_data_ps      ;
 logic [32-1:0] s_dbg_debug_ps     ;
 
+logic [NCH-1:0] si_xcom_clk       ;
+logic [NCH-1:0] si_xcom_data      ;
+logic           so_xcom_clk       ;
+logic           so_xcom_data      ;
 
 ///////////////////////////////////////////////////////////////////////////////
 // AXI Registers
@@ -329,10 +333,10 @@ xcom_txrx#(
   .i_cfg_tick        ( s_xcom_cfg_sync[4-1:0] ),
   .o_xcom_id         ( s_xcom_id          ),
   .o_xcom_mem        ( xcom_mem_data      ),
-  .i_xcom_data       ( i_xcom_data        ),
-  .i_xcom_clk        ( i_xcom_clk         ),
-  .o_xcom_data       ( o_xcom_data        ),
-  .o_xcom_clk        ( o_xcom_clk         ),
+  .i_xcom_data       ( si_xcom_data       ),
+  .i_xcom_clk        ( si_xcom_clk        ),
+  .o_xcom_data       ( so_xcom_data       ),
+  .o_xcom_clk        ( so_xcom_clk        ),
   .o_dbg_rx_data     ( s_dbg_rx_data      ),
   .o_dbg_tx_data     ( s_dbg_tx_data      ),
   .o_dbg_status      ( s_dbg_status       ),
@@ -344,7 +348,7 @@ i_diff_nb #(
 ) dt_i_diff_nb(
     .i_diff_p( i_xcom_data_p ), 
     .i_diff_n( i_xcom_data_n ), 
-    .o_se    ( i_xcom_data   )  
+    .o_se    ( si_xcom_data  )  
 );
 
 i_diff_nb #(
@@ -352,23 +356,23 @@ i_diff_nb #(
 ) ck_i_diff_nb(
     .i_diff_p( i_xcom_clk_p ), 
     .i_diff_n( i_xcom_clk_n ), 
-    .o_se       ( i_xcom_clk   )  
+    .o_se    ( si_xcom_clk  )  
 );
 
 o_diff_nb #(
-    .NB( NCH ) 
+    .NB( 1 ) 
 ) dt_o_diff_nb(
     .o_diff_p( o_xcom_data_p ), 
     .o_diff_n( o_xcom_data_n ), 
-    .i_se    ( o_xcom_data   )  
+    .i_se    ( so_xcom_data  )  
 );
 
 o_diff_nb #(
-    .NB( NCH ) 
+    .NB( 1 ) 
 ) ck_o_diff_nb(
     .o_diff_p( o_xcom_clk_p ), 
     .o_diff_n( o_xcom_clk_n ), 
-    .i_se    ( o_xcom_clk   )  
+    .i_se    ( so_xcom_clk  )  
 );
 
 assign o_xcom_id   = s_xcom_id;

@@ -28,7 +28,7 @@
 module o_diff_nb #(
     parameter integer NB = 16 // The width of the differential bus.
 ) (
-    input  logic [NB-1:0] i_se,         // Single-ended input
+    input  logic [NB-1:0] i_se,     // Single-ended input
     output logic [NB-1:0] o_diff_p, // Positive differential output
     output logic [NB-1:0] o_diff_n  // Negative differential output
 );

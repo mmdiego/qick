@@ -30,7 +30,7 @@ module i_diff_nb #(
 ) (
     input  logic [NB-1:0] i_diff_p, // Positive differential input
     input  logic [NB-1:0] i_diff_n, // Negative differential input
-    output logic [NB-1:0] o_se         // Single-ended output
+    output logic [NB-1:0] o_se      // Single-ended output
 );
 
     // Use a `generate` block to instantiate the IBUFDS primitives for each bit.

@@ -255,7 +255,7 @@
         </spirit:parameter>
         <spirit:parameter>
           <spirit:name>ASSOCIATED_BUSIF</spirit:name>
-          <spirit:value spirit:id="BUSIFPARAM_VALUE.I_CORE_CLK.ASSOCIATED_BUSIF">QICK_PERIPHERAL</spirit:value>
+          <spirit:value spirit:id="BUSIFPARAM_VALUE.I_CORE_CLK.ASSOCIATED_BUSIF">o_core:q_peripheral</spirit:value>
         </spirit:parameter>
       </spirit:parameters>
     </spirit:busInterface>
@@ -281,7 +281,7 @@
         </spirit:parameter>
         <spirit:parameter>
           <spirit:name>ASSOCIATED_BUSIF</spirit:name>
-          <spirit:value spirit:id="BUSIFPARAM_VALUE.I_PS_CLK.ASSOCIATED_BUSIF">s_axi</spirit:value>
+          <spirit:value spirit:id="BUSIFPARAM_VALUE.I_PS_CLK.ASSOCIATED_BUSIF">s_axi:o_proc</spirit:value>
         </spirit:parameter>
       </spirit:parameters>
     </spirit:busInterface>
@@ -307,57 +307,14 @@
         </spirit:parameter>
         <spirit:parameter>
           <spirit:name>ASSOCIATED_BUSIF</spirit:name>
-          <spirit:value spirit:id="BUSIFPARAM_VALUE.I_TIME_CLK.ASSOCIATED_BUSIF">PROC_CTRL:CORE_CTRL:TIME_CTRL</spirit:value>
+          <spirit:value spirit:id="BUSIFPARAM_VALUE.I_TIME_CLK.ASSOCIATED_BUSIF">o_time</spirit:value>
         </spirit:parameter>
       </spirit:parameters>
     </spirit:busInterface>
     <spirit:busInterface>
-      <spirit:name>PROC_CTRL</spirit:name>
-      <spirit:displayName>Processor control interface</spirit:displayName>
-      <spirit:description>Processor interface control signals</spirit:description>
-      <spirit:busType spirit:vendor="Fermi" spirit:library="user" spirit:name="qick_qproc_control" spirit:version="1.0"/>
-      <spirit:abstractionType spirit:vendor="Fermi" spirit:library="user" spirit:name="qick_qproc_control_rtl" spirit:version="1.0"/>
-      <spirit:master/>
-      <spirit:portMaps>
-        <spirit:portMap>
-          <spirit:logicalPort>
-            <spirit:name>start</spirit:name>
-          </spirit:logicalPort>
-          <spirit:physicalPort>
-            <spirit:name>o_proc_start</spirit:name>
-          </spirit:physicalPort>
-        </spirit:portMap>
-        <spirit:portMap>
-          <spirit:logicalPort>
-            <spirit:name>stop</spirit:name>
-          </spirit:logicalPort>
-          <spirit:physicalPort>
-            <spirit:name>o_proc_stop</spirit:name>
-          </spirit:physicalPort>
-        </spirit:portMap>
-      </spirit:portMaps>
-      <spirit:parameters>
-        <spirit:parameter>
-          <spirit:name>NUM_READ_OUTSTANDING</spirit:name>
-          <spirit:value spirit:id="BUSIFPARAM_VALUE.PROC_CTRL.NUM_READ_OUTSTANDING"/>
-        </spirit:parameter>
-        <spirit:parameter>
-          <spirit:name>NUM_WRITE_OUTSTANDING</spirit:name>
-          <spirit:value spirit:id="BUSIFPARAM_VALUE.PROC_CTRL.NUM_WRITE_OUTSTANDING"/>
-        </spirit:parameter>
-      </spirit:parameters>
-      <spirit:vendorExtensions>
-        <xilinx:busInterfaceInfo>
-          <xilinx:enablement>
-            <xilinx:isEnabled xilinx:resolve="dependent" xilinx:id="BUSIF_ENABLEMENT.PROC_CTRL" xilinx:dependency="spirit:decode(id(&apos;MODELPARAM_VALUE.SYNC&apos;)) = 1">true</xilinx:isEnabled>
-          </xilinx:enablement>
-        </xilinx:busInterfaceInfo>
-      </spirit:vendorExtensions>
-    </spirit:busInterface>
-    <spirit:busInterface>
-      <spirit:name>CORE_CTRL</spirit:name>
-      <spirit:busType spirit:vendor="Fermi" spirit:library="user" spirit:name="qick_qproc_control" spirit:version="1.0"/>
-      <spirit:abstractionType spirit:vendor="Fermi" spirit:library="user" spirit:name="qick_qproc_control_rtl" spirit:version="1.0"/>
+      <spirit:name>o_core</spirit:name>
+      <spirit:busType spirit:vendor="QICK" spirit:library="QICK" spirit:name="qick_qproc_control" spirit:version="1.0"/>
+      <spirit:abstractionType spirit:vendor="QICK" spirit:library="QICK" spirit:name="qick_qproc_control_rtl" spirit:version="1.0"/>
       <spirit:master/>
       <spirit:portMaps>
         <spirit:portMap>
@@ -377,18 +334,35 @@
           </spirit:physicalPort>
         </spirit:portMap>
       </spirit:portMaps>
-      <spirit:vendorExtensions>
-        <xilinx:busInterfaceInfo>
-          <xilinx:enablement>
-            <xilinx:isEnabled xilinx:resolve="dependent" xilinx:id="BUSIF_ENABLEMENT.CORE_CTRL" xilinx:dependency="spirit:decode(id(&apos;MODELPARAM_VALUE.SYNC&apos;)) = 1">true</xilinx:isEnabled>
-          </xilinx:enablement>
-        </xilinx:busInterfaceInfo>
-      </spirit:vendorExtensions>
     </spirit:busInterface>
     <spirit:busInterface>
-      <spirit:name>TIME_CTRL</spirit:name>
-      <spirit:busType spirit:vendor="Fermi" spirit:library="user" spirit:name="qick_time_control" spirit:version="1.0"/>
-      <spirit:abstractionType spirit:vendor="Fermi" spirit:library="user" spirit:name="qick_time_control_rtl" spirit:version="1.0"/>
+      <spirit:name>o_proc</spirit:name>
+      <spirit:busType spirit:vendor="QICK" spirit:library="QICK" spirit:name="qick_qproc_control" spirit:version="1.0"/>
+      <spirit:abstractionType spirit:vendor="QICK" spirit:library="QICK" spirit:name="qick_qproc_control_rtl" spirit:version="1.0"/>
+      <spirit:master/>
+      <spirit:portMaps>
+        <spirit:portMap>
+          <spirit:logicalPort>
+            <spirit:name>start</spirit:name>
+          </spirit:logicalPort>
+          <spirit:physicalPort>
+            <spirit:name>o_proc_start</spirit:name>
+          </spirit:physicalPort>
+        </spirit:portMap>
+        <spirit:portMap>
+          <spirit:logicalPort>
+            <spirit:name>stop</spirit:name>
+          </spirit:logicalPort>
+          <spirit:physicalPort>
+            <spirit:name>o_proc_stop</spirit:name>
+          </spirit:physicalPort>
+        </spirit:portMap>
+      </spirit:portMaps>
+    </spirit:busInterface>
+    <spirit:busInterface>
+      <spirit:name>o_time</spirit:name>
+      <spirit:busType spirit:vendor="QICK" spirit:library="QICK" spirit:name="qick_time_control" spirit:version="1.0"/>
+      <spirit:abstractionType spirit:vendor="QICK" spirit:library="QICK" spirit:name="qick_time_control_rtl" spirit:version="1.0"/>
       <spirit:master/>
       <spirit:portMaps>
         <spirit:portMap>
@@ -416,34 +390,27 @@
           </spirit:physicalPort>
         </spirit:portMap>
       </spirit:portMaps>
-      <spirit:vendorExtensions>
-        <xilinx:busInterfaceInfo>
-          <xilinx:enablement>
-            <xilinx:isEnabled xilinx:resolve="dependent" xilinx:id="BUSIF_ENABLEMENT.TIME_CTRL" xilinx:dependency="spirit:decode(id(&apos;MODELPARAM_VALUE.SYNC&apos;)) = 1">true</xilinx:isEnabled>
-          </xilinx:enablement>
-        </xilinx:busInterfaceInfo>
-      </spirit:vendorExtensions>
     </spirit:busInterface>
     <spirit:busInterface>
-      <spirit:name>QICK_PERIPHERAL</spirit:name>
-      <spirit:busType spirit:vendor="Fermi" spirit:library="user" spirit:name="qick_peripheral" spirit:version="1.0"/>
-      <spirit:abstractionType spirit:vendor="Fermi" spirit:library="user" spirit:name="qick_peripheral_rtl" spirit:version="1.0"/>
+      <spirit:name>q_peripheral</spirit:name>
+      <spirit:busType spirit:vendor="QICK" spirit:library="QICK" spirit:name="qick_peripheral" spirit:version="1.0"/>
+      <spirit:abstractionType spirit:vendor="QICK" spirit:library="QICK" spirit:name="qick_peripheral_rtl" spirit:version="1.0"/>
       <spirit:slave/>
       <spirit:portMaps>
-        <spirit:portMap>
-          <spirit:logicalPort>
-            <spirit:name>flag</spirit:name>
-          </spirit:logicalPort>
-          <spirit:physicalPort>
-            <spirit:name>o_core_flag</spirit:name>
-          </spirit:physicalPort>
-        </spirit:portMap>
         <spirit:portMap>
           <spirit:logicalPort>
             <spirit:name>b_dt</spirit:name>
           </spirit:logicalPort>
           <spirit:physicalPort>
             <spirit:name>i_core_data2</spirit:name>
+          </spirit:physicalPort>
+        </spirit:portMap>
+        <spirit:portMap>
+          <spirit:logicalPort>
+            <spirit:name>flag</spirit:name>
+          </spirit:logicalPort>
+          <spirit:physicalPort>
+            <spirit:name>o_core_flag</spirit:name>
           </spirit:physicalPort>
         </spirit:portMap>
         <spirit:portMap>
@@ -503,16 +470,6 @@
           </spirit:physicalPort>
         </spirit:portMap>
       </spirit:portMaps>
-      <spirit:parameters>
-        <spirit:parameter>
-          <spirit:name>NUM_READ_OUTSTANDING</spirit:name>
-          <spirit:value spirit:id="BUSIFPARAM_VALUE.QICK_PERIPHERAL.NUM_READ_OUTSTANDING"/>
-        </spirit:parameter>
-        <spirit:parameter>
-          <spirit:name>NUM_WRITE_OUTSTANDING</spirit:name>
-          <spirit:value spirit:id="BUSIFPARAM_VALUE.QICK_PERIPHERAL.NUM_WRITE_OUTSTANDING"/>
-        </spirit:parameter>
-      </spirit:parameters>
     </spirit:busInterface>
     <spirit:busInterface>
       <spirit:name>i_xcom_clk_n</spirit:name>
@@ -531,25 +488,17 @@
       </spirit:portMaps>
     </spirit:busInterface>
     <spirit:busInterface>
-      <spirit:name>i_xcom_clk</spirit:name>
-      <spirit:busType spirit:vendor="xilinx.com" spirit:library="interface" spirit:name="diff_clock" spirit:version="1.0"/>
-      <spirit:abstractionType spirit:vendor="xilinx.com" spirit:library="interface" spirit:name="diff_clock_rtl" spirit:version="1.0"/>
+      <spirit:name>i_xcom_clk_p</spirit:name>
+      <spirit:busType spirit:vendor="xilinx.com" spirit:library="signal" spirit:name="clock" spirit:version="1.0"/>
+      <spirit:abstractionType spirit:vendor="xilinx.com" spirit:library="signal" spirit:name="clock_rtl" spirit:version="1.0"/>
       <spirit:slave/>
       <spirit:portMaps>
         <spirit:portMap>
           <spirit:logicalPort>
-            <spirit:name>CLK_P</spirit:name>
+            <spirit:name>CLK</spirit:name>
           </spirit:logicalPort>
           <spirit:physicalPort>
             <spirit:name>i_xcom_clk_p</spirit:name>
-          </spirit:physicalPort>
-        </spirit:portMap>
-        <spirit:portMap>
-          <spirit:logicalPort>
-            <spirit:name>CLK_N</spirit:name>
-          </spirit:logicalPort>
-          <spirit:physicalPort>
-            <spirit:name>i_xcom_clk_n</spirit:name>
           </spirit:physicalPort>
         </spirit:portMap>
       </spirit:portMaps>
@@ -566,6 +515,22 @@
           </spirit:logicalPort>
           <spirit:physicalPort>
             <spirit:name>o_xcom_clk_n</spirit:name>
+          </spirit:physicalPort>
+        </spirit:portMap>
+      </spirit:portMaps>
+    </spirit:busInterface>
+    <spirit:busInterface>
+      <spirit:name>o_xcom_clk_p</spirit:name>
+      <spirit:busType spirit:vendor="xilinx.com" spirit:library="signal" spirit:name="clock" spirit:version="1.0"/>
+      <spirit:abstractionType spirit:vendor="xilinx.com" spirit:library="signal" spirit:name="clock_rtl" spirit:version="1.0"/>
+      <spirit:master/>
+      <spirit:portMaps>
+        <spirit:portMap>
+          <spirit:logicalPort>
+            <spirit:name>CLK</spirit:name>
+          </spirit:logicalPort>
+          <spirit:physicalPort>
+            <spirit:name>o_xcom_clk_p</spirit:name>
           </spirit:physicalPort>
         </spirit:portMap>
       </spirit:portMaps>
@@ -614,6 +579,30 @@
           </spirit:logicalPort>
           <spirit:physicalPort>
             <spirit:name>o_xcom_data_n</spirit:name>
+          </spirit:physicalPort>
+        </spirit:portMap>
+      </spirit:portMaps>
+    </spirit:busInterface>
+    <spirit:busInterface>
+      <spirit:name>i_xcom_clk</spirit:name>
+      <spirit:busType spirit:vendor="xilinx.com" spirit:library="interface" spirit:name="diff_clock" spirit:version="1.0"/>
+      <spirit:abstractionType spirit:vendor="xilinx.com" spirit:library="interface" spirit:name="diff_clock_rtl" spirit:version="1.0"/>
+      <spirit:slave/>
+      <spirit:portMaps>
+        <spirit:portMap>
+          <spirit:logicalPort>
+            <spirit:name>CLK_P</spirit:name>
+          </spirit:logicalPort>
+          <spirit:physicalPort>
+            <spirit:name>i_xcom_clk_p</spirit:name>
+          </spirit:physicalPort>
+        </spirit:portMap>
+        <spirit:portMap>
+          <spirit:logicalPort>
+            <spirit:name>CLK_N</spirit:name>
+          </spirit:logicalPort>
+          <spirit:physicalPort>
+            <spirit:name>i_xcom_clk_n</spirit:name>
           </spirit:physicalPort>
         </spirit:portMap>
       </spirit:portMaps>
@@ -671,7 +660,7 @@
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>viewChecksum</spirit:name>
-            <spirit:value>ea57b492</spirit:value>
+            <spirit:value>70331dd7</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -687,7 +676,7 @@
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>viewChecksum</spirit:name>
-            <spirit:value>ea57b492</spirit:value>
+            <spirit:value>70331dd7</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -1620,7 +1609,7 @@
       <spirit:file>
         <spirit:name>src/xcom.sv</spirit:name>
         <spirit:fileType>systemVerilogSource</spirit:fileType>
-        <spirit:userFileType>CHECKSUM_ddf8b0fa</spirit:userFileType>
+        <spirit:userFileType>CHECKSUM_15431cbb</spirit:userFileType>
         <spirit:userFileType>IMPORTED_FILE</spirit:userFileType>
       </spirit:file>
     </spirit:fileSet>
@@ -1733,7 +1722,7 @@
       <spirit:name>NCH</spirit:name>
       <spirit:displayName>NCH</spirit:displayName>
       <spirit:description>Number of channels</spirit:description>
-      <spirit:value spirit:format="long" spirit:resolve="user" spirit:id="PARAM_VALUE.NCH" spirit:minimum="1" spirit:maximum="15" spirit:rangeType="long">2</spirit:value>
+      <spirit:value spirit:format="long" spirit:resolve="user" spirit:id="PARAM_VALUE.NCH" spirit:minimum="1" spirit:maximum="16" spirit:rangeType="long">2</spirit:value>
     </spirit:parameter>
     <spirit:parameter>
       <spirit:name>SYNC</spirit:name>
@@ -1754,24 +1743,6 @@
   </spirit:parameters>
   <spirit:vendorExtensions>
     <xilinx:coreExtensions>
-      <xilinx:supportedFamilies>
-        <xilinx:family xilinx:lifeCycle="Production">kintex7</xilinx:family>
-        <xilinx:family xilinx:lifeCycle="Production">kintex7l</xilinx:family>
-        <xilinx:family xilinx:lifeCycle="Production">artix7</xilinx:family>
-        <xilinx:family xilinx:lifeCycle="Production">artix7l</xilinx:family>
-        <xilinx:family xilinx:lifeCycle="Production">aartix7</xilinx:family>
-        <xilinx:family xilinx:lifeCycle="Production">zynq</xilinx:family>
-        <xilinx:family xilinx:lifeCycle="Production">azynq</xilinx:family>
-        <xilinx:family xilinx:lifeCycle="Production">spartan7</xilinx:family>
-        <xilinx:family xilinx:lifeCycle="Production">aspartan7</xilinx:family>
-        <xilinx:family xilinx:lifeCycle="Production">virtexuplus</xilinx:family>
-        <xilinx:family xilinx:lifeCycle="Production">virtexuplusHBM</xilinx:family>
-        <xilinx:family xilinx:lifeCycle="Production">virtexuplus58g</xilinx:family>
-        <xilinx:family xilinx:lifeCycle="Production">kintexuplus</xilinx:family>
-        <xilinx:family xilinx:lifeCycle="Production">artixuplus</xilinx:family>
-        <xilinx:family xilinx:lifeCycle="Production">zynquplus</xilinx:family>
-        <xilinx:family xilinx:lifeCycle="Production">kintexu</xilinx:family>
-      </xilinx:supportedFamilies>
       <xilinx:taxonomies>
         <xilinx:taxonomy>/QICK</xilinx:taxonomy>
       </xilinx:taxonomies>
@@ -1780,20 +1751,20 @@
       <xilinx:definitionSource>package_project</xilinx:definitionSource>
       <xilinx:vendorDisplayName>Quantum Instrumentation Control Kit</xilinx:vendorDisplayName>
       <xilinx:vendorURL>https://github.com/openquantumhardware/qick</xilinx:vendorURL>
-      <xilinx:coreRevision>1</xilinx:coreRevision>
+      <xilinx:coreRevision>3</xilinx:coreRevision>
       <xilinx:upgrades>
         <xilinx:canUpgradeFrom>fnal:qick:xcom:1.0</xilinx:canUpgradeFrom>
       </xilinx:upgrades>
-      <xilinx:coreCreationDateTime>2025-09-08T21:32:52Z</xilinx:coreCreationDateTime>
+      <xilinx:coreCreationDateTime>2025-09-12T17:09:39Z</xilinx:coreCreationDateTime>
     </xilinx:coreExtensions>
     <xilinx:packagingInfo>
       <xilinx:xilinxVersion>2023.1</xilinx:xilinxVersion>
-      <xilinx:checksum xilinx:scope="busInterfaces" xilinx:value="664bcecd"/>
+      <xilinx:checksum xilinx:scope="busInterfaces" xilinx:value="5f78b011"/>
       <xilinx:checksum xilinx:scope="memoryMaps" xilinx:value="97e0d26f"/>
-      <xilinx:checksum xilinx:scope="fileGroups" xilinx:value="082cc6ef"/>
-      <xilinx:checksum xilinx:scope="ports" xilinx:value="0c369d24"/>
+      <xilinx:checksum xilinx:scope="fileGroups" xilinx:value="3c2c0f95"/>
+      <xilinx:checksum xilinx:scope="ports" xilinx:value="e426cd0e"/>
       <xilinx:checksum xilinx:scope="hdlParameters" xilinx:value="46f159be"/>
-      <xilinx:checksum xilinx:scope="parameters" xilinx:value="0e76d2d5"/>
+      <xilinx:checksum xilinx:scope="parameters" xilinx:value="3af2fd53"/>
     </xilinx:packagingInfo>
   </spirit:vendorExtensions>
 </spirit:component>
