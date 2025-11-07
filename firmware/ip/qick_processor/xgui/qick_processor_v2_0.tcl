@@ -39,11 +39,22 @@ proc init_gui { IPINST } {
   #Adding Group
   set GROUP1 [ipgui::add_group $IPINST -name "GROUP1" -parent ${OUT_Port_Configuration} -display_name {QICK PORTS}]
   set_property tooltip {G_PORTS} ${GROUP1}
-  ipgui::add_param $IPINST -name "OUT_TRIG_QTY" -parent ${GROUP1}
-  ipgui::add_param $IPINST -name "OUT_WPORT_QTY" -parent ${GROUP1}
-  ipgui::add_param $IPINST -name "OUT_DPORT_QTY" -parent ${GROUP1}
-  ipgui::add_param $IPINST -name "OUT_DPORT_DW" -parent ${GROUP1}
-  ipgui::add_param $IPINST -name "FIFO_DEPTH" -parent ${GROUP1} -widget comboBox
+  #Adding Group
+  set Trigger_Port [ipgui::add_group $IPINST -name "Trigger Port" -parent ${GROUP1}]
+  ipgui::add_param $IPINST -name "OUT_TRIG_QTY" -parent ${Trigger_Port}
+  ipgui::add_param $IPINST -name "TPORT_DEPTH" -parent ${Trigger_Port}
+
+  #Adding Group
+  set Wave_Port [ipgui::add_group $IPINST -name "Wave Port" -parent ${GROUP1}]
+  ipgui::add_param $IPINST -name "OUT_WPORT_QTY" -parent ${Wave_Port}
+  ipgui::add_param $IPINST -name "WPORT_DEPTH" -parent ${Wave_Port}
+
+  #Adding Group
+  set Data_Port [ipgui::add_group $IPINST -name "Data Port" -parent ${GROUP1}]
+  ipgui::add_param $IPINST -name "OUT_DPORT_QTY" -parent ${Data_Port}
+  ipgui::add_param $IPINST -name "OUT_DPORT_DW" -parent ${Data_Port}
+  ipgui::add_param $IPINST -name "DPORT_DEPTH" -parent ${Data_Port}
+
 
   #Adding Group
   set GROUP [ipgui::add_group $IPINST -name "GROUP" -parent ${OUT_Port_Configuration} -display_name {QICK SIGNALS}]
@@ -139,6 +150,15 @@ proc validate_PARAM_VALUE.DMEM_AW { PARAM_VALUE.DMEM_AW } {
 	return true
 }
 
+proc update_PARAM_VALUE.DPORT_DEPTH { PARAM_VALUE.DPORT_DEPTH } {
+	# Procedure called to update DPORT_DEPTH when any of the dependent parameters in the arguments change
+}
+
+proc validate_PARAM_VALUE.DPORT_DEPTH { PARAM_VALUE.DPORT_DEPTH } {
+	# Procedure called to validate DPORT_DEPTH
+	return true
+}
+
 proc update_PARAM_VALUE.DUAL_CORE { PARAM_VALUE.DUAL_CORE } {
 	# Procedure called to update DUAL_CORE when any of the dependent parameters in the arguments change
 }
@@ -154,15 +174,6 @@ proc update_PARAM_VALUE.EXT_FLAG { PARAM_VALUE.EXT_FLAG } {
 
 proc validate_PARAM_VALUE.EXT_FLAG { PARAM_VALUE.EXT_FLAG } {
 	# Procedure called to validate EXT_FLAG
-	return true
-}
-
-proc update_PARAM_VALUE.FIFO_DEPTH { PARAM_VALUE.FIFO_DEPTH } {
-	# Procedure called to update FIFO_DEPTH when any of the dependent parameters in the arguments change
-}
-
-proc validate_PARAM_VALUE.FIFO_DEPTH { PARAM_VALUE.FIFO_DEPTH } {
-	# Procedure called to validate FIFO_DEPTH
 	return true
 }
 
@@ -301,12 +312,30 @@ proc validate_PARAM_VALUE.TIME_READ { PARAM_VALUE.TIME_READ } {
 	return true
 }
 
+proc update_PARAM_VALUE.TPORT_DEPTH { PARAM_VALUE.TPORT_DEPTH } {
+	# Procedure called to update TPORT_DEPTH when any of the dependent parameters in the arguments change
+}
+
+proc validate_PARAM_VALUE.TPORT_DEPTH { PARAM_VALUE.TPORT_DEPTH } {
+	# Procedure called to validate TPORT_DEPTH
+	return true
+}
+
 proc update_PARAM_VALUE.WMEM_AW { PARAM_VALUE.WMEM_AW } {
 	# Procedure called to update WMEM_AW when any of the dependent parameters in the arguments change
 }
 
 proc validate_PARAM_VALUE.WMEM_AW { PARAM_VALUE.WMEM_AW } {
 	# Procedure called to validate WMEM_AW
+	return true
+}
+
+proc update_PARAM_VALUE.WPORT_DEPTH { PARAM_VALUE.WPORT_DEPTH } {
+	# Procedure called to update WPORT_DEPTH when any of the dependent parameters in the arguments change
+}
+
+proc validate_PARAM_VALUE.WPORT_DEPTH { PARAM_VALUE.WPORT_DEPTH } {
+	# Procedure called to validate WPORT_DEPTH
 	return true
 }
 
@@ -396,11 +425,6 @@ proc update_MODELPARAM_VALUE.OUT_TRIG_QTY { MODELPARAM_VALUE.OUT_TRIG_QTY PARAM_
 	set_property value [get_property value ${PARAM_VALUE.OUT_TRIG_QTY}] ${MODELPARAM_VALUE.OUT_TRIG_QTY}
 }
 
-proc update_MODELPARAM_VALUE.FIFO_DEPTH { MODELPARAM_VALUE.FIFO_DEPTH PARAM_VALUE.FIFO_DEPTH } {
-	# Procedure called to set VHDL generic/Verilog parameter value(s) based on TCL parameter value
-	set_property value [get_property value ${PARAM_VALUE.FIFO_DEPTH}] ${MODELPARAM_VALUE.FIFO_DEPTH}
-}
-
 proc update_MODELPARAM_VALUE.EXT_FLAG { MODELPARAM_VALUE.EXT_FLAG PARAM_VALUE.EXT_FLAG } {
 	# Procedure called to set VHDL generic/Verilog parameter value(s) based on TCL parameter value
 	set_property value [get_property value ${PARAM_VALUE.EXT_FLAG}] ${MODELPARAM_VALUE.EXT_FLAG}
@@ -439,5 +463,20 @@ proc update_MODELPARAM_VALUE.CORE_CTRL { MODELPARAM_VALUE.CORE_CTRL PARAM_VALUE.
 proc update_MODELPARAM_VALUE.GEN_SYNC { MODELPARAM_VALUE.GEN_SYNC PARAM_VALUE.GEN_SYNC } {
 	# Procedure called to set VHDL generic/Verilog parameter value(s) based on TCL parameter value
 	set_property value [get_property value ${PARAM_VALUE.GEN_SYNC}] ${MODELPARAM_VALUE.GEN_SYNC}
+}
+
+proc update_MODELPARAM_VALUE.TPORT_DEPTH { MODELPARAM_VALUE.TPORT_DEPTH PARAM_VALUE.TPORT_DEPTH } {
+	# Procedure called to set VHDL generic/Verilog parameter value(s) based on TCL parameter value
+	set_property value [get_property value ${PARAM_VALUE.TPORT_DEPTH}] ${MODELPARAM_VALUE.TPORT_DEPTH}
+}
+
+proc update_MODELPARAM_VALUE.DPORT_DEPTH { MODELPARAM_VALUE.DPORT_DEPTH PARAM_VALUE.DPORT_DEPTH } {
+	# Procedure called to set VHDL generic/Verilog parameter value(s) based on TCL parameter value
+	set_property value [get_property value ${PARAM_VALUE.DPORT_DEPTH}] ${MODELPARAM_VALUE.DPORT_DEPTH}
+}
+
+proc update_MODELPARAM_VALUE.WPORT_DEPTH { MODELPARAM_VALUE.WPORT_DEPTH PARAM_VALUE.WPORT_DEPTH } {
+	# Procedure called to set VHDL generic/Verilog parameter value(s) based on TCL parameter value
+	set_property value [get_property value ${PARAM_VALUE.WPORT_DEPTH}] ${MODELPARAM_VALUE.WPORT_DEPTH}
 }
 
