@@ -400,7 +400,10 @@ class Axis_QICK_Proc(SocIP):
         for param in ['tnet','qnet']:
             if param.upper() in description['parameters']:
                 self.cfg['has_qnet'] = int(description['parameters'][param.upper()])
-        self.cfg['fifo_depth']  = pow( 2, int(description['parameters']['FIFO_DEPTH'])  )
+        # parameter name was changed from FIFO_DEPTH to TPORT_DEPTH,DPORT_DEPTH,WPORT_DEPTH in rev 28
+        for param in ['fifo_depth', 'tport_depth', 'dport_depth','wport_depth']:
+            if param.upper() in description['parameters']:
+                self.cfg[param] = int(description['parameters'][param.upper()])
         self.cfg['call_depth']  = int(description['parameters']['CALL_DEPTH'])
         self.cfg['debug']  = int(description['parameters']['DEBUG'])
 
@@ -584,7 +587,14 @@ class Axis_QICK_Proc(SocIP):
         lines.append(' TPROC V2 INFO ')
         lines.append('---------------------------------------------')
         lines.append("Configuration:")
-        for param in ['fifo_depth', 'call_depth', 'pmem_size', 'dmem_size', 'wmem_size', 'dreg_qty']:
+        # parameter name was changed from FIFO_DEPTH to TPORT_DEPTH,DPORT_DEPTH,WPORT_DEPTH in rev 28
+        if self['revision'] < 28:
+            for param in ['fifo_depth']:
+                lines.append("%-14s: %d" % (param, self.cfg[param]) )
+        else:
+            for param in ['tport_depth','dport_depth','wport_depth']:
+                lines.append("%-14s: %d" % (param, self.cfg[param]) )
+        for param in ['call_depth', 'pmem_size', 'dmem_size', 'wmem_size', 'dreg_qty']:
             lines.append("%-14s: %d" % (param, self.cfg[param]) )
         for param in ['in_port_qty', 'out_trig_qty', 'out_dport_qty','out_dport_dw', 'out_wport_qty']:
             lines.append("%-14s: %d" % (param, self.cfg[param]) )
