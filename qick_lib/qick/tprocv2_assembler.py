@@ -250,13 +250,11 @@ def check_name(name_str : str) -> bool:
         raise RuntimeError('CHECK_NAME, Name can not be a Register name: ' + name_str)
     return True
 
-def parse_lines_and_labels(program_list : list, label_dict : dict) -> None:
-    """add addresses for labels in command arguments; add line numbers if missing
+def parse_labels(program_list : list, label_dict : dict) -> None:
+    """add addresses for labels in command arguments
     """
-    for line_number, command in enumerate(program_list, start=1):
-        #if (('LABEL' in command) and (command['LABEL'] in label_dict) and 'ADDR' not in command):
-        #    command['ADDR'] = label_dict[ command['LABEL'] ]
-        if (('LABEL' in command) and 'ADDR' not in command):
+    for command in program_list:
+        if 'LABEL' in command and 'ADDR' not in command:
             if command['LABEL'] in label_dict:
                 command['ADDR'] = label_dict[ command['LABEL'] ]
             elif command['LABEL'] == 'PREV':
@@ -268,9 +266,7 @@ def parse_lines_and_labels(program_list : list, label_dict : dict) -> None:
             elif command['LABEL'] == 'SKIP':
                 command['ADDR'] = "&%d" % (command['P_ADDR'] + 2)
             else:
-                raise RuntimeError("boom")
-        if not 'LINE' in command:
-            command['LINE'] = line_number
+                raise RuntimeError('unrecognized label %s (should be a defined label, or PREV/HERE/NEXT/SKIP'%(command['LABEL']))
 
 def integer2bin(strin : str, bits : int = 8, uint : int = 0) -> str:
     """
@@ -516,10 +512,10 @@ class Assembler():
             assembler += '\n'
             return assembler
     
-        # make a copy of the program list before parse_lines_and_labels modifies it
+        # make a copy of the program list before parse_labels modifies it
         program_list = copy.deepcopy(program_list)
-        # add label addresses and line numbers, if missing
-        parse_lines_and_labels(program_list, label_dict)
+        # add label addresses
+        parse_labels(program_list, label_dict)
 
         assembler_code = ''
         key_list = list(label_dict.keys())
@@ -590,18 +586,19 @@ class Assembler():
             :label_dict (dict): dictionary with all labels found plus their memory address in program memory. ({'LABEL': '&0'})
         """
            
-        label_line_idxs = []
             
-        def label_recognition(file_lines : list) -> dict:
+        def label_recognition(file_lines : list) -> (dict, list):
             """
                 gets and returns all labels from file.
                 IMPORTANT: This function updates 'Alias_List'.
                 
                 :file_lines (list): file as a list of strings, each element represents a new line. (should be stripped)
-                :returns: label_dictionary
+                :returns (tuple): (label_dictionary, label_line_idxs
                 :label_dictionary (dict): dictionary with all labels found plus their memory address in program memory. ({'LABEL': '&0'})
+                :label_line_idxs (list): line numbers with labels, to be skipped in command interpretation
             """
             label_dict = {}
+            label_line_idxs = []
             mem_addr = 1 # address 0 goes NOP
             # Check if LABEL, DIRETIVE OR INSTRUCTION
             for line_number, command in enumerate(file_lines, start=1):
@@ -696,21 +693,20 @@ class Assembler():
             show_info += '\n' + ('###############################')
             logger.debug("LABEL_RECOGNITION: "+show_info)
                 
-            return label_dict
+            return label_dict, label_line_idxs
         
-        def command_recognition(file_lines : list, label_dict : dict) -> list:
+        def command_recognition(file_lines : list, label_line_idxs : list) -> list:
             """
                 gets and returns all commands from file.
                 IMPORTANT: Uses 'Alias_List', 'Param_List'.
                 
                 :file_lines (list): file as a list of strings, each element represents a new line. (should be stripped)
-                :label_dict (dict): dictionary with all labels found plus their memory address in program memory. ({'LABEL': '&0'}). see ' label_recognition() '
+                :label_line_idxs (list): line numbers with labels, to be skipped in command interpretation
                 :returns: program_list
                 :program_list (list): program instructions as a list of dictionaries.
                 
             """
-            program_list = [{'P_ADDR': 0, 'LINE': 1, 'CMD': 'NOP'}]
-            #program_list = []
+            program_list = [{'P_ADDR': 0, 'CMD': 'NOP'}]
             mem_addr = 0
             for line_number, command in enumerate(file_lines, start=1):
                 command_info = {}
@@ -948,16 +944,9 @@ class Assembler():
                             if CMD_DEST_SOURCE[1] == 's15':
                                 logger.info("COMMAND_RECOGNITION: BRANCH to s_addr  > line " + str(line_number))
                                 command_info['ADDR'] = 's15'
-                            elif CMD_DEST_SOURCE[1]  in label_dict:
-                                logger.info("COMMAND_RECOGNITION: BRANCH to label : " + CMD_DEST_SOURCE[1] + " is done to address " + label_dict[CMD_DEST_SOURCE[1]] + "  > line " + str(line_number))
-                                #command_info['ADDR'] = label_dict[CMD_DEST_SOURCE[1]]
-                                print(command_info)
-                                command_info['LABEL'] = CMD_DEST_SOURCE[1]
                             else:
-                                if CMD_DEST_SOURCE[1] in ['PREV', 'HERE', 'NEXT', 'SKIP']:
-                                    command_info['LABEL'] = CMD_DEST_SOURCE[1]
-                                else:
-                                    raise RuntimeError("COMMAND_RECOGNITION: Branch Address ERROR (Should be a label) in line " + str(line_number))
+                                logger.info("COMMAND_RECOGNITION: BRANCH to label or keyword : " + CMD_DEST_SOURCE[1] + "  > line " + str(line_number))
+                                command_info['LABEL'] = CMD_DEST_SOURCE[1]
                         elif (CMD_DEST_SOURCE[0]=='WAIT'):
                             logger.debug("COMMAND_RECOGNITION: WAIT adding Instruction")
                             command_info['C_OP'] = CMD_DEST_SOURCE[1]
@@ -1007,10 +996,10 @@ class Assembler():
 
         ##### START ASSEMBLER TO LIST
         logger.debug("ASM2LIST: ##### STEP_1 - LABEL RECOGNITION")
-        label_dict = label_recognition(asm_str)
+        label_dict, label_line_idxs = label_recognition(asm_str)
 
         logger.debug("ASM2LIST: ##### STEP_2 - COMMAND RECOGNITION")
-        program_list = command_recognition(asm_str, label_dict)
+        program_list = command_recognition(asm_str, label_line_idxs)
 
         return (program_list, label_dict)
 
@@ -1027,10 +1016,10 @@ class Assembler():
         """
         logger.debug("LIST2BIN: ##### LIST 2 BIN")
 
-        # make a copy of the program list before parse_lines_and_labels modifies it
+        # make a copy of the program list before parse_labels modifies it
         program_list = copy.deepcopy(program_list)
-        # add label addresses and line numbers, if missing
-        parse_lines_and_labels(program_list, label_dict)
+        # add label addresses
+        parse_labels(program_list, label_dict)
         
         # first line is NOP
         #binary_program_list = ['000_000__000__0_0_0_00_00___00000___000000__000000____0_0000000__0_0000000__0000000000000000__0000000']
@@ -1091,22 +1080,25 @@ class Assembler():
         ###############################################################################
             elif command['CMD'] == 'WAIT':
                 CODE = Instruction.WAIT(command)
+                logger.debug('COMMAND_TRANSLATION: Command Wait add one more instruction ' + str(command['LINE']) )
             else:
                 raise RuntimeError("COMMAND_TRANSLATION: Command Listed but not programmed > " + command['CMD'])
         ###################################################################################
-            length = CODE.count('0') + CODE.count('1')
-            if (length != 72):
-                if (command['CMD'] == 'WAIT'):
-                    logger.debug('COMMAND_TRANSLATION: Command Wait add one more instruction ' + str(command['LINE']) )
-                    CODE[-1] = CODE[-1] + ' //' + command['CMD']
-                else:
+            # most commands translate to a binary machine-code string, WAIT translates to a list of str
+
+            # if we have a binary string, put it in a list
+            if isinstance(CODE, str):
+                CODE = [CODE]
+            # check that each line has the correct length
+            for inst in CODE:
+                length = inst.count('0') + inst.count('1')
+                if (length != 72):
                     raise RuntimeError(f"COMMAND_TRANSLATION: {CODE}\nINSTRUCTION LENGTH > {length} at line {command['LINE']}")
-            if (command['CMD'] == 'WAIT'):
-                binary_program_list.extend(CODE)
-            else:
-                CODE = CODE + ' //' + command['CMD']
-                binary_program_list.append(CODE)
-                
+            # label with the command type
+            CODE[-1] += ' //' + command['CMD']
+            # append the new lines
+            binary_program_list.extend(CODE)
+
         if (save_unparsed_filename):
             with open(save_unparsed_filename, "w+") as f:
                 for line in binary_program_list:
@@ -1133,11 +1125,7 @@ class Assembler():
         
         """
         program_list, label_dict = Assembler.file_asm2list(filename)
-        if not program_list:
-            raise RuntimeError("ASM2BIN: Program list with errors.")
         binary_program_list = Assembler.list2bin(program_list, label_dict, save_unparsed_filename)
-        if binary_program_list == []:
-            binary_program_list = [[],[]]
         return binary_program_list
 
     def str_asm2bin(str_asm : str, save_unparsed_filename : str = "") -> list:
@@ -1148,8 +1136,6 @@ class Assembler():
         
         """
         program_list, label_dict = Assembler.str_asm2list(str_asm)
-        if not program_list:
-            raise RuntimeError("ASM2BIN: Program list with errors.")
         binary_program_list = Assembler.list2bin(program_list, label_dict, save_unparsed_filename)
         return binary_program_list
 
@@ -1890,6 +1876,8 @@ class Instruction():
         binary_multi_list = []
         if 'ADDR' not in current:
             current['ADDR'] = '&'+str(current['P_ADDR'])
+        elif current['ADDR'] != 's15':
+            raise RuntimeError('Instruction.WAIT: unrecognized ADDR %s in line %d' % (current['ADDR'], current['LINE']))
         test_op   = ''
         jump_cond = ''
         if   (current['C_OP'] == 'time') : 
