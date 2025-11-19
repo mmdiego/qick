@@ -1310,8 +1310,11 @@ class AxisBufferDdrV1(SocIP):
             np.copyto(self.ddr4_array[:length], 0)
 
     def get_mem(self, nt, start=None):
-        if not self.JUNK_SAMPLES_BUG_FIX and start is None:
-            start = self['junk_len']
+        if start is None:
+            if not self.JUNK_SAMPLES_BUG_FIX:
+                start = self['junk_len']
+            else:
+                start = 0
             end = nt*self['burst_len']
         else:
             end = start + nt*self['burst_len']
