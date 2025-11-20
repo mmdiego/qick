@@ -194,13 +194,12 @@ qproc_ctrl # (
    .int_time_cmd    ( core_usr_operation[3:0] ),
    .int_time_dt     ( core_usr_b_dt      ),
    .PS_TPROC_CTRL   ( xreg_TPROC_CTRL    ),
-   .PS_TPROC_CFG    ( xreg_TPROC_CFG[10:9]),
-   // .xreg_TPROC_CTRL ( xreg_TPROC_CTRL    ),
-   // .xreg_TPROC_CFG  ( xreg_TPROC_CFG     ),
+   .PS_TPROC_CFG    ( xreg_TPROC_CFG[11:9]),
    .xreg_TPROC_W_DT ( xreg_TPROC_W_DT[0] ),
    .all_fifo_full_i ( all_fifo_full      ),
+   .some_fifo_full_i( some_fifo_full     ),
    .core_rst_o      ( core_rst           ),
-   .core_en_o       ( core_en_s          ),
+   .core_en_o       ( core_en            ),
    .time_rst_o      ( time_rst           ),
    .time_en_o       ( time_en            ),
    .time_abs_o      ( time_abs           ),
@@ -212,8 +211,6 @@ qproc_ctrl # (
    .c_debug_do      ( ctrl_c_ds)
 );
 
-assign fifo_ok    = ~(some_fifo_full)  | xreg_TPROC_CFG[11] ;  // With 1 in TPROC_CFG[11] Continue
-assign core_en    = core_en_s  & fifo_ok;
 
 ///////////////////////////////////////////////////////////////////////////////
 // Processor STATUS 
@@ -716,25 +713,30 @@ qproc_dispatcher # (
    .c_rst_ni       ( c_rst_ni      ) ,
    .t_clk_i        ( t_clk_i       ) ,
    .t_rst_ni       ( t_rst_ni      ) ,
+   //Port
    .core_en        ( core_en       ) ,  
    .core_rst       ( core_rst      ) ,  
    .time_en        ( time_en       ) ,  
    .time_rst       ( time_rst      ) ,   
    .c_time_ref_dt  ( c_time_ref_dt ) ,
    .time_abs_i     ( time_abs      ) ,
-   .all_fifo_full  ( all_fifo_full )    ,
-   .some_fifo_full ( some_fifo_full )    ,
-   .port_we        ( port_we       ) ,  
-   .out_port_data  ( out_port_data ) ,    
+   .all_fifo_full  ( all_fifo_full ) ,
+   .some_fifo_full ( some_fifo_full ),
+   .port_we        ( port_we       ) ,
+   .out_port_data  ( out_port_data ) ,
+   // TRIGGERS
    .port_trig_o    ( port_trig_o   ) ,
+   // DATA OUTPUT INTERFACE
    .port_tvalid_o  ( port_tvalid_o ) ,
    .port_tdata_o   ( port_tdata_o  ) ,
+   // WAVE OUTPUT INTERFACE
    .m_axis_tdata   ( m_axis_tdata  ) ,
    .m_axis_tvalid  ( m_axis_tvalid ) ,
    .m_axis_tready  ( m_axis_tready ) ,
+   // DEBUG outputs
    .fifo_dt_do     ( fifo_dt_ds    ) ,
-   .axi_fifo_do    ( axi_fifo_ds    ) ,
-   .c_fifo_do      ( c_fifo_ds    ) ,
+   .axi_fifo_do    ( axi_fifo_ds   ) ,
+   .c_fifo_do      ( c_fifo_ds     ) ,
    .t_fifo_do      ( t_fifo_ds     )
 );
 

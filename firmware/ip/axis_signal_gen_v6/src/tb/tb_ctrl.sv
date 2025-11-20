@@ -49,7 +49,7 @@ end
 endgenerate
 
 // Fifo.
-fifo
+fifo_xpm
     #(
         // Data width.
         .B  (160),
@@ -76,7 +76,7 @@ fifo
     );
 
 // DUT.
-ctrl 
+ctrl_sg_v6 
    #(
       .N    (N    ),
       .N_DDS   (N_DDS   )
