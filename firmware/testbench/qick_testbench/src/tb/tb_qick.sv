@@ -50,7 +50,7 @@ module tb_qick ();
 //----------------------------------------------------
 // Define Test to run
 //----------------------------------------------------
-string TEST_NAME = "test_basic_pulses";
+// string TEST_NAME = "test_basic_pulses";
 // string TEST_NAME = "test_fast_short_pulses";
 // string TEST_NAME = "test_many_envelopes";
 // string TEST_NAME = "test_tproc_basic";
@@ -59,6 +59,7 @@ string TEST_NAME = "test_basic_pulses";
 // string TEST_NAME = "test_issue53";
 // string TEST_NAME = "test_randomized_benchmarking";
 // string TEST_NAME = "test_qubit_emulator";
+string TEST_NAME = "test_xcom";
 //----------------------------------------------------
 
 // Default Simulation Settings
@@ -1697,6 +1698,23 @@ initial begin
       wait(tb_test_run_done);
 
       $display("*** %t - End of test_issue53 Test ***", $realtime());
+   end
+
+   if (TEST_NAME == "test_xcom") begin
+      $display("*** %t - Start test_xcom Test ***", $realtime());
+      TEST_RUN_TIME        = 10us;
+      REPEAT_EXEC          = 1;
+
+      ro_length            = 500;
+      ro_decimated_length  = 50;
+      ro_average_length    = 10;
+
+      wait (tb_qick.AXIS_QPROC.t_resetn == 1'b1);
+      #100ns;
+
+      wait(tb_test_run_done);
+
+      $display("*** %t - End of test_xcom Test ***", $realtime());
    end
 
 end
