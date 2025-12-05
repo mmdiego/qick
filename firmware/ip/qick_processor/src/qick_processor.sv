@@ -20,7 +20,6 @@ module qick_processor # (
    parameter DIVIDER        =  1 ,
    parameter ARITH          =  1 ,
    parameter TIME_READ      =  1 ,
-   parameter FIFO_DEPTH     =  8 ,
    parameter PMEM_AW        =  8 ,
    parameter DMEM_AW        =  8 ,
    parameter WMEM_AW        =  8 ,
@@ -29,7 +28,10 @@ module qick_processor # (
    parameter OUT_TRIG_QTY   =  1 ,
    parameter OUT_DPORT_QTY  =  1 ,
    parameter OUT_DPORT_DW   =  4 ,
-   parameter OUT_WPORT_QTY  =  1 
+   parameter OUT_WPORT_QTY  =  1 ,
+   parameter TPORT_DEPTH    =  9 , // Bits in Trigger Dispatcher FIFOs address
+   parameter DPORT_DEPTH    =  9 , // Bits in Data Dispatcher FIFOs address
+   parameter WPORT_DEPTH    =  9   // Bits in Wave Dispatcher FIFOs address
 )(
 // Time, Core and AXI CLK & RST.
    input   wire            t_clk_i        ,
@@ -702,7 +704,9 @@ wire [31:0] fifo_dt_ds, axi_fifo_ds;
 wire [15:0] c_fifo_ds, t_fifo_ds ;
 
 qproc_dispatcher # (
-   .FIFO_DEPTH     ( FIFO_DEPTH    ),
+   .TPORT_DEPTH    ( TPORT_DEPTH   ),
+   .DPORT_DEPTH    ( DPORT_DEPTH   ),
+   .WPORT_DEPTH    ( WPORT_DEPTH   ),
    .IN_PORT_QTY    ( IN_PORT_QTY   ),
    .OUT_TRIG_QTY   ( OUT_TRIG_QTY  ),
    .OUT_DPORT_QTY  ( OUT_DPORT_QTY ),

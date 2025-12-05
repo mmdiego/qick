@@ -2243,7 +2243,7 @@
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>viewChecksum</spirit:name>
-            <spirit:value>6c4ba53c</spirit:value>
+            <spirit:value>df3effde</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -2262,7 +2262,7 @@
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>viewChecksum</spirit:name>
-            <spirit:value>6cb6d92d</spirit:value>
+            <spirit:value>d7db1d2e</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -2291,7 +2291,7 @@
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>viewChecksum</spirit:name>
-            <spirit:value>4ab07b4f</spirit:value>
+            <spirit:value>05080777</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -6236,11 +6236,6 @@
         <spirit:value spirit:format="long" spirit:resolve="generated" spirit:id="MODELPARAM_VALUE.OUT_TRIG_QTY">2</spirit:value>
       </spirit:modelParameter>
       <spirit:modelParameter spirit:dataType="integer">
-        <spirit:name>FIFO_DEPTH</spirit:name>
-        <spirit:displayName>Fifo Depth</spirit:displayName>
-        <spirit:value spirit:format="long" spirit:resolve="generated" spirit:id="MODELPARAM_VALUE.FIFO_DEPTH">9</spirit:value>
-      </spirit:modelParameter>
-      <spirit:modelParameter spirit:dataType="integer">
         <spirit:name>EXT_FLAG</spirit:name>
         <spirit:displayName>Ext Flag</spirit:displayName>
         <spirit:value spirit:format="long" spirit:resolve="generated" spirit:id="MODELPARAM_VALUE.EXT_FLAG">0</spirit:value>
@@ -6280,6 +6275,21 @@
         <spirit:displayName>Gen Sync</spirit:displayName>
         <spirit:value spirit:format="long" spirit:resolve="generated" spirit:id="MODELPARAM_VALUE.GEN_SYNC">0</spirit:value>
       </spirit:modelParameter>
+      <spirit:modelParameter spirit:dataType="integer">
+        <spirit:name>TPORT_DEPTH</spirit:name>
+        <spirit:displayName>Tport Depth</spirit:displayName>
+        <spirit:value spirit:format="long" spirit:resolve="generated" spirit:id="MODELPARAM_VALUE.TPORT_DEPTH">9</spirit:value>
+      </spirit:modelParameter>
+      <spirit:modelParameter spirit:dataType="integer">
+        <spirit:name>DPORT_DEPTH</spirit:name>
+        <spirit:displayName>Dport Depth</spirit:displayName>
+        <spirit:value spirit:format="long" spirit:resolve="generated" spirit:id="MODELPARAM_VALUE.DPORT_DEPTH">9</spirit:value>
+      </spirit:modelParameter>
+      <spirit:modelParameter spirit:dataType="integer">
+        <spirit:name>WPORT_DEPTH</spirit:name>
+        <spirit:displayName>Wport Depth</spirit:displayName>
+        <spirit:value spirit:format="long" spirit:resolve="generated" spirit:id="MODELPARAM_VALUE.WPORT_DEPTH">9</spirit:value>
+      </spirit:modelParameter>
     </spirit:modelParameters>
   </spirit:model>
   <spirit:choices>
@@ -6294,20 +6304,10 @@
       <spirit:enumeration>ACTIVE_LOW</spirit:enumeration>
     </spirit:choice>
     <spirit:choice>
-      <spirit:name>choice_pairs_44b09f3c</spirit:name>
-      <spirit:enumeration spirit:text="256 Spaces (8 BIts)">8</spirit:enumeration>
-      <spirit:enumeration spirit:text="512 Spaces (9 Bits)">9</spirit:enumeration>
-    </spirit:choice>
-    <spirit:choice>
       <spirit:name>choice_pairs_8b1e6df4</spirit:name>
       <spirit:enumeration spirit:text="None">0</spirit:enumeration>
       <spirit:enumeration spirit:text="Only Periph A">1</spirit:enumeration>
       <spirit:enumeration spirit:text="PA and PB">2</spirit:enumeration>
-    </spirit:choice>
-    <spirit:choice>
-      <spirit:name>choice_pairs_bc159a12</spirit:name>
-      <spirit:enumeration spirit:text="Single Core">0</spirit:enumeration>
-      <spirit:enumeration spirit:text="Dual Core">1</spirit:enumeration>
     </spirit:choice>
     <spirit:choice>
       <spirit:name>choice_pairs_d11b372e</spirit:name>
@@ -6419,7 +6419,7 @@
       <spirit:file>
         <spirit:name>src/axis_qick_processor.sv</spirit:name>
         <spirit:fileType>systemVerilogSource</spirit:fileType>
-        <spirit:userFileType>CHECKSUM_72e730ae</spirit:userFileType>
+        <spirit:userFileType>CHECKSUM_ba775de2</spirit:userFileType>
       </spirit:file>
     </spirit:fileSet>
     <spirit:fileSet>
@@ -6573,7 +6573,7 @@
       <spirit:file>
         <spirit:name>xgui/qick_processor_v2_0.tcl</spirit:name>
         <spirit:fileType>tclSource</spirit:fileType>
-        <spirit:userFileType>CHECKSUM_4ab07b4f</spirit:userFileType>
+        <spirit:userFileType>CHECKSUM_05080777</spirit:userFileType>
         <spirit:userFileType>XGUI_VERSION_2</spirit:userFileType>
       </spirit:file>
     </spirit:fileSet>
@@ -6678,11 +6678,6 @@
       <spirit:value spirit:format="long" spirit:resolve="user" spirit:id="PARAM_VALUE.OUT_TRIG_QTY" spirit:minimum="1" spirit:maximum="32" spirit:rangeType="long">2</spirit:value>
     </spirit:parameter>
     <spirit:parameter>
-      <spirit:name>FIFO_DEPTH</spirit:name>
-      <spirit:displayName>FIFO Depth</spirit:displayName>
-      <spirit:value spirit:format="long" spirit:resolve="user" spirit:id="PARAM_VALUE.FIFO_DEPTH" spirit:choiceRef="choice_pairs_44b09f3c">9</spirit:value>
-    </spirit:parameter>
-    <spirit:parameter>
       <spirit:name>EXT_FLAG</spirit:name>
       <spirit:displayName>External Flag</spirit:displayName>
       <spirit:value spirit:format="long" spirit:resolve="user" spirit:id="PARAM_VALUE.EXT_FLAG" spirit:choiceRef="choice_list_8af5a703">0</spirit:value>
@@ -6722,6 +6717,21 @@
       <spirit:displayName>Gen Sync</spirit:displayName>
       <spirit:value spirit:format="long" spirit:resolve="user" spirit:id="PARAM_VALUE.GEN_SYNC" spirit:choiceRef="choice_list_8af5a703">0</spirit:value>
     </spirit:parameter>
+    <spirit:parameter>
+      <spirit:name>TPORT_DEPTH</spirit:name>
+      <spirit:displayName>TPORT - Trigger Port Dispatcher Depth</spirit:displayName>
+      <spirit:value spirit:format="long" spirit:resolve="user" spirit:id="PARAM_VALUE.TPORT_DEPTH">9</spirit:value>
+    </spirit:parameter>
+    <spirit:parameter>
+      <spirit:name>DPORT_DEPTH</spirit:name>
+      <spirit:displayName>DPORT - Data Port Dispatcher Depth</spirit:displayName>
+      <spirit:value spirit:format="long" spirit:resolve="user" spirit:id="PARAM_VALUE.DPORT_DEPTH">9</spirit:value>
+    </spirit:parameter>
+    <spirit:parameter>
+      <spirit:name>WPORT_DEPTH</spirit:name>
+      <spirit:displayName>WPORT - Wave Port Dispatcher Depth</spirit:displayName>
+      <spirit:value spirit:format="long" spirit:resolve="user" spirit:id="PARAM_VALUE.WPORT_DEPTH">9</spirit:value>
+    </spirit:parameter>
   </spirit:parameters>
   <spirit:vendorExtensions>
     <xilinx:coreExtensions>
@@ -6736,17 +6746,17 @@
       </xilinx:xpmLibraries>
       <xilinx:vendorDisplayName>Quantum Instrumentation Control Kit</xilinx:vendorDisplayName>
       <xilinx:vendorURL>https://github.com/openquantumhardware/qick/</xilinx:vendorURL>
-      <xilinx:coreRevision>27</xilinx:coreRevision>
-      <xilinx:coreCreationDateTime>2025-09-11T21:28:22Z</xilinx:coreCreationDateTime>
+      <xilinx:coreRevision>28</xilinx:coreRevision>
+      <xilinx:coreCreationDateTime>2025-11-03T22:34:54Z</xilinx:coreCreationDateTime>
     </xilinx:coreExtensions>
     <xilinx:packagingInfo>
       <xilinx:xilinxVersion>2023.1</xilinx:xilinxVersion>
       <xilinx:checksum xilinx:scope="busInterfaces" xilinx:value="eef3ebd2"/>
       <xilinx:checksum xilinx:scope="memoryMaps" xilinx:value="769c350d"/>
-      <xilinx:checksum xilinx:scope="fileGroups" xilinx:value="0f639f8b"/>
+      <xilinx:checksum xilinx:scope="fileGroups" xilinx:value="f45cb53a"/>
       <xilinx:checksum xilinx:scope="ports" xilinx:value="f340e3be"/>
-      <xilinx:checksum xilinx:scope="hdlParameters" xilinx:value="0a52d470"/>
-      <xilinx:checksum xilinx:scope="parameters" xilinx:value="4960cdd2"/>
+      <xilinx:checksum xilinx:scope="hdlParameters" xilinx:value="a0c11079"/>
+      <xilinx:checksum xilinx:scope="parameters" xilinx:value="797bc0a9"/>
     </xilinx:packagingInfo>
   </spirit:vendorExtensions>
 </spirit:component>

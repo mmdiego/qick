@@ -1,12 +1,14 @@
 `include "_qproc_defines.svh"
    
 module qproc_dispatcher # (
-   parameter FIFO_DEPTH     =  8 ,
    parameter IN_PORT_QTY    =  1 ,
    parameter OUT_TRIG_QTY   =  1 ,
    parameter OUT_DPORT_QTY  =  1 ,
    parameter OUT_DPORT_DW   =  4 ,
-   parameter OUT_WPORT_QTY  =  1 
+   parameter OUT_WPORT_QTY  =  1 ,
+   parameter TPORT_DEPTH    =  9 , // Bits in Trigger Dispatcher FIFOs address
+   parameter DPORT_DEPTH    =  9 , // Bits in Data Dispatcher FIFOs address
+   parameter WPORT_DEPTH    =  9   // Bits in Wave Dispatcher FIFOs address
 )(
    input  wire          c_clk_i        ,
    input  wire          c_rst_ni       ,
@@ -207,7 +209,7 @@ generate
       // TRIGGER FIFO
       BRAM_FIFO_DC_2 # (
          .FIFO_DW (1+48) , 
-         .FIFO_AW (FIFO_DEPTH) 
+         .FIFO_AW (TPORT_DEPTH) 
       ) trig_fifo_inst ( 
          .wr_clk_i   ( c_clk_i      ) ,
          .wr_rst_ni  ( c_rst_ni     ) ,
@@ -248,7 +250,7 @@ generate
       // WaveForm FIFO
       BRAM_FIFO_DC_2 # (
          .FIFO_DW (168+48) , 
-         .FIFO_AW (FIFO_DEPTH) 
+         .FIFO_AW (WPORT_DEPTH) 
       ) wave_fifo_inst ( 
          .wr_clk_i   ( c_clk_i   ) ,
          .wr_rst_ni  ( c_rst_ni  ) ,
@@ -288,7 +290,7 @@ generate
       // DATA FIFO
       BRAM_FIFO_DC_2 # (
          .FIFO_DW (OUT_DPORT_DW+48) , 
-         .FIFO_AW (FIFO_DEPTH) 
+         .FIFO_AW (DPORT_DEPTH) 
       ) data_fifo_inst ( 
          .wr_clk_i   ( c_clk_i      ) ,
          .wr_rst_ni  ( c_rst_ni     ) ,
