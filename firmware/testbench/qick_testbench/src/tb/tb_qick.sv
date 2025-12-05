@@ -1811,8 +1811,8 @@ module tb_qick ();
 
       if (TEST_NAME == "test_xcom") begin
         $display("\n\n*** %t - Start test_xcom Test \n\n***", $realtime());
-        TEST_RUN_TIME        = 10us;
-        REPEAT_EXEC          = 1;
+        TEST_RUN_TIME        = 2us;
+        REPEAT_EXEC          = 5;
 
         ro_length            = 500;
         ro_decimated_length  = 50;
