@@ -11,6 +11,7 @@
 
 import axi_vip_pkg::*;
 import axi_mst_0_pkg::*;
+import qick_pkg::*;
 
 real T_TCLK          =  1.162;      // Half Clock Period for tProc Dispatcher (430MHz)
 real T_CCLK          =    2.5;      // Half Clock Period for tProc Core (200MHz)
@@ -256,6 +257,11 @@ module tb_qick ();
   logic        qp1_rdy_i;         
   logic        qp1_vld_i;         
   logic        qp1_flag_i;        
+  logic        s_xcom_clk_p;        
+  logic        s_xcom_clk_n;        
+  logic        s_xcom_data_p;        
+  logic        s_xcom_data_n;        
+  logic [4-1:0] s_xcom_id;
 
   //logic  qp1_en_o;
   //reg qp1_en_r;
@@ -544,9 +550,9 @@ module tb_qick ();
   //-------------------------------------
   // XCOM
   //--------------------------------------
-   axi_mst_0 u_axi_mst_xcom_0 (
-    .aclk          (s_ps_dma_aclk       ),
-    .aresetn       (s_ps_dma_aresetn    ),
+  axi_mst_0 u_axi_mst_xcom_0 (
+    .aclk          (s_ps_dma_aclk      ),
+    .aresetn       (s_ps_dma_aresetn   ),
     .m_axi_araddr  (s_axi_xcom_araddr  ),
     .m_axi_arprot  (s_axi_xcom_arprot  ),
     .m_axi_arready (s_axi_xcom_arready ),
@@ -597,14 +603,14 @@ module tb_qick ();
     .o_core_start       (                       ),
     .o_core_stop        (                       ),
     .o_xcom_id          (                       ),
-    .i_xcom_clk_p       ( 1'b0                  ),
-    .i_xcom_clk_n       ( 1'b0                  ),
-    .i_xcom_data_p      ( 1'b0                  ),
-    .i_xcom_data_n      ( 1'b0                  ),
-    .o_xcom_clk_p       (                       ),
-    .o_xcom_clk_n       (                       ),
-    .o_xcom_data_p      (                       ),
-    .o_xcom_data_n      (                       ),
+    .i_xcom_clk_p       ( s_xcom_clk_p          ),//simple loopback
+    .i_xcom_clk_n       ( s_xcom_clk_n          ),
+    .i_xcom_data_p      ( s_xcom_data_p         ),
+    .i_xcom_data_n      ( s_xcom_data_n         ),
+    .o_xcom_clk_p       ( s_xcom_clk_p          ),
+    .o_xcom_clk_n       ( s_xcom_clk_n          ),
+    .o_xcom_data_p      ( s_xcom_data_p         ),
+    .o_xcom_data_n      ( s_xcom_data_n         ),
     .s_axi_awaddr       (s_axi_xcom_awaddr      ),
     .s_axi_awprot       (s_axi_xcom_awprot      ),
     .s_axi_awvalid      (s_axi_xcom_awvalid     ),
@@ -1815,12 +1821,26 @@ module tb_qick ();
         wait (tb_qick.AXIS_QPROC.t_resetn == 1'b1);
         #100ns;
 
+        // assign an ID to the XCOM module.
+        s_xcom_id = 4'h2;
+        //axi_mst_xcom_agent.AXI4LITE_WRITE_BURST(REG_XCOM_ID, prot, s_xcom_id, resp);
+        WRITE_AXI_XCOM(REG_XCOM_ID,s_xcom_id);
+        #10ns;
+
         wait(tb_test_run_done);
 
         $display("*** %t - End of test_xcom Test ***", $realtime());
       end
 
     end
+
+    task WRITE_AXI_XCOM(integer PORT_AXI, DATA_AXI);
+      $display("Running WRITE_AXI_XCOM() Task");
+      //$display("PORT %d",  PORT_AXI);
+      //$display("DATA %d",  DATA_AXI);
+      @(posedge s_ps_dma_aclk); #0.1;
+      axi_mst_xcom_agent.AXI4LITE_WRITE_BURST(PORT_AXI, prot, DATA_AXI, resp);
+      endtask
 
     task WRITE_AXI(integer PORT_AXI, DATA_AXI);
       $display("Running WRITE_AXI() Task");
