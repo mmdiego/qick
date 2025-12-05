@@ -25,25 +25,25 @@
 // Change history: 09/08/25 - Started by @lharnaldi
 //
 ///////////////////////////////////////////////////////////////////////////////
-module i_diff_nb #(
-    parameter integer NB = 16 // The width of the differential bus.
-) (
-    input  logic [NB-1:0] i_diff_p, // Positive differential input
-    input  logic [NB-1:0] i_diff_n, // Negative differential input
-    output logic [NB-1:0] o_se      // Single-ended output
+module i_diff_nb#(
+  parameter integer NB = 16 // The width of the differential bus.
+)(
+  input  logic [NB-1:0] i_diff_p, // Positive differential input
+  input  logic [NB-1:0] i_diff_n, // Negative differential input
+  output logic [NB-1:0] o_se      // Single-ended output
 );
 
-    // Use a `generate` block to instantiate the IBUFDS primitives for each bit.
-    generate
-        genvar i;
-        for (i = 0; i < NB; i = i + 1) begin : ibufds_gen
-            IBUFDS ibuf_ds_inst (
-                .O  (o_se[i]    ),
-                .I  (i_diff_p[i]),
-                .IB (i_diff_n[i])
-            );
-        end
-    endgenerate
+  // Use a `generate` block to instantiate the IBUFDS primitives for each bit.
+  generate
+    genvar i;
+    for (i = 0; i < NB; i = i + 1) begin : ibufds_gen
+      IBUFDS ibuf_ds_inst (
+        .O  (o_se[i]    ),
+        .I  (i_diff_p[i]),
+        .IB (i_diff_n[i])
+      );
+    end
+  endgenerate
 
 endmodule
 

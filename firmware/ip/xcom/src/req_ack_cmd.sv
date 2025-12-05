@@ -40,8 +40,7 @@
 //                 05/27/25 - @lharnaldi Modify the FSM
 //
 ///////////////////////////////////////////////////////////////////////////////
-module req_ack_cmd 
-(
+module req_ack_cmd(
     input  logic          i_clk       ,
     input  logic          i_rstn      ,
     // Command Input
@@ -61,6 +60,7 @@ module req_ack_cmd
     logic [ 8-1:0]   cmd_op_r, cmd_op_n;
     logic [32-1:0]   cmd_dt_r, cmd_dt_n;
     logic [ 4-1:0]   cmd_cnt_r, cmd_cnt_n;
+    logic            s_req_net, s_req_loc;
 
     typedef enum logic [2-1:0] {IDLE    = 2'b00, 
                                 LOC_REQ = 2'b01, 
@@ -79,14 +79,16 @@ module req_ack_cmd
     //next state logic
     always_comb begin
         state_n   = state_r; 
-        o_req_loc = 1'b0;
-        o_req_net = 1'b0;
+        s_req_loc = 1'b0;
+        s_req_net = 1'b0;
         case (state_r)
             IDLE: begin
                if( i_valid )  begin
                  if (i_op[4]) begin
+                    s_req_loc = 1'b1;
                     state_n   = LOC_REQ;
                  end else begin
+                    s_req_net = 1'b1;
                     state_n   = NET_REQ;
                  end
                end else begin
@@ -94,12 +96,12 @@ module req_ack_cmd
                end
             end               
             LOC_REQ:  begin
-               o_req_loc = 1'b1;
+               s_req_loc = 1'b1;
                if (i_ack) state_n = ACK;
                else       state_n = LOC_REQ;     
             end
             NET_REQ:  begin
-               o_req_net = 1'b1;
+               s_req_net = 1'b1;
                if (i_ack) state_n = ACK;     
                else       state_n = NET_REQ;
             end
@@ -131,6 +133,8 @@ module req_ack_cmd
     ///////////////////////////////////////////////////////////////////////////////
     assign o_op   = cmd_op_r;
     assign o_data = cmd_dt_r;
+    assign o_req_loc = s_req_loc;
+    assign o_req_net = s_req_net;
 
     // DEBUG
     ///////////////////////////////////////////////////////////////////////////////

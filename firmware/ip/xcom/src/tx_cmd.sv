@@ -79,7 +79,6 @@ logic s_xcmd_sync;
 logic s_sync;
 
 typedef enum logic [2-1:0]{ IDLE  = 2'b00, 
-                            WVLD  = 2'b01, 
                             WSYNC = 2'b10, 
                             WRDY  = 2'b11 
 } state_t;
@@ -115,14 +114,16 @@ always_comb begin
             if ( s_xcmd_sync ) begin
                state_n = WSYNC;     
             end else begin
-               state_n    = WVLD;     
+               s_tx_valid = 1'b1;
+               state_n    = WRDY;
+               //state_n    = WVLD;     
             end
          end
       end
-      WVLD: begin
-         s_tx_valid = 1'b1;
-         state_n    = WRDY;
-      end
+      //WVLD: begin
+      //   s_tx_valid = 1'b1;
+      //   state_n    = WRDY;
+      //end
       WSYNC:  begin
          if ( s_sync ) begin 
             s_tx_valid = 1'b1;
@@ -136,9 +137,7 @@ always_comb begin
    endcase
 end
 
-xcom_link_tx
-u_xcom_link_tx
-(
+xcom_link_tx u_xcom_link_tx(
   .i_clk      ( i_clk      ),
   .i_rstn     ( i_rstn     ),
   .i_cfg_tick ( i_cfg_tick ),
