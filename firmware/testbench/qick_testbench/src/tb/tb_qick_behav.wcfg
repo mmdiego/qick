@@ -20,9 +20,9 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="0.000000 us"></ZoomStartTime>
-      <ZoomEndTime time="34.105501 us"></ZoomEndTime>
-      <Cursor1Time time="7.732500 us"></Cursor1Time>
+      <ZoomStartTime time="7.364582 us"></ZoomStartTime>
+      <ZoomEndTime time="15.595587 us"></ZoomEndTime>
+      <Cursor1Time time="8.022500 us"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
       <NameColumnWidth column_width="228"></NameColumnWidth>
@@ -2451,6 +2451,12 @@
       <obj_property name="label">XCOM</obj_property>
       <obj_property name="DisplayName">label</obj_property>
       <obj_property name="isExpanded"></obj_property>
+      <wvobject type="logic" fp_name="/tb_qick/AXIS_QPROC/trig_0_o">
+         <obj_property name="ElementShortName">trig_0_o</obj_property>
+         <obj_property name="ObjectShortName">trig_0_o</obj_property>
+         <obj_property name="CustomSignalColor">#00FFFF</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
       <wvobject type="group" fp_name="group1914">
          <obj_property name="label">AXI</obj_property>
          <obj_property name="DisplayName">label</obj_property>
@@ -2559,6 +2565,14 @@
          <obj_property name="CustomSignalColor">#FF00FF</obj_property>
          <obj_property name="UseCustomSignalColor">true</obj_property>
       </wvobject>
+      <wvobject type="logic" fp_name="/tb_qick/u_xcom/o_core_ready">
+         <obj_property name="ElementShortName">o_core_ready</obj_property>
+         <obj_property name="ObjectShortName">o_core_ready</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/tb_qick/u_xcom/o_core_flag">
+         <obj_property name="ElementShortName">o_core_flag</obj_property>
+         <obj_property name="ObjectShortName">o_core_flag</obj_property>
+      </wvobject>
       <wvobject type="logic" fp_name="/tb_qick/u_xcom/i_core_en">
          <obj_property name="ElementShortName">i_core_en</obj_property>
          <obj_property name="ObjectShortName">i_core_en</obj_property>
@@ -2579,9 +2593,9 @@
          <obj_property name="ElementShortName">i_sync</obj_property>
          <obj_property name="ObjectShortName">i_sync</obj_property>
       </wvobject>
-      <wvobject type="logic" fp_name="/tb_qick/u_xcom/o_core_ready">
-         <obj_property name="ElementShortName">o_core_ready</obj_property>
-         <obj_property name="ObjectShortName">o_core_ready</obj_property>
+      <wvobject type="logic" fp_name="/tb_qick/u_xcom/o_core_valid">
+         <obj_property name="ElementShortName">o_core_valid</obj_property>
+         <obj_property name="ObjectShortName">o_core_valid</obj_property>
       </wvobject>
       <wvobject type="array" fp_name="/tb_qick/u_xcom/o_core_data1">
          <obj_property name="ElementShortName">o_core_data1[31:0]</obj_property>
@@ -2590,10 +2604,6 @@
       <wvobject type="array" fp_name="/tb_qick/u_xcom/o_core_data2">
          <obj_property name="ElementShortName">o_core_data2[31:0]</obj_property>
          <obj_property name="ObjectShortName">o_core_data2[31:0]</obj_property>
-      </wvobject>
-      <wvobject type="logic" fp_name="/tb_qick/u_xcom/o_core_valid">
-         <obj_property name="ElementShortName">o_core_valid</obj_property>
-         <obj_property name="ObjectShortName">o_core_valid</obj_property>
       </wvobject>
       <wvobject type="array" fp_name="/tb_qick/u_xcom/u_axil_slv/i_slv_regs">
          <obj_property name="ElementShortName">i_slv_regs[0:15][31:0]</obj_property>

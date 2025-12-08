@@ -1,10 +1,11 @@
 ///////////////////////////////////////////////////////////////////////////////
 // vim:set shiftwidth=3 softtabstop=3 expandtab:
 //
-// Fermi Fordward Alliance LLC
+// Fermi Forward Alliance LLC
 //
 // Module: toggle_synchronizer.sv
-// Project: UTILS
+//
+// NOTES: only works with 1 clk wide input pulses
 //
 ///////////////////////////////////////////////////////////////////////////////
 module toggle_synchronizer(
@@ -23,8 +24,10 @@ module toggle_synchronizer(
         if (~i_rstn) begin
             toggle_ff <= 1'b0;
         end
-        if (i_en) begin
-            toggle_ff <= ~toggle_ff;
+        else begin
+            if (i_en) begin
+                toggle_ff <= ~toggle_ff;
+            end
         end
     end
 
