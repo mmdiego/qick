@@ -157,11 +157,10 @@ module xcom import qick_pkg::*;
 
   logic          s_core_ready;
   logic          s_core_ready_sync;
-  logic          s_core_ready_r1, s_core_ready_n1;
-  logic          s_core_ready_r2, s_core_ready_n2;
+  logic          s_core_ready_ack;
   logic          s_core_valid;
   logic          s_core_flag;
-  logic [32-1:0] s_xcom_flag_ps;
+  logic          s_xcom_flag_ps;
   logic [32-1:0] s_core_data1;
   logic [32-1:0] s_core_data1_sync;
   logic [32-1:0] s_core_data2;
@@ -196,50 +195,89 @@ module xcom import qick_pkg::*;
   ///////////////////////////////////////////////////////////////////////////////
   // AXI Registers
   ///////////////////////////////////////////////////////////////////////////////
-  axil_slv#(
+  xcom_axil_slv #(
     .C_S_AXI_ADDR_WIDTH ( 6  ),   
-    .C_S_AXI_DATA_WIDTH ( 32 ),   
-    .NUM_REGS           ( 16 )   
-  )u_axil_slv(
-    .S_AXI_ACLK    ( i_ps_clk           ), 
-    .S_AXI_ARESETN ( i_ps_rstn          ), 
-    .S_AXI_AWADDR  ( s_axi_awaddr [6-1:0] ), 
-    .S_AXI_AWVALID ( s_axi_awvalid      ),
-    .S_AXI_AWREADY ( s_axi_awready      ), 
-    .S_AXI_WDATA   ( s_axi_wdata        ), 
-    .S_AXI_WSTRB   ( s_axi_wstrb        ), 
-    .S_AXI_WVALID  ( s_axi_wvalid       ), 
-    .S_AXI_WREADY  ( s_axi_wready       ), 
-    .S_AXI_BRESP   ( s_axi_bresp        ), 
-    .S_AXI_BVALID  ( s_axi_bvalid       ), 
-    .S_AXI_BREADY  ( s_axi_bready       ), 
-    .S_AXI_ARADDR  ( s_axi_araddr       ), 
-    .S_AXI_ARVALID ( s_axi_arvalid      ),
-    .S_AXI_ARREADY ( s_axi_arready      ), 
-    .S_AXI_RDATA   ( s_axi_rdata        ), 
-    .S_AXI_RRESP   ( s_axi_rresp        ), 
-    .S_AXI_RVALID  ( s_axi_rvalid       ), 
-    .S_AXI_RREADY  ( s_axi_rready       ), 
-    .o_slv_regs    ( s_xcom_o_regs      ), 
-    .i_slv_regs    ( s_xcom_i_regs      )
+    .C_S_AXI_DATA_WIDTH ( 32 )   
+  ) u_xcom_axil_slv(
+    .clk             ( i_ps_clk           ), 
+    .reset_n         ( i_ps_rstn          ), 
+    .s_axi_awaddr    ( s_axi_awaddr [6-1:0] ), 
+    .s_axi_awvalid   ( s_axi_awvalid      ),
+    .s_axi_awready   ( s_axi_awready      ), 
+    .s_axi_wdata     ( s_axi_wdata        ), 
+    .s_axi_wstrb     ( s_axi_wstrb        ), 
+    .s_axi_wvalid    ( s_axi_wvalid       ), 
+    .s_axi_wready    ( s_axi_wready       ), 
+    .s_axi_bresp     ( s_axi_bresp        ), 
+    .s_axi_bvalid    ( s_axi_bvalid       ), 
+    .s_axi_bready    ( s_axi_bready       ), 
+    .s_axi_araddr    ( s_axi_araddr       ), 
+    .s_axi_arvalid   ( s_axi_arvalid      ),
+    .s_axi_arready   ( s_axi_arready      ), 
+    .s_axi_rdata     ( s_axi_rdata        ), 
+    .s_axi_rresp     ( s_axi_rresp        ), 
+    .s_axi_rvalid    ( s_axi_rvalid       ), 
+    .s_axi_rready    ( s_axi_rready       ), 
+    .o_xcom_ctrl     ( s_xcom_ctrl        ), 
+    .o_xcom_cfg      ( s_xcom_cfg         ), 
+    .o_xcom_axi_data1( s_axi_data1        ),
+    .o_xcom_axi_data2( s_axi_data2        ),
+    .o_xcom_axi_addr ( s_axi_addr         ),
+    .i_board_id      ( {28'h000_0000,s_xcom_id_ps} ),
+    .i_xcom_flag     ( {31'd0, s_xcom_flag_ps}     ),
+    .i_xcom_data1    ( s_core_data1_ps    ),
+    .i_xcom_data2    ( s_core_data2_ps    ),
+    .i_xcom_mem      ( axi_mem_data       ),
+    .i_xcom_rx_data  ( s_dbg_rx_data_ps   ),
+    .i_xcom_tx_data  ( s_dbg_tx_data_ps   ),
+    .i_xcom_status   ( xreg_status        ),
+    .i_xcom_debug    ( xreg_debug         ) 
   );
   
-  //outputs
-  assign s_xcom_ctrl = s_xcom_o_regs[0];
-  assign s_xcom_cfg  = s_xcom_o_regs[1];
-  assign s_axi_data1 = s_xcom_o_regs[2];
-  assign s_axi_data2 = s_xcom_o_regs[3];
-  assign s_axi_addr  = s_xcom_o_regs[4];
-  //inputs
-  assign s_xcom_i_regs[6] = {28'h000_0000,s_xcom_id_ps};
-  assign s_xcom_i_regs[7] = s_xcom_flag_ps;
-  assign s_xcom_i_regs[8] = s_core_data1_ps;
-  assign s_xcom_i_regs[9] = s_core_data2_ps;
-  assign s_xcom_i_regs[10] = axi_mem_data;
-  assign s_xcom_i_regs[12] = s_dbg_rx_data_ps;
-  assign s_xcom_i_regs[13] = s_dbg_tx_data_ps;
-  assign s_xcom_i_regs[14] = xreg_status;
-  assign s_xcom_i_regs[15] = xreg_debug; 
+  // axil_slv#(
+  //   .C_S_AXI_ADDR_WIDTH ( 6  ),   
+  //   .C_S_AXI_DATA_WIDTH ( 32 ),   
+  //   .NUM_REGS           ( 16 )   
+  // )u_axil_slv(
+  //   .S_AXI_ACLK    ( i_ps_clk           ), 
+  //   .S_AXI_ARESETN ( i_ps_rstn          ), 
+  //   .S_AXI_AWADDR  ( s_axi_awaddr [6-1:0] ), 
+  //   .S_AXI_AWVALID ( s_axi_awvalid      ),
+  //   .S_AXI_AWREADY ( s_axi_awready      ), 
+  //   .S_AXI_WDATA   ( s_axi_wdata        ), 
+  //   .S_AXI_WSTRB   ( s_axi_wstrb        ), 
+  //   .S_AXI_WVALID  ( s_axi_wvalid       ), 
+  //   .S_AXI_WREADY  ( s_axi_wready       ), 
+  //   .S_AXI_BRESP   ( s_axi_bresp        ), 
+  //   .S_AXI_BVALID  ( s_axi_bvalid       ), 
+  //   .S_AXI_BREADY  ( s_axi_bready       ), 
+  //   .S_AXI_ARADDR  ( s_axi_araddr       ), 
+  //   .S_AXI_ARVALID ( s_axi_arvalid      ),
+  //   .S_AXI_ARREADY ( s_axi_arready      ), 
+  //   .S_AXI_RDATA   ( s_axi_rdata        ), 
+  //   .S_AXI_RRESP   ( s_axi_rresp        ), 
+  //   .S_AXI_RVALID  ( s_axi_rvalid       ), 
+  //   .S_AXI_RREADY  ( s_axi_rready       ), 
+  //   .o_slv_regs    ( s_xcom_o_regs      ), 
+  //   .i_slv_regs    ( s_xcom_i_regs      )
+  // );
+  
+  // //outputs
+  // assign s_xcom_ctrl = s_xcom_o_regs[0];
+  // assign s_xcom_cfg  = s_xcom_o_regs[1];
+  // assign s_axi_data1 = s_xcom_o_regs[2];
+  // assign s_axi_data2 = s_xcom_o_regs[3];
+  // assign s_axi_addr  = s_xcom_o_regs[4];
+  // //inputs
+  // assign s_xcom_i_regs[6] = {28'h000_0000,s_xcom_id_ps};
+  // assign s_xcom_i_regs[7] = s_xcom_flag_ps;
+  // assign s_xcom_i_regs[8] = s_core_data1_ps;
+  // assign s_xcom_i_regs[9] = s_core_data2_ps;
+  // assign s_xcom_i_regs[10] = axi_mem_data;
+  // assign s_xcom_i_regs[12] = s_dbg_rx_data_ps;
+  // assign s_xcom_i_regs[13] = s_dbg_tx_data_ps;
+  // assign s_xcom_i_regs[14] = xreg_status;
+  // assign s_xcom_i_regs[15] = xreg_debug; 
 
   assign axi_mem_data = xcom_mem_data[s_axi_addr[4-1:0]];
 
@@ -301,16 +339,17 @@ module xcom import qick_pkg::*;
   //tproc_en signal. 
   always_ff @ (posedge i_core_clk) begin
     if ( !i_core_rstn ) begin
-      s_core_ready_r1  <= 1'b0;
-      s_core_ready_r2  <= 1'b0;
+      s_core_ready_ack   <= 1'b0;
     end else begin
-      s_core_ready_r1  <= s_core_ready_n1;
-      s_core_ready_r2  <= s_core_ready_n2;
+      if (i_core_en & s_core_ready_sync) begin
+          s_core_ready_ack   <= 1'b1;
+      end
+      if (s_core_ready_ack & ~s_core_ready_sync) begin
+        s_core_ready_ack  <= 1'b0;
+      end
     end
   end
-  assign s_core_ready_n1 = i_core_en ? 1'b0 : 1'b1;
-  assign s_core_ready_n2 = s_core_ready_r1;
-  assign o_core_ready    = s_core_ready_r1 & s_core_ready_r2 & s_core_ready_sync;
+  assign o_core_ready    = ~s_core_ready_ack & s_core_ready_sync;
 
   assign s_core_data  = {s_core_data2_sync, s_core_data1_sync};
   assign s_ps_data    = {s_axi_data2_sync, s_axi_data1_sync};

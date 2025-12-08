@@ -444,7 +444,11 @@ assign o_dbg_data    = {s_cfg_tick, s_rx_chid, rx_cmd_ds, s_net_dbg_status, s_lo
 
 // OUT SIGNALS
 ///////////////////////////////////////////////////////////////////////////////
-assign o_qp_ready  = s_tx_ready & ~i_req_loc & ~s_lack;
+always_ff @ (posedge i_clk) begin
+   if ( !i_rstn ) o_qp_ready <= 1'b0;
+   else o_qp_ready  <= s_tx_ready & ~i_req_loc & ~s_lack;
+end
+// assign o_qp_ready  = s_tx_ready & ~i_req_loc & ~s_lack;
 assign o_qp_flag   = data_flag;
 assign o_qp_valid  = wreg_r;
 assign o_qp_data1  = reg1_dt;

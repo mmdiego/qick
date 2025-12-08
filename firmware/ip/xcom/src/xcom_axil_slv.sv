@@ -245,6 +245,8 @@ module xcom_axil_slv #(
         if (!reset_n) begin
             bvalid_reg <= 1'b0;
             bresp_reg  <= 2'b00;  // OKAY
+            awready_reg <= 1'b0;
+            wready_reg  <= 1'b0;
         end else begin
             case (write_state_reg)
                WRITE_ADDR_RCVD: begin
@@ -273,6 +275,7 @@ module xcom_axil_slv #(
     // Read data and response logic
     always_ff @(posedge clk or negedge reset_n) begin
         if (!reset_n) begin
+            arready_reg <= 1'b0;
             rvalid_reg <= 1'b0;
             rdata_reg  <= '0;
             rresp_reg  <= 2'b00; //OKAY
@@ -337,7 +340,9 @@ module xcom_axil_slv #(
         end else begin
            //reset
            if (slave_registers[0][0] != 1'b0) slave_registers[0][0]  <= 1'b0;
-            if (awvalid_reg && wvalid_reg) begin
+            // if (awvalid_reg && wvalid_reg) begin
+            // if (s_axi_awvalid && s_axi_wvalid) begin
+            if (s_axi_wvalid) begin
                 case (awaddr_reg[C_S_AXI_ADDR_WIDTH-1:0])
                    REG_OFFSET_0: begin
                         if (s_axi_wstrb[0]) slave_registers[0][7:0]   <= s_axi_wdata[7:0];

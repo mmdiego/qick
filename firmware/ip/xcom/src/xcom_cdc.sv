@@ -94,7 +94,7 @@ module xcom_cdc
    output logic [32-1:0]  o_axi_data1_sync   ,
    output logic [32-1:0]  o_axi_data2_sync   ,
 
-   output logic [32-1:0]  o_xcom_flag_sync   ,
+   output logic           o_xcom_flag_sync   ,
    output logic [32-1:0]  o_xcom_data1_sync  ,
    output logic [32-1:0]  o_xcom_data2_sync  ,
 
@@ -111,121 +111,155 @@ module xcom_cdc
 //SYNC STAGES
 ///////////////////////////////////////////////////////////////////////////////
 //Time domain -> PS domain
-synchronizer#(
-   .NB(4)
-   ) sync_id_ps(
-  .i_clk      ( i_ps_clk        ),
-  .i_rstn     ( i_ps_rstn       ),
-  .i_async    ( i_xcom_id       ),
-  .o_sync     ( o_xcom_id_sync  )
-);
 
-synchronizer#(
-   .NB(32)
-   ) sync_rx_data_ps(
-  .i_clk      ( i_ps_clk            ),
-  .i_rstn     ( i_ps_rstn           ),
-  .i_async    ( i_xcom_rx_data      ),
-  .o_sync     ( o_xcom_rx_data_sync )
-);
+//------------------------------------------------------
+// NOTE: no synchronizers are needed for data buses!!!
+//       synchronization is done with the core_en
 
-synchronizer#(
-   .NB(32)
-   ) sync_tx_data_ps(
-  .i_clk      ( i_ps_clk            ),
-  .i_rstn     ( i_ps_rstn           ),
-  .i_async    ( i_xcom_tx_data      ),
-  .o_sync     ( o_xcom_tx_data_sync )
-);
+// synchronizer #(
+//    .NB(4)
+//    ) sync_id_ps(
+//   .i_clk      ( i_ps_clk        ),
+//   .i_rstn     ( i_ps_rstn       ),
+//   .i_async    ( i_xcom_id       ),
+//   .o_sync     ( o_xcom_id_sync  )
+// );
+assign o_xcom_id_sync = i_xcom_id;
 
-synchronizer#(
-   .NB(32)
-   ) sync_status_ps(
-  .i_clk      ( i_ps_clk           ),
-  .i_rstn     ( i_ps_rstn          ),
-  .i_async    ( i_xcom_status      ),
-  .o_sync     ( o_xcom_status_sync )
-);
+// synchronizer #(
+//    .NB(32)
+//    ) sync_rx_data_ps(
+//   .i_clk      ( i_ps_clk            ),
+//   .i_rstn     ( i_ps_rstn           ),
+//   .i_async    ( i_xcom_rx_data      ),
+//   .o_sync     ( o_xcom_rx_data_sync )
+// );
+assign o_xcom_rx_data_sync = i_xcom_rx_data;
 
-synchronizer#(
-   .NB(32)
-   ) sync_debug_ps(
-  .i_clk      ( i_ps_clk          ),
-  .i_rstn     ( i_ps_rstn         ),
-  .i_async    ( i_xcom_debug      ),
-  .o_sync     ( o_xcom_debug_sync )
-);
+// synchronizer #(
+//    .NB(32)
+//    ) sync_tx_data_ps(
+//   .i_clk      ( i_ps_clk            ),
+//   .i_rstn     ( i_ps_rstn           ),
+//   .i_async    ( i_xcom_tx_data      ),
+//   .o_sync     ( o_xcom_tx_data_sync )
+// );
+assign o_xcom_tx_data_sync = i_xcom_tx_data;
+
+// synchronizer #(
+//    .NB(32)
+//    ) sync_status_ps(
+//   .i_clk      ( i_ps_clk           ),
+//   .i_rstn     ( i_ps_rstn          ),
+//   .i_async    ( i_xcom_status      ),
+//   .o_sync     ( o_xcom_status_sync )
+// );
+assign o_xcom_status_sync = i_xcom_status;
+
+// synchronizer #(
+//    .NB(32)
+//    ) sync_debug_ps(
+//   .i_clk      ( i_ps_clk          ),
+//   .i_rstn     ( i_ps_rstn         ),
+//   .i_async    ( i_xcom_debug      ),
+//   .o_sync     ( o_xcom_debug_sync )
+// );
+assign o_xcom_debug_sync = i_xcom_debug;
 
 ///////////////////////////////////////////////////////////////////////////////
 //Core domain -> PS domain
-synchronizer#(
+synchronizer #(
    .NB(1)
-   ) xcom_flag(
+) xcom_flag(
   .i_clk      ( i_ps_clk            ),
   .i_rstn     ( i_ps_rstn           ),
   .i_async    ( i_core_flag         ),
-  .o_sync     ( o_xcom_flag_sync[0] )
+  .o_sync     ( o_xcom_flag_sync    )
 );
 
-assign o_xcom_flag_sync[32-1:1] = '0;
+//------------------------------------------------------
+// NOTE: no synchronizers are needed for data buses!!!
+//       synchronization is done with the core_en
 
-synchronizer#(
-   .NB(32)
-   ) sync_data1_ps(
-  .i_clk      ( i_ps_clk          ),
-  .i_rstn     ( i_ps_rstn         ),
-  .i_async    ( i_core_data1_core ),
-  .o_sync     ( o_xcom_data1_sync )
-);
+// synchronizer #(
+//    .NB(32)
+//    ) sync_data1_ps(
+//   .i_clk      ( i_ps_clk          ),
+//   .i_rstn     ( i_ps_rstn         ),
+//   .i_async    ( i_core_data1_core ),
+//   .o_sync     ( o_xcom_data1_sync )
+// );
+assign o_xcom_data1_sync = i_core_data1_core;
 
-synchronizer#(
-   .NB(32)
-   ) sync_data2_ps(
-  .i_clk      ( i_ps_clk          ),
-  .i_rstn     ( i_ps_rstn         ),
-  .i_async    ( i_core_data2_core ),
-  .o_sync     ( o_xcom_data2_sync )
-);
+// synchronizer #(
+//    .NB(32)
+//    ) sync_data2_ps(
+//   .i_clk      ( i_ps_clk          ),
+//   .i_rstn     ( i_ps_rstn         ),
+//   .i_async    ( i_core_data2_core ),
+//   .o_sync     ( o_xcom_data2_sync )
+// );
+assign o_xcom_data2_sync = i_core_data2_core;
 
 ///////////////////////////////////////////////////////////////////////////////
 //PS domain -> Time domain
-synchronizer#(
-   .NB(6)
-   ) sync_xcom_ctrl(
-  .i_clk      ( i_time_clk       ),
-  .i_rstn     ( i_time_rstn      ),
-  .i_async    ( i_xcom_ctrl[6-1:0]      ),
-  .o_sync     ( o_xcom_ctrl_sync[6-1:0] )
-);
-assign o_xcom_ctrl_sync[32-1:6] = '0;
+// synchronizer #(
+//    .NB(6)
+//    ) sync_xcom_ctrl(
+//   .i_clk      ( i_time_clk       ),
+//   .i_rstn     ( i_time_rstn      ),
+//   .i_async    ( i_xcom_ctrl[6-1:0]      ),
+//   .o_sync     ( o_xcom_ctrl_sync[6-1:0] )
+// );
+// assign o_xcom_ctrl_sync[32-1:6] = '0;
 
-synchronizer#(
-   .NB(4)
-   ) sync_xcom_cfg(
+//------------------------------------------------------
+// NOTE: only bit 0 needs synchronization
+synchronizer #(
+   .NB(1)
+) sync_xcom_ctrl (
   .i_clk      ( i_time_clk       ),
   .i_rstn     ( i_time_rstn      ),
-  .i_async    ( i_xcom_cfg[4-1:0]      ),
-  .o_sync     ( o_xcom_cfg_sync[4-1:0] )
+  .i_async    ( i_xcom_ctrl[0]      ),
+  .o_sync     ( o_xcom_ctrl_sync[0] )
 );
-assign o_xcom_cfg_sync[32-1:4] = '0;
+assign o_xcom_ctrl_sync[31:1] = i_xcom_ctrl[31:1];
 
-synchronizer#(
-   .NB(32)
-   ) sync_axi_data1(
-  .i_clk      ( i_time_clk       ),
-  .i_rstn     ( i_time_rstn      ),
-  .i_async    ( i_axi_data1      ),
-  .o_sync     ( o_axi_data1_sync )
-);
+//------------------------------------------------------
+// NOTE: no synchronizers are needed for data buses!!!
+//       synchronization is done with the core_en
 
-synchronizer#(
-   .NB(32)
-   ) sync_axi_data2(
-  .i_clk      ( i_time_clk       ),
-  .i_rstn     ( i_time_rstn      ),
-  .i_async    ( i_axi_data2      ),
-  .o_sync     ( o_axi_data2_sync )
-);
+
+// synchronizer #(
+//    .NB(4)
+//    ) sync_xcom_cfg(
+//   .i_clk      ( i_time_clk       ),
+//   .i_rstn     ( i_time_rstn      ),
+//   .i_async    ( i_xcom_cfg[4-1:0]      ),
+//   .o_sync     ( o_xcom_cfg_sync[4-1:0] )
+// );
+// assign o_xcom_cfg_sync[32-1:4] = '0;
+assign o_xcom_cfg_sync = i_xcom_cfg;
+
+// synchronizer #(
+//    .NB(32)
+//    ) sync_axi_data1(
+//   .i_clk      ( i_time_clk       ),
+//   .i_rstn     ( i_time_rstn      ),
+//   .i_async    ( i_axi_data1      ),
+//   .o_sync     ( o_axi_data1_sync )
+// );
+assign o_axi_data1_sync = i_axi_data1;
+
+// synchronizer #(
+//    .NB(32)
+//    ) sync_axi_data2(
+//   .i_clk      ( i_time_clk       ),
+//   .i_rstn     ( i_time_rstn      ),
+//   .i_async    ( i_axi_data2      ),
+//   .o_sync     ( o_axi_data2_sync )
+// );
+assign o_axi_data2_sync = i_axi_data2;
 
 ///////////////////////////////////////////////////////////////////////////////
 //Core domain -> Time domain
@@ -236,36 +270,80 @@ wide_en_signal sync_core_en(
    .o_en   ( o_core_en_sync )
    );
 
-synchronizer#(
-   .NB(5)
-   ) sync_core_op(
+//------------------------------------------------------
+// NOTE: no synchronizers are needed for data buses!!!
+//       synchronization is done with the core_en_req
+
+logic [ 4:0]   o_core_op_reg;
+logic [31:0]   o_core_data1_reg;
+logic [31:0]   o_core_data2_reg;
+logic          core_en_req;
+logic          core_en_ack_sync;
+
+always_ff @(posedge i_core_clk, negedge i_core_rstn) begin
+   if (~i_core_rstn)
+      core_en_req <= 1'b0;
+   else
+      if (i_core_en & o_core_ready_sync)
+         core_en_req <= 1'b1;
+      else if (core_en_req & core_en_ack_sync)
+         core_en_req <= 1'b0;
+end
+
+synchronizer #(
+   .NB(1)
+) sync_core_en_req (
   .i_clk      ( i_time_clk       ),
   .i_rstn     ( i_time_rstn      ),
-  .i_async    ( i_core_op        ),
-  .o_sync     ( o_core_op_sync   )
+  .i_async    ( core_en_req      ),
+  .o_sync     ( core_en_req_sync )
 );
 
-synchronizer#(
-   .NB(32)
-   ) sync_core_data1(
-  .i_clk      ( i_time_clk       ),
-  .i_rstn     ( i_time_rstn      ),
-  .i_async    ( i_core_data1      ),
-  .o_sync     ( o_core_data1_sync )
-);
+// synchronizer #(
+//    .NB(5)
+//    ) sync_core_op(
+//   .i_clk      ( i_time_clk       ),
+//   .i_rstn     ( i_time_rstn      ),
+//   .i_async    ( i_core_op        ),
+//   .o_sync     ( o_core_op_sync   )
+// );
+always_ff @(posedge i_core_clk) begin
+   if (i_core_en)
+      o_core_op_reg <= i_core_op;
+end
+assign o_core_op_sync = core_en_req ? o_core_op_reg : i_core_op;
 
-synchronizer#(
-   .NB(32)
-   ) sync_core_data2(
-  .i_clk      ( i_time_clk        ),
-  .i_rstn     ( i_time_rstn       ),
-  .i_async    ( i_core_data2      ),
-  .o_sync     ( o_core_data2_sync )
-);
+// synchronizer #(
+//    .NB(32)
+//    ) sync_core_data1(
+//   .i_clk      ( i_time_clk       ),
+//   .i_rstn     ( i_time_rstn      ),
+//   .i_async    ( i_core_data1      ),
+//   .o_sync     ( o_core_data1_sync )
+// );
+always_ff @(posedge i_core_clk) begin
+   if (i_core_en)
+      o_core_data1_reg <= i_core_data1;
+end
+assign o_core_data1_sync = core_en_req ? o_core_data1_reg : i_core_data1;
+
+// synchronizer #(
+//    .NB(32)
+//    ) sync_core_data2(
+//   .i_clk      ( i_time_clk        ),
+//   .i_rstn     ( i_time_rstn       ),
+//   .i_async    ( i_core_data2      ),
+//   .o_sync     ( o_core_data2_sync )
+// );
+always_ff @(posedge i_core_clk) begin
+   if (i_core_en)
+      o_core_data2_reg <= i_core_data2;
+end
+assign o_core_data2_sync = core_en_req ? o_core_data2_reg : i_core_data2;
 
 ///////////////////////////////////////////////////////////////////////////////
 //Time domain -> Core domain
-synchronizer#(
+synchronizer #(
    .NB(1)
    ) sync_core_ready(
   .i_clk      ( i_core_clk        ),
@@ -274,7 +352,7 @@ synchronizer#(
   .o_sync     ( o_core_ready_sync )
 );
 
-synchronizer#(
+synchronizer #(
    .NB(1)
    ) sync_core_flag(
   .i_clk      ( i_core_clk       ),
@@ -294,12 +372,23 @@ sync_core_valid (
   .o_en       ( o_core_valid_sync )
 );
 
+logic core_en_ack;
+assign core_en_ack = core_en_req_sync;
+
+synchronizer #(
+   .NB(1)
+) sync_core_en_ack (
+  .i_clk      ( i_core_clk       ),
+  .i_rstn     ( i_core_rstn      ),
+  .i_async    ( core_en_ack      ),
+  .o_sync     ( core_en_ack_sync )
+);
+
 //------------------------------------------------------
 // NOTE: no synchronizers are needed for data buses!!!
-//       synchronization is done with the valid
+//       synchronization is done with the core_valid
 
-assign o_core_data1_core = i_core_data1_core;
-// synchronizer#(
+// synchronizer #(
 //    .NB(32)
 //    ) sync_data1_core(
 //   .i_clk      ( i_core_clk        ),
@@ -307,8 +396,9 @@ assign o_core_data1_core = i_core_data1_core;
 //   .i_async    ( i_core_data1_core ),
 //   .o_sync     ( o_core_data1_core )
 // );
+assign o_core_data1_core = i_core_data1_core;
 
-// synchronizer#(
+// synchronizer #(
 //    .NB(32)
 //    ) sync_data2_core(
 //   .i_clk      ( i_core_clk        ),

@@ -1834,7 +1834,7 @@ module tb_qick ();
 
       if (TEST_NAME == "test_xcom") begin
         $display("\n\n*** %t - Start test_xcom Test \n\n***", $realtime());
-        TEST_RUN_TIME        = 10us;
+        TEST_RUN_TIME        = 10us * 10;
         REPEAT_EXEC          = 2;
 
         ro_length            = 500;
@@ -1845,9 +1845,9 @@ module tb_qick ();
         #100ns;
 
         // assign an ID to the XCOM module.
-        s_xcom_id = 4'h2;
-        axi_mst_xcom_agent.AXI4LITE_WRITE_BURST(REG_XCOM_ID, prot, s_xcom_id, resp);
-//        WRITE_AXI_XCOM(REG_XCOM_ID,s_xcom_id);
+        s_xcom_id = 32'd2;
+        axi_mst_xcom_agent.AXI4LITE_WRITE_BURST(REG_XCOM_AXI_DATA1, prot, s_xcom_id, resp);
+        axi_mst_xcom_agent.AXI4LITE_WRITE_BURST(REG_XCOM_CTRL, prot, ('d16 << 1) | 'd1, resp);
         #10ns;
 
         wait(tb_test_run_done);

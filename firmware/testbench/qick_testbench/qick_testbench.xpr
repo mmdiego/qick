@@ -60,7 +60,7 @@
     <Option Name="UseIPStaticLibs" Val="0"/>
     <Option Name="EnableBDX" Val="FALSE"/>
     <Option Name="DSABoardId" Val="zcu216"/>
-    <Option Name="WTXSimLaunchSim" Val="946"/>
+    <Option Name="WTXSimLaunchSim" Val="990"/>
     <Option Name="WTModelSimLaunchSim" Val="0"/>
     <Option Name="WTQuestaLaunchSim" Val="0"/>
     <Option Name="WTIesLaunchSim" Val="0"/>
@@ -91,14 +91,6 @@
   <FileSets Version="1" Minor="31">
     <FileSet Name="sources_1" Type="DesignSrcs" RelSrcDir="$PSRCDIR/sources_1" RelGenDir="$PGENDIR/sources_1">
       <Filter Type="Srcs"/>
-      <File Path="$PPRDIR/../../ip/xcom/src/axil_slv.sv">
-        <FileInfo>
-          <Attr Name="Library" Val="lib_xcom"/>
-          <Attr Name="UsedIn" Val="synthesis"/>
-          <Attr Name="UsedIn" Val="implementation"/>
-          <Attr Name="UsedIn" Val="simulation"/>
-        </FileInfo>
-      </File>
       <File Path="$PPRDIR/../../ip/xcom/src/diff_in_nb.sv">
         <FileInfo>
           <Attr Name="Library" Val="lib_xcom"/>
@@ -180,6 +172,14 @@
         </FileInfo>
       </File>
       <File Path="$PPRDIR/../../ip/xcom/src/wide_en_signal.sv">
+        <FileInfo>
+          <Attr Name="Library" Val="lib_xcom"/>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="implementation"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
+      <File Path="$PPRDIR/../../ip/xcom/src/xcom_axil_slv.sv">
         <FileInfo>
           <Attr Name="Library" Val="lib_xcom"/>
           <Attr Name="UsedIn" Val="synthesis"/>
@@ -458,6 +458,15 @@
       <File Path="$PPRDIR/../../ip/axis_avg_buffer/src/avg.sv">
         <FileInfo>
           <Attr Name="Library" Val="lib_axis_avg_buffer"/>
+          <Attr Name="AutoDisabled" Val="1"/>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="implementation"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
+      <File Path="$PPRDIR/../../ip/xcom/src/axil_slv.sv">
+        <FileInfo>
+          <Attr Name="Library" Val="lib_xcom"/>
           <Attr Name="AutoDisabled" Val="1"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
