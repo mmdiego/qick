@@ -283,32 +283,41 @@ synchronizer#(
   .o_sync     ( o_core_flag_sync )
 );
 
-synchronizer#(
-   .NB(1)
-   ) sync_core_valid(
-  .i_clk      ( i_core_clk        ),
+// Valid is a pulse
+// NOTE: time domain clock is faster than core domain clock, need to stretch pulses!!!
+toggle_synchronizer
+sync_core_valid (
   .i_rstn     ( i_core_rstn       ),
-  .i_async    ( i_core_valid      ),
-  .o_sync     ( o_core_valid_sync )
+  .i_clk_in   ( i_time_clk        ),
+  .i_clk_out  ( i_core_clk        ),
+  .i_en       ( i_core_valid      ),
+  .o_en       ( o_core_valid_sync )
 );
 
-synchronizer#(
-   .NB(32)
-   ) sync_data1_core(
-  .i_clk      ( i_core_clk        ),
-  .i_rstn     ( i_core_rstn       ),
-  .i_async    ( i_core_data1_core ),
-  .o_sync     ( o_core_data1_core )
-);
+//------------------------------------------------------
+// NOTE: no synchronizers are needed for data buses!!!
+//       synchronization is done with the valid
 
-synchronizer#(
-   .NB(32)
-   ) sync_data2_core(
-  .i_clk      ( i_core_clk        ),
-  .i_rstn     ( i_core_rstn       ),
-  .i_async    ( i_core_data2_core ),
-  .o_sync     ( o_core_data2_core )
-);
+assign o_core_data1_core = i_core_data1_core;
+// synchronizer#(
+//    .NB(32)
+//    ) sync_data1_core(
+//   .i_clk      ( i_core_clk        ),
+//   .i_rstn     ( i_core_rstn       ),
+//   .i_async    ( i_core_data1_core ),
+//   .o_sync     ( o_core_data1_core )
+// );
+
+// synchronizer#(
+//    .NB(32)
+//    ) sync_data2_core(
+//   .i_clk      ( i_core_clk        ),
+//   .i_rstn     ( i_core_rstn       ),
+//   .i_async    ( i_core_data2_core ),
+//   .o_sync     ( o_core_data2_core )
+// );
+assign o_core_data2_core = i_core_data2_core;
+//------------------------------------------------------
 
 //end of SYNC STAGES
 ///////////////////////////////////////////////////////////////////////////////

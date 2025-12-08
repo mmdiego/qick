@@ -5,10 +5,9 @@
    <db_ref_list>
       <db_ref path="tb_qick_behav.wdb" id="1">
          <top_modules>
-            <top_module name="\$unit_axi_mst_0_sv_2146626060 " />
-            <top_module name="\$unit_qcore_cpu_sv " />
-            <top_module name="\$unit_qproc_core_sv_1328007703 " />
-            <top_module name="\$unit_qproc_dispatcher_sv_4173570857 " />
+            <top_module name="\$unit_qcore_cpu_sv_3252652933 " />
+            <top_module name="\$unit_qick_processor_sv_1002166706 " />
+            <top_module name="\$unit_tb_qick_sv " />
             <top_module name="axi_mst_0_pkg" />
             <top_module name="axi_vip_pkg" />
             <top_module name="fxp_pkg" />
@@ -21,15 +20,15 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="7,067.500 ns"></ZoomStartTime>
-      <ZoomEndTime time="8,331.501 ns"></ZoomEndTime>
-      <Cursor1Time time="8,017.500 ns"></Cursor1Time>
+      <ZoomStartTime time="0.000000 us"></ZoomStartTime>
+      <ZoomEndTime time="34.105501 us"></ZoomEndTime>
+      <Cursor1Time time="7.732500 us"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
-      <NameColumnWidth column_width="245"></NameColumnWidth>
-      <ValueColumnWidth column_width="76"></ValueColumnWidth>
+      <NameColumnWidth column_width="228"></NameColumnWidth>
+      <ValueColumnWidth column_width="91"></ValueColumnWidth>
    </column_width_setting>
-   <WVObjectSize size="59" />
+   <WVObjectSize size="10" />
    <wvobject type="group" fp_name="group490">
       <obj_property name="label">RST_CLK</obj_property>
       <obj_property name="DisplayName">label</obj_property>
@@ -109,76 +108,9 @@
       <wvobject type="group" fp_name="group1522">
          <obj_property name="label">REGS</obj_property>
          <obj_property name="DisplayName">label</obj_property>
-         <obj_property name="isExpanded"></obj_property>
          <wvobject type="array" fp_name="/tb_qick/AXIS_QPROC/QPROC/CORE_0/CORE_CPU/reg_bank/sreg_32_dt">
             <obj_property name="ElementShortName">sreg_32_dt[0:15][31:0]</obj_property>
             <obj_property name="ObjectShortName">sreg_32_dt[0:15][31:0]</obj_property>
-            <obj_property name="isExpanded"></obj_property>
-            <wvobject type="array" fp_name="/tb_qick/AXIS_QPROC/QPROC/CORE_0/CORE_CPU/reg_bank/sreg_32_dt[0]">
-               <obj_property name="ElementShortName">[0][31:0]</obj_property>
-               <obj_property name="ObjectShortName">[0][31:0]</obj_property>
-            </wvobject>
-            <wvobject type="array" fp_name="/tb_qick/AXIS_QPROC/QPROC/CORE_0/CORE_CPU/reg_bank/sreg_32_dt[1]">
-               <obj_property name="ElementShortName">[1][31:0]</obj_property>
-               <obj_property name="ObjectShortName">[1][31:0]</obj_property>
-            </wvobject>
-            <wvobject type="array" fp_name="/tb_qick/AXIS_QPROC/QPROC/CORE_0/CORE_CPU/reg_bank/sreg_32_dt[2]">
-               <obj_property name="ElementShortName">[2][31:0]</obj_property>
-               <obj_property name="ObjectShortName">[2][31:0]</obj_property>
-            </wvobject>
-            <wvobject type="array" fp_name="/tb_qick/AXIS_QPROC/QPROC/CORE_0/CORE_CPU/reg_bank/sreg_32_dt[3]">
-               <obj_property name="ElementShortName">[3][31:0]</obj_property>
-               <obj_property name="ObjectShortName">[3][31:0]</obj_property>
-            </wvobject>
-            <wvobject type="array" fp_name="/tb_qick/AXIS_QPROC/QPROC/CORE_0/CORE_CPU/reg_bank/sreg_32_dt[4]">
-               <obj_property name="ElementShortName">[4][31:0]</obj_property>
-               <obj_property name="ObjectShortName">[4][31:0]</obj_property>
-            </wvobject>
-            <wvobject type="array" fp_name="/tb_qick/AXIS_QPROC/QPROC/CORE_0/CORE_CPU/reg_bank/sreg_32_dt[5]">
-               <obj_property name="ElementShortName">[5][31:0]</obj_property>
-               <obj_property name="ObjectShortName">[5][31:0]</obj_property>
-            </wvobject>
-            <wvobject type="array" fp_name="/tb_qick/AXIS_QPROC/QPROC/CORE_0/CORE_CPU/reg_bank/sreg_32_dt[6]">
-               <obj_property name="ElementShortName">[6][31:0]</obj_property>
-               <obj_property name="ObjectShortName">[6][31:0]</obj_property>
-            </wvobject>
-            <wvobject type="array" fp_name="/tb_qick/AXIS_QPROC/QPROC/CORE_0/CORE_CPU/reg_bank/sreg_32_dt[7]">
-               <obj_property name="ElementShortName">[7][31:0]</obj_property>
-               <obj_property name="ObjectShortName">[7][31:0]</obj_property>
-            </wvobject>
-            <wvobject type="array" fp_name="/tb_qick/AXIS_QPROC/QPROC/CORE_0/CORE_CPU/reg_bank/sreg_32_dt[8]">
-               <obj_property name="ElementShortName">[8][31:0]</obj_property>
-               <obj_property name="ObjectShortName">[8][31:0]</obj_property>
-            </wvobject>
-            <wvobject type="array" fp_name="/tb_qick/AXIS_QPROC/QPROC/CORE_0/CORE_CPU/reg_bank/sreg_32_dt[9]">
-               <obj_property name="ElementShortName">[9][31:0]</obj_property>
-               <obj_property name="ObjectShortName">[9][31:0]</obj_property>
-            </wvobject>
-            <wvobject type="array" fp_name="/tb_qick/AXIS_QPROC/QPROC/CORE_0/CORE_CPU/reg_bank/sreg_32_dt[10]">
-               <obj_property name="ElementShortName">[10][31:0]</obj_property>
-               <obj_property name="ObjectShortName">[10][31:0]</obj_property>
-               <obj_property name="isExpanded"></obj_property>
-            </wvobject>
-            <wvobject type="array" fp_name="/tb_qick/AXIS_QPROC/QPROC/CORE_0/CORE_CPU/reg_bank/sreg_32_dt[11]">
-               <obj_property name="ElementShortName">[11][31:0]</obj_property>
-               <obj_property name="ObjectShortName">[11][31:0]</obj_property>
-            </wvobject>
-            <wvobject type="array" fp_name="/tb_qick/AXIS_QPROC/QPROC/CORE_0/CORE_CPU/reg_bank/sreg_32_dt[12]">
-               <obj_property name="ElementShortName">[12][31:0]</obj_property>
-               <obj_property name="ObjectShortName">[12][31:0]</obj_property>
-            </wvobject>
-            <wvobject type="array" fp_name="/tb_qick/AXIS_QPROC/QPROC/CORE_0/CORE_CPU/reg_bank/sreg_32_dt[13]">
-               <obj_property name="ElementShortName">[13][31:0]</obj_property>
-               <obj_property name="ObjectShortName">[13][31:0]</obj_property>
-            </wvobject>
-            <wvobject type="array" fp_name="/tb_qick/AXIS_QPROC/QPROC/CORE_0/CORE_CPU/reg_bank/sreg_32_dt[14]">
-               <obj_property name="ElementShortName">[14][31:0]</obj_property>
-               <obj_property name="ObjectShortName">[14][31:0]</obj_property>
-            </wvobject>
-            <wvobject type="array" fp_name="/tb_qick/AXIS_QPROC/QPROC/CORE_0/CORE_CPU/reg_bank/sreg_32_dt[15]">
-               <obj_property name="ElementShortName">[15][31:0]</obj_property>
-               <obj_property name="ObjectShortName">[15][31:0]</obj_property>
-            </wvobject>
          </wvobject>
          <wvobject type="array" fp_name="/tb_qick/AXIS_QPROC/QPROC/CORE_0/CORE_CPU/reg_bank/dreg_32_dt">
             <obj_property name="ElementShortName">dreg_32_dt[0:15][31:0]</obj_property>
@@ -279,7 +211,6 @@
       <wvobject type="group" fp_name="group1468">
          <obj_property name="label">PMEM</obj_property>
          <obj_property name="DisplayName">label</obj_property>
-         <obj_property name="isExpanded"></obj_property>
          <wvobject type="array" fp_name="/tb_qick/AXIS_QPROC/QPROC/CORE_0/CORE_MEM/P_MEM/addr_a_i">
             <obj_property name="ElementShortName">addr_a_i[11:0]</obj_property>
             <obj_property name="ObjectShortName">addr_a_i[11:0]</obj_property>
@@ -301,7 +232,6 @@
       <wvobject type="group" fp_name="group3200">
          <obj_property name="label">QPA</obj_property>
          <obj_property name="DisplayName">label</obj_property>
-         <obj_property name="isExpanded"></obj_property>
          <wvobject type="logic" fp_name="/tb_qick/AXIS_QPROC/QPROC/qp1_en_o">
             <obj_property name="ElementShortName">qp1_en_o</obj_property>
             <obj_property name="ObjectShortName">qp1_en_o</obj_property>
@@ -349,18 +279,6 @@
             <obj_property name="ElementShortName">qp1_flag_i</obj_property>
             <obj_property name="ObjectShortName">qp1_flag_i</obj_property>
          </wvobject>
-      </wvobject>
-      <wvobject type="array" fp_name="/tb_qick/AXIS_QPROC/QPROC/QPROC_CTRL/core_st_do">
-         <obj_property name="ElementShortName">core_st_do[2:0]</obj_property>
-         <obj_property name="ObjectShortName">core_st_do[2:0]</obj_property>
-      </wvobject>
-      <wvobject type="logic" fp_name="/tb_qick/u_xcom/u_xcom_cdc/i_core_clk">
-         <obj_property name="ElementShortName">i_core_clk</obj_property>
-         <obj_property name="ObjectShortName">i_core_clk</obj_property>
-      </wvobject>
-      <wvobject type="array" fp_name="/tb_qick/AXIS_QPROC/QPROC/QPROC_xREG/TPROC_STATUS">
-         <obj_property name="ElementShortName">TPROC_STATUS[31:0]</obj_property>
-         <obj_property name="ObjectShortName">TPROC_STATUS[31:0]</obj_property>
       </wvobject>
       <wvobject type="group" fp_name="group3194">
          <obj_property name="label">QPB</obj_property>
@@ -417,7 +335,6 @@
       <wvobject type="group" fp_name="group1521">
          <obj_property name="label">TIME</obj_property>
          <obj_property name="DisplayName">label</obj_property>
-         <obj_property name="isExpanded"></obj_property>
          <wvobject type="array" fp_name="/tb_qick/AXIS_QPROC/QPROC/c_time_usr">
             <obj_property name="ElementShortName">c_time_usr[31:0]</obj_property>
             <obj_property name="ObjectShortName">c_time_usr[31:0]</obj_property>
@@ -447,7 +364,6 @@
       <wvobject type="group" fp_name="group2246">
          <obj_property name="label">TRIG_DISPATCHER_0</obj_property>
          <obj_property name="DisplayName">label</obj_property>
-         <obj_property name="isExpanded"></obj_property>
          <wvobject type="logic" fp_name="/tb_qick/AXIS_QPROC/QPROC/DISPATCHER/\TRIG_PORT[0].trig_fifo_inst /push_i">
             <obj_property name="ElementShortName">push_i</obj_property>
             <obj_property name="ObjectShortName">push_i</obj_property>
@@ -669,7 +585,6 @@
       <wvobject type="group" fp_name="group1502">
          <obj_property name="label">WAVE_DISPATCHER_0</obj_property>
          <obj_property name="DisplayName">label</obj_property>
-         <obj_property name="isExpanded"></obj_property>
          <wvobject type="logic" fp_name="/tb_qick/AXIS_QPROC/QPROC/DISPATCHER/\WAVE_PORT[0].wave_fifo_inst /push_i">
             <obj_property name="ElementShortName">push_i</obj_property>
             <obj_property name="ObjectShortName">push_i</obj_property>
@@ -2532,204 +2447,161 @@
          <obj_property name="ObjectShortName">m_axis_tlast</obj_property>
       </wvobject>
    </wvobject>
-   <wvobject type="logic" fp_name="/tb_qick/u_xcom/so_xcom_clk">
-      <obj_property name="ElementShortName">so_xcom_clk</obj_property>
-      <obj_property name="ObjectShortName">so_xcom_clk</obj_property>
-   </wvobject>
-   <wvobject type="logic" fp_name="/tb_qick/u_xcom/so_xcom_data">
-      <obj_property name="ElementShortName">so_xcom_data</obj_property>
-      <obj_property name="ObjectShortName">so_xcom_data</obj_property>
-   </wvobject>
-   <wvobject type="array" fp_name="/tb_qick/u_xcom/NCH">
-      <obj_property name="ElementShortName">NCH[31:0]</obj_property>
-      <obj_property name="ObjectShortName">NCH[31:0]</obj_property>
-   </wvobject>
-   <wvobject type="array" fp_name="/tb_qick/u_xcom/SYNC">
-      <obj_property name="ElementShortName">SYNC[31:0]</obj_property>
-      <obj_property name="ObjectShortName">SYNC[31:0]</obj_property>
-   </wvobject>
-   <wvobject type="array" fp_name="/tb_qick/u_xcom/DEBUG">
-      <obj_property name="ElementShortName">DEBUG[31:0]</obj_property>
-      <obj_property name="ObjectShortName">DEBUG[31:0]</obj_property>
-   </wvobject>
-   <wvobject type="logic" fp_name="/tb_qick/u_xcom/u_xcom_cdc/i_core_ready">
-      <obj_property name="ElementShortName">i_core_ready</obj_property>
-      <obj_property name="ObjectShortName">i_core_ready</obj_property>
-   </wvobject>
-   <wvobject type="logic" fp_name="/tb_qick/u_xcom/u_xcom_cdc/o_core_ready_sync">
-      <obj_property name="ElementShortName">o_core_ready_sync</obj_property>
-      <obj_property name="ObjectShortName">o_core_ready_sync</obj_property>
-   </wvobject>
-   <wvobject type="logic" fp_name="/tb_qick/u_xcom/u_xcom_cdc/i_ps_clk">
-      <obj_property name="ElementShortName">i_ps_clk</obj_property>
-      <obj_property name="ObjectShortName">i_ps_clk</obj_property>
-   </wvobject>
-   <wvobject type="logic" fp_name="/tb_qick/u_xcom/u_xcom_cdc/i_time_clk">
-      <obj_property name="ElementShortName">i_time_clk</obj_property>
-      <obj_property name="ObjectShortName">i_time_clk</obj_property>
-   </wvobject>
-   <wvobject type="logic" fp_name="/tb_qick/u_xcom/u_xcom_cdc/o_core_en_sync">
-      <obj_property name="ElementShortName">o_core_en_sync</obj_property>
-      <obj_property name="ObjectShortName">o_core_en_sync</obj_property>
-   </wvobject>
-   <wvobject type="logic" fp_name="/tb_qick/u_xcom/u_xcom_cdc/i_core_en">
-      <obj_property name="ElementShortName">i_core_en</obj_property>
-      <obj_property name="ObjectShortName">i_core_en</obj_property>
-   </wvobject>
-   <wvobject type="logic" fp_name="/tb_qick/u_xcom/u_xcom_txrx/i_req_loc">
-      <obj_property name="ElementShortName">i_req_loc</obj_property>
-      <obj_property name="ObjectShortName">i_req_loc</obj_property>
-   </wvobject>
-   <wvobject type="logic" fp_name="/tb_qick/u_xcom/u_xcom_txrx/s_lack">
-      <obj_property name="ElementShortName">s_lack</obj_property>
-      <obj_property name="ObjectShortName">s_lack</obj_property>
-   </wvobject>
-   <wvobject type="logic" fp_name="/tb_qick/u_xcom/u_xcom_txrx/s_tx_ready">
-      <obj_property name="ElementShortName">s_tx_ready</obj_property>
-      <obj_property name="ObjectShortName">s_tx_ready</obj_property>
-   </wvobject>
-   <wvobject type="logic" fp_name="/tb_qick/u_xcom/u_xcom_txrx/u_tx_cmd/o_ready">
-      <obj_property name="ElementShortName">o_ready</obj_property>
-      <obj_property name="ObjectShortName">o_ready</obj_property>
-   </wvobject>
-   <wvobject type="logic" fp_name="/tb_qick/u_xcom/u_xcom_txrx/u_tx_cmd/u_xcom_link_tx/s_ready">
-      <obj_property name="ElementShortName">s_ready</obj_property>
-      <obj_property name="ObjectShortName">s_ready</obj_property>
-   </wvobject>
-   <wvobject type="logic" fp_name="/tb_qick/u_xcom/u_xcom_txrx/u_tx_cmd/u_xcom_link_tx/o_ready">
-      <obj_property name="ElementShortName">o_ready</obj_property>
-      <obj_property name="ObjectShortName">o_ready</obj_property>
-   </wvobject>
-   <wvobject type="array" fp_name="/tb_qick/u_xcom/u_xcom_txrx/u_tx_cmd/u_xcom_link_tx/state_r">
-      <obj_property name="ElementShortName">state_r[1:0]</obj_property>
-      <obj_property name="ObjectShortName">state_r[1:0]</obj_property>
-   </wvobject>
-   <wvobject type="logic" fp_name="/tb_qick/u_xcom/u_xcom_txrx/u_tx_cmd/u_xcom_link_tx/i_valid">
-      <obj_property name="ElementShortName">i_valid</obj_property>
-      <obj_property name="ObjectShortName">i_valid</obj_property>
-   </wvobject>
-   <wvobject type="logic" fp_name="/tb_qick/u_xcom/u_xcom_txrx/u_tx_cmd/i_req">
-      <obj_property name="ElementShortName">i_req</obj_property>
-      <obj_property name="ObjectShortName">i_req</obj_property>
-   </wvobject>
-   <wvobject type="array" fp_name="/tb_qick/u_xcom/u_xcom_txrx/u_tx_cmd/state_r">
-      <obj_property name="ElementShortName">state_r[1:0]</obj_property>
-      <obj_property name="ObjectShortName">state_r[1:0]</obj_property>
-   </wvobject>
-   <wvobject type="logic" fp_name="/tb_qick/u_xcom/s_core_ready_r1">
-      <obj_property name="ElementShortName">s_core_ready_r1</obj_property>
-      <obj_property name="ObjectShortName">s_core_ready_r1</obj_property>
-   </wvobject>
-   <wvobject type="logic" fp_name="/tb_qick/u_xcom/s_core_ready_r2">
-      <obj_property name="ElementShortName">s_core_ready_r2</obj_property>
-      <obj_property name="ObjectShortName">s_core_ready_r2</obj_property>
-   </wvobject>
-   <wvobject type="logic" fp_name="/tb_qick/u_xcom/i_xcom_clk_p[0]">
-      <obj_property name="ElementShortName">[0]</obj_property>
-      <obj_property name="ObjectShortName">[0]</obj_property>
-   </wvobject>
-   <wvobject type="logic" fp_name="/tb_qick/u_xcom/i_xcom_clk_n[0]">
-      <obj_property name="ElementShortName">[0]</obj_property>
-      <obj_property name="ObjectShortName">[0]</obj_property>
-   </wvobject>
-   <wvobject type="logic" fp_name="/tb_qick/u_xcom/i_xcom_data_p[0]">
-      <obj_property name="ElementShortName">[0]</obj_property>
-      <obj_property name="ObjectShortName">[0]</obj_property>
-   </wvobject>
-   <wvobject type="logic" fp_name="/tb_qick/u_xcom/i_xcom_data_n[0]">
-      <obj_property name="ElementShortName">[0]</obj_property>
-      <obj_property name="ObjectShortName">[0]</obj_property>
-   </wvobject>
-   <wvobject type="logic" fp_name="/tb_qick/u_xcom/o_xcom_clk_p">
-      <obj_property name="ElementShortName">o_xcom_clk_p</obj_property>
-      <obj_property name="ObjectShortName">o_xcom_clk_p</obj_property>
-   </wvobject>
-   <wvobject type="logic" fp_name="/tb_qick/u_xcom/o_xcom_data_p">
-      <obj_property name="ElementShortName">o_xcom_data_p</obj_property>
-      <obj_property name="ObjectShortName">o_xcom_data_p</obj_property>
-   </wvobject>
-   <wvobject type="array" fp_name="/tb_qick/u_xcom/s_xcom_id">
-      <obj_property name="ElementShortName">s_xcom_id[3:0]</obj_property>
-      <obj_property name="ObjectShortName">s_xcom_id[3:0]</obj_property>
-   </wvobject>
-   <wvobject type="array" fp_name="/tb_qick/u_xcom/o_xcom_id">
-      <obj_property name="ElementShortName">o_xcom_id[3:0]</obj_property>
-      <obj_property name="ObjectShortName">o_xcom_id[3:0]</obj_property>
-   </wvobject>
-   <wvobject type="logic" fp_name="/tb_qick/u_xcom/u_axil_slv/S_AXI_ACLK">
-      <obj_property name="ElementShortName">S_AXI_ACLK</obj_property>
-      <obj_property name="ObjectShortName">S_AXI_ACLK</obj_property>
-   </wvobject>
-   <wvobject type="logic" fp_name="/tb_qick/u_xcom/u_axil_slv/S_AXI_ARESETN">
-      <obj_property name="ElementShortName">S_AXI_ARESETN</obj_property>
-      <obj_property name="ObjectShortName">S_AXI_ARESETN</obj_property>
-   </wvobject>
-   <wvobject type="array" fp_name="/tb_qick/u_xcom/u_axil_slv/S_AXI_AWADDR">
-      <obj_property name="ElementShortName">S_AXI_AWADDR[5:0]</obj_property>
-      <obj_property name="ObjectShortName">S_AXI_AWADDR[5:0]</obj_property>
-   </wvobject>
-   <wvobject type="logic" fp_name="/tb_qick/u_xcom/u_axil_slv/S_AXI_AWVALID">
-      <obj_property name="ElementShortName">S_AXI_AWVALID</obj_property>
-      <obj_property name="ObjectShortName">S_AXI_AWVALID</obj_property>
-   </wvobject>
-   <wvobject type="logic" fp_name="/tb_qick/u_xcom/u_axil_slv/S_AXI_AWREADY">
-      <obj_property name="ElementShortName">S_AXI_AWREADY</obj_property>
-      <obj_property name="ObjectShortName">S_AXI_AWREADY</obj_property>
-   </wvobject>
-   <wvobject type="array" fp_name="/tb_qick/u_xcom/u_axil_slv/S_AXI_WDATA">
-      <obj_property name="ElementShortName">S_AXI_WDATA[31:0]</obj_property>
-      <obj_property name="ObjectShortName">S_AXI_WDATA[31:0]</obj_property>
-   </wvobject>
-   <wvobject type="array" fp_name="/tb_qick/u_xcom/u_axil_slv/S_AXI_WSTRB">
-      <obj_property name="ElementShortName">S_AXI_WSTRB[3:0]</obj_property>
-      <obj_property name="ObjectShortName">S_AXI_WSTRB[3:0]</obj_property>
-   </wvobject>
-   <wvobject type="logic" fp_name="/tb_qick/u_xcom/u_axil_slv/S_AXI_WVALID">
-      <obj_property name="ElementShortName">S_AXI_WVALID</obj_property>
-      <obj_property name="ObjectShortName">S_AXI_WVALID</obj_property>
-   </wvobject>
-   <wvobject type="logic" fp_name="/tb_qick/u_xcom/u_axil_slv/S_AXI_WREADY">
-      <obj_property name="ElementShortName">S_AXI_WREADY</obj_property>
-      <obj_property name="ObjectShortName">S_AXI_WREADY</obj_property>
-   </wvobject>
-   <wvobject type="array" fp_name="/tb_qick/u_xcom/u_axil_slv/S_AXI_BRESP">
-      <obj_property name="ElementShortName">S_AXI_BRESP[1:0]</obj_property>
-      <obj_property name="ObjectShortName">S_AXI_BRESP[1:0]</obj_property>
-   </wvobject>
-   <wvobject type="logic" fp_name="/tb_qick/u_xcom/u_axil_slv/S_AXI_BVALID">
-      <obj_property name="ElementShortName">S_AXI_BVALID</obj_property>
-      <obj_property name="ObjectShortName">S_AXI_BVALID</obj_property>
-   </wvobject>
-   <wvobject type="logic" fp_name="/tb_qick/u_xcom/u_axil_slv/S_AXI_BREADY">
-      <obj_property name="ElementShortName">S_AXI_BREADY</obj_property>
-      <obj_property name="ObjectShortName">S_AXI_BREADY</obj_property>
-   </wvobject>
-   <wvobject type="array" fp_name="/tb_qick/u_xcom/u_axil_slv/S_AXI_ARADDR">
-      <obj_property name="ElementShortName">S_AXI_ARADDR[5:0]</obj_property>
-      <obj_property name="ObjectShortName">S_AXI_ARADDR[5:0]</obj_property>
-   </wvobject>
-   <wvobject type="logic" fp_name="/tb_qick/u_xcom/u_axil_slv/S_AXI_ARVALID">
-      <obj_property name="ElementShortName">S_AXI_ARVALID</obj_property>
-      <obj_property name="ObjectShortName">S_AXI_ARVALID</obj_property>
-   </wvobject>
-   <wvobject type="logic" fp_name="/tb_qick/u_xcom/u_axil_slv/S_AXI_ARREADY">
-      <obj_property name="ElementShortName">S_AXI_ARREADY</obj_property>
-      <obj_property name="ObjectShortName">S_AXI_ARREADY</obj_property>
-   </wvobject>
-   <wvobject type="array" fp_name="/tb_qick/u_xcom/u_axil_slv/S_AXI_RDATA">
-      <obj_property name="ElementShortName">S_AXI_RDATA[31:0]</obj_property>
-      <obj_property name="ObjectShortName">S_AXI_RDATA[31:0]</obj_property>
-   </wvobject>
-   <wvobject type="array" fp_name="/tb_qick/u_xcom/u_axil_slv/S_AXI_RRESP">
-      <obj_property name="ElementShortName">S_AXI_RRESP[1:0]</obj_property>
-      <obj_property name="ObjectShortName">S_AXI_RRESP[1:0]</obj_property>
-   </wvobject>
-   <wvobject type="logic" fp_name="/tb_qick/u_xcom/u_axil_slv/S_AXI_RVALID">
-      <obj_property name="ElementShortName">S_AXI_RVALID</obj_property>
-      <obj_property name="ObjectShortName">S_AXI_RVALID</obj_property>
-   </wvobject>
-   <wvobject type="logic" fp_name="/tb_qick/u_xcom/u_axil_slv/S_AXI_RREADY">
-      <obj_property name="ElementShortName">S_AXI_RREADY</obj_property>
-      <obj_property name="ObjectShortName">S_AXI_RREADY</obj_property>
+   <wvobject type="group" fp_name="group1879">
+      <obj_property name="label">XCOM</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+      <wvobject type="group" fp_name="group1914">
+         <obj_property name="label">AXI</obj_property>
+         <obj_property name="DisplayName">label</obj_property>
+         <wvobject type="array" fp_name="/tb_qick/u_xcom/s_axi_awaddr">
+            <obj_property name="ElementShortName">s_axi_awaddr[5:0]</obj_property>
+            <obj_property name="ObjectShortName">s_axi_awaddr[5:0]</obj_property>
+         </wvobject>
+         <wvobject type="array" fp_name="/tb_qick/u_xcom/s_axi_awprot">
+            <obj_property name="ElementShortName">s_axi_awprot[2:0]</obj_property>
+            <obj_property name="ObjectShortName">s_axi_awprot[2:0]</obj_property>
+         </wvobject>
+         <wvobject type="logic" fp_name="/tb_qick/u_xcom/s_axi_awvalid">
+            <obj_property name="ElementShortName">s_axi_awvalid</obj_property>
+            <obj_property name="ObjectShortName">s_axi_awvalid</obj_property>
+         </wvobject>
+         <wvobject type="logic" fp_name="/tb_qick/u_xcom/s_axi_awready">
+            <obj_property name="ElementShortName">s_axi_awready</obj_property>
+            <obj_property name="ObjectShortName">s_axi_awready</obj_property>
+         </wvobject>
+         <wvobject type="array" fp_name="/tb_qick/u_xcom/s_axi_wdata">
+            <obj_property name="ElementShortName">s_axi_wdata[31:0]</obj_property>
+            <obj_property name="ObjectShortName">s_axi_wdata[31:0]</obj_property>
+         </wvobject>
+         <wvobject type="array" fp_name="/tb_qick/u_xcom/s_axi_wstrb">
+            <obj_property name="ElementShortName">s_axi_wstrb[3:0]</obj_property>
+            <obj_property name="ObjectShortName">s_axi_wstrb[3:0]</obj_property>
+         </wvobject>
+         <wvobject type="logic" fp_name="/tb_qick/u_xcom/s_axi_wvalid">
+            <obj_property name="ElementShortName">s_axi_wvalid</obj_property>
+            <obj_property name="ObjectShortName">s_axi_wvalid</obj_property>
+         </wvobject>
+         <wvobject type="logic" fp_name="/tb_qick/u_xcom/s_axi_wready">
+            <obj_property name="ElementShortName">s_axi_wready</obj_property>
+            <obj_property name="ObjectShortName">s_axi_wready</obj_property>
+         </wvobject>
+         <wvobject type="array" fp_name="/tb_qick/u_xcom/s_axi_bresp">
+            <obj_property name="ElementShortName">s_axi_bresp[1:0]</obj_property>
+            <obj_property name="ObjectShortName">s_axi_bresp[1:0]</obj_property>
+         </wvobject>
+         <wvobject type="logic" fp_name="/tb_qick/u_xcom/s_axi_bvalid">
+            <obj_property name="ElementShortName">s_axi_bvalid</obj_property>
+            <obj_property name="ObjectShortName">s_axi_bvalid</obj_property>
+         </wvobject>
+         <wvobject type="logic" fp_name="/tb_qick/u_xcom/s_axi_bready">
+            <obj_property name="ElementShortName">s_axi_bready</obj_property>
+            <obj_property name="ObjectShortName">s_axi_bready</obj_property>
+         </wvobject>
+         <wvobject type="array" fp_name="/tb_qick/u_xcom/s_axi_araddr">
+            <obj_property name="ElementShortName">s_axi_araddr[5:0]</obj_property>
+            <obj_property name="ObjectShortName">s_axi_araddr[5:0]</obj_property>
+         </wvobject>
+         <wvobject type="array" fp_name="/tb_qick/u_xcom/s_axi_arprot">
+            <obj_property name="ElementShortName">s_axi_arprot[2:0]</obj_property>
+            <obj_property name="ObjectShortName">s_axi_arprot[2:0]</obj_property>
+         </wvobject>
+         <wvobject type="logic" fp_name="/tb_qick/u_xcom/s_axi_arvalid">
+            <obj_property name="ElementShortName">s_axi_arvalid</obj_property>
+            <obj_property name="ObjectShortName">s_axi_arvalid</obj_property>
+         </wvobject>
+         <wvobject type="logic" fp_name="/tb_qick/u_xcom/s_axi_arready">
+            <obj_property name="ElementShortName">s_axi_arready</obj_property>
+            <obj_property name="ObjectShortName">s_axi_arready</obj_property>
+         </wvobject>
+         <wvobject type="array" fp_name="/tb_qick/u_xcom/s_axi_rdata">
+            <obj_property name="ElementShortName">s_axi_rdata[31:0]</obj_property>
+            <obj_property name="ObjectShortName">s_axi_rdata[31:0]</obj_property>
+         </wvobject>
+         <wvobject type="array" fp_name="/tb_qick/u_xcom/s_axi_rresp">
+            <obj_property name="ElementShortName">s_axi_rresp[1:0]</obj_property>
+            <obj_property name="ObjectShortName">s_axi_rresp[1:0]</obj_property>
+         </wvobject>
+         <wvobject type="logic" fp_name="/tb_qick/u_xcom/s_axi_rvalid">
+            <obj_property name="ElementShortName">s_axi_rvalid</obj_property>
+            <obj_property name="ObjectShortName">s_axi_rvalid</obj_property>
+         </wvobject>
+         <wvobject type="logic" fp_name="/tb_qick/u_xcom/s_axi_rready">
+            <obj_property name="ElementShortName">s_axi_rready</obj_property>
+            <obj_property name="ObjectShortName">s_axi_rready</obj_property>
+         </wvobject>
+      </wvobject>
+      <wvobject type="array" fp_name="/tb_qick/u_xcom/o_xcom_id">
+         <obj_property name="ElementShortName">o_xcom_id[3:0]</obj_property>
+         <obj_property name="ObjectShortName">o_xcom_id[3:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/tb_qick/u_xcom/o_xcom_clk_p">
+         <obj_property name="ElementShortName">o_xcom_clk_p</obj_property>
+         <obj_property name="ObjectShortName">o_xcom_clk_p</obj_property>
+         <obj_property name="CustomSignalColor">#FF00FF</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/tb_qick/u_xcom/o_xcom_data_p">
+         <obj_property name="ElementShortName">o_xcom_data_p</obj_property>
+         <obj_property name="ObjectShortName">o_xcom_data_p</obj_property>
+         <obj_property name="CustomSignalColor">#FF00FF</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/tb_qick/u_xcom/i_xcom_clk_p">
+         <obj_property name="ElementShortName">i_xcom_clk_p[4:0]</obj_property>
+         <obj_property name="ObjectShortName">i_xcom_clk_p[4:0]</obj_property>
+         <obj_property name="CustomSignalColor">#FF00FF</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/tb_qick/u_xcom/i_xcom_data_p">
+         <obj_property name="ElementShortName">i_xcom_data_p[4:0]</obj_property>
+         <obj_property name="ObjectShortName">i_xcom_data_p[4:0]</obj_property>
+         <obj_property name="CustomSignalColor">#FF00FF</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/tb_qick/u_xcom/i_core_en">
+         <obj_property name="ElementShortName">i_core_en</obj_property>
+         <obj_property name="ObjectShortName">i_core_en</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/tb_qick/u_xcom/i_core_op">
+         <obj_property name="ElementShortName">i_core_op[4:0]</obj_property>
+         <obj_property name="ObjectShortName">i_core_op[4:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/tb_qick/u_xcom/i_core_data1">
+         <obj_property name="ElementShortName">i_core_data1[31:0]</obj_property>
+         <obj_property name="ObjectShortName">i_core_data1[31:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/tb_qick/u_xcom/i_core_data2">
+         <obj_property name="ElementShortName">i_core_data2[31:0]</obj_property>
+         <obj_property name="ObjectShortName">i_core_data2[31:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/tb_qick/u_xcom/i_sync">
+         <obj_property name="ElementShortName">i_sync</obj_property>
+         <obj_property name="ObjectShortName">i_sync</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/tb_qick/u_xcom/o_core_ready">
+         <obj_property name="ElementShortName">o_core_ready</obj_property>
+         <obj_property name="ObjectShortName">o_core_ready</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/tb_qick/u_xcom/o_core_data1">
+         <obj_property name="ElementShortName">o_core_data1[31:0]</obj_property>
+         <obj_property name="ObjectShortName">o_core_data1[31:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/tb_qick/u_xcom/o_core_data2">
+         <obj_property name="ElementShortName">o_core_data2[31:0]</obj_property>
+         <obj_property name="ObjectShortName">o_core_data2[31:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/tb_qick/u_xcom/o_core_valid">
+         <obj_property name="ElementShortName">o_core_valid</obj_property>
+         <obj_property name="ObjectShortName">o_core_valid</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/tb_qick/u_xcom/u_axil_slv/i_slv_regs">
+         <obj_property name="ElementShortName">i_slv_regs[0:15][31:0]</obj_property>
+         <obj_property name="ObjectShortName">i_slv_regs[0:15][31:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/tb_qick/u_xcom/u_axil_slv/o_slv_regs">
+         <obj_property name="ElementShortName">o_slv_regs[0:15][31:0]</obj_property>
+         <obj_property name="ObjectShortName">o_slv_regs[0:15][31:0]</obj_property>
+      </wvobject>
    </wvobject>
 </wave_config>

@@ -219,7 +219,7 @@ module tb_qick ();
   reg  [31 :0]        qnet_dt_i [2]   ;
   reg  [31 :0]        qcom_dt_i [2]   ;
 
-  reg  [31 :0]        qp1_dt_i [2]   ;
+  reg  [31 :0]        qp1_dt [2]   ;
   reg  [31 :0]        qp2_dt_i [2]   ;
 
   wire                periph_en_o   ;
@@ -254,9 +254,9 @@ module tb_qick ();
   logic [31:0] qp1_b_dt_o;        
   logic [31:0] qp1_c_dt_o;        
   logic [31:0] qp1_d_dt_o;        
-  logic        qp1_rdy_i;         
-  logic        qp1_vld_i;         
-  logic        qp1_flag_i;        
+  logic        qp1_rdy;         
+  logic        qp1_vld;         
+  logic        qp1_flag;        
   logic        s_xcom_clk_p;        
   logic        s_xcom_clk_n;        
   logic        s_xcom_data_p;        
@@ -273,10 +273,10 @@ module tb_qick ();
   //  qp1_b_dt_r   <=  qp1_b_dt_o;
   //end
 
-  //assign qp1_rdy_i     = ~qp1_en_r;
-  //assign qp1_dt_i[0]   = qp1_a_dt_r;
-  //assign qp1_dt_i[1]   = qp1_b_dt_r;
-  //assign qp1_vld_i     = qp1_en_r  ;
+  //assign qp1_rdy     = ~qp1_en_r;
+  //assign qp1_dt[0]   = qp1_a_dt_r;
+  //assign qp1_dt[1]   = qp1_b_dt_r;
+  //assign qp1_vld     = qp1_en_r  ;
 
   wire port_0_vld, qnet_vld_i, qnet_flag_i, periph_flag_i, ext_flag_i;
   assign port_0_dt_i     = port_1_dt_o;
@@ -432,17 +432,17 @@ module tb_qick ();
     .qcom_vld_i          ( qcom_vld_i         ) ,
     .qcom_flag_i         ( qcom_flag_i        ) ,
     // QP1
-    .qp1_en_o           ( qp1_en_o          ) ,
-    .qp1_op_o           ( qp1_op_o          ) ,
-    .qp1_a_dt_o         ( qp1_a_dt_o        ) ,
-    .qp1_b_dt_o         ( qp1_b_dt_o        ) ,
-    .qp1_c_dt_o         ( qp1_c_dt_o        ) ,
-    .qp1_d_dt_o         ( qp1_d_dt_o        ) ,
-    .qp1_rdy_i          ( qp1_rdy_i         ) ,
-    .qp1_dt1_i          ( qp1_dt_i[0]       ) ,
-    .qp1_dt2_i          ( qp1_dt_i[1]       ) ,
-    .qp1_vld_i          ( qp1_vld_i         ) ,
-    .qp1_flag_i         ( qp1_flag_i        ) ,
+    .qp1_en_o            ( qp1_en_o          ) ,
+    .qp1_op_o            ( qp1_op_o          ) ,
+    .qp1_a_dt_o          ( qp1_a_dt_o        ) ,
+    .qp1_b_dt_o          ( qp1_b_dt_o        ) ,
+    .qp1_c_dt_o          ( qp1_c_dt_o        ) ,
+    .qp1_d_dt_o          ( qp1_d_dt_o        ) ,
+    .qp1_rdy_i           ( qp1_rdy           ) ,
+    .qp1_dt1_i           ( qp1_dt[0]         ) ,
+    .qp1_dt2_i           ( qp1_dt[1]         ) ,
+    .qp1_vld_i           ( qp1_vld           ) ,
+    .qp1_flag_i          ( qp1_flag          ) ,
     // QP2
     .qp2_en_o           ( /*qp2_en_o   */   ) ,
     .qp2_op_o           ( /*qp2_op_o   */   ) ,
@@ -450,7 +450,7 @@ module tb_qick ();
     .qp2_b_dt_o         ( /*qp2_b_dt_o */   ) ,
     .qp2_c_dt_o         ( /*qp2_c_dt_o */   ) ,
     .qp2_d_dt_o         ( /*qp2_d_dt_o */   ) ,
-    .qp2_rdy_i          ( /*qp2_rdy_i  */   ) ,
+    .qp2_rdy_i          (   qp2_rdy_i       ) ,
     .qp2_dt1_i          ( /*qp2_dt_i[0]*/   ) ,
     .qp2_dt2_i          ( /*qp2_dt_i[1]*/   ) ,
     .qp2_vld_i          ( /*qp2_vld_i  */   ) ,
@@ -544,12 +544,34 @@ module tb_qick ();
   );
 
   //-------------------------------------
-  // PHERIPHERALS
+  // PERIPHERALS
   //--------------------------------------
 
   //-------------------------------------
   // XCOM
   //--------------------------------------
+
+  //AXI-LITE XCOM
+  wire [7:0]             s_axi_xcom_awaddr     ;
+  wire [2:0]             s_axi_xcom_awprot     ;
+  wire                   s_axi_xcom_awvalid    ;
+  wire                   s_axi_xcom_awready    ;
+  wire [31:0]            s_axi_xcom_wdata      ;
+  wire [3:0]             s_axi_xcom_wstrb      ;
+  wire                   s_axi_xcom_wvalid     ;
+  wire                   s_axi_xcom_wready     ;
+  wire  [1:0]            s_axi_xcom_bresp      ;
+  wire                   s_axi_xcom_bvalid     ;
+  wire                   s_axi_xcom_bready     ;
+  wire [7:0]             s_axi_xcom_araddr     ;
+  wire [2:0]             s_axi_xcom_arprot     ;
+  wire                   s_axi_xcom_arvalid    ;
+  wire                   s_axi_xcom_arready    ;
+  wire  [31:0]           s_axi_xcom_rdata      ;
+  wire  [1:0]            s_axi_xcom_rresp      ;
+  wire                   s_axi_xcom_rvalid     ;
+  wire                   s_axi_xcom_rready     ;
+
   axi_mst_0 u_axi_mst_xcom_0 (
     .aclk          (s_ps_dma_aclk      ),
     .aresetn       (s_ps_dma_aresetn   ),
@@ -574,11 +596,12 @@ module tb_qick ();
     .m_axi_wvalid  (s_axi_xcom_wvalid  )
   );
 
-  xcom#(
+  xcom #(
     .NCH          ( 5 ),
     .SYNC         ( 1 ),
     .DEBUG        ( 1 )
-  )u_xcom(
+  ) 
+  u_xcom (
     .i_ps_clk           ( s_ps_dma_aclk         ),
     .i_ps_rstn          ( s_ps_dma_aresetn      ),
     .i_core_clk         ( c_clk                 ),
@@ -589,11 +612,11 @@ module tb_qick ();
     .i_core_op          ( qp1_op_o              ),
     .i_core_data1       ( qp1_a_dt_o            ),
     .i_core_data2       ( qp1_b_dt_o            ),
-    .o_core_ready       ( qp1_rdy_i             ),
-    .o_core_data1       ( qp1_dt_i[0]           ),
-    .o_core_data2       ( qp1_dt_i[1]           ),   
-    .o_core_valid       ( qp1_vld_i             ),
-    .o_core_flag        ( qp1_flag_i            ),   
+    .o_core_ready       ( qp1_rdy               ),
+    .o_core_data1       ( qp1_dt[0]             ),
+    .o_core_data2       ( qp1_dt[1]             ),   
+    .o_core_valid       ( qp1_vld               ),
+    .o_core_flag        ( qp1_flag              ),   
     .i_sync             ( 1'b0                  ),   
     .o_proc_start       (                       ),   
     .o_proc_stop        (                       ),
@@ -1811,8 +1834,8 @@ module tb_qick ();
 
       if (TEST_NAME == "test_xcom") begin
         $display("\n\n*** %t - Start test_xcom Test \n\n***", $realtime());
-        TEST_RUN_TIME        = 2us;
-        REPEAT_EXEC          = 5;
+        TEST_RUN_TIME        = 10us;
+        REPEAT_EXEC          = 2;
 
         ro_length            = 500;
         ro_decimated_length  = 50;
@@ -1823,8 +1846,8 @@ module tb_qick ();
 
         // assign an ID to the XCOM module.
         s_xcom_id = 4'h2;
-        //axi_mst_xcom_agent.AXI4LITE_WRITE_BURST(REG_XCOM_ID, prot, s_xcom_id, resp);
-        WRITE_AXI_XCOM(REG_XCOM_ID,s_xcom_id);
+        axi_mst_xcom_agent.AXI4LITE_WRITE_BURST(REG_XCOM_ID, prot, s_xcom_id, resp);
+//        WRITE_AXI_XCOM(REG_XCOM_ID,s_xcom_id);
         #10ns;
 
         wait(tb_test_run_done);
@@ -1840,7 +1863,7 @@ module tb_qick ();
       //$display("DATA %d",  DATA_AXI);
       @(posedge s_ps_dma_aclk); #0.1;
       axi_mst_xcom_agent.AXI4LITE_WRITE_BURST(PORT_AXI, prot, DATA_AXI, resp);
-      endtask
+    endtask
 
     task WRITE_AXI(integer PORT_AXI, DATA_AXI);
       $display("Running WRITE_AXI() Task");
@@ -1848,247 +1871,247 @@ module tb_qick ();
       //$display("DATA %d",  DATA_AXI);
       @(posedge s_ps_dma_aclk); #0.1;
       axi_mst_tproc_agent.AXI4LITE_WRITE_BURST(PORT_AXI, prot, DATA_AXI, resp);
-      endtask
+    endtask
 
-      task READ_AXI(integer ADDR_AXI);
-        integer DATA_RD;
-        $display("Running READ_AXI() Task");
-        @(posedge s_ps_dma_aclk); #0.1;
-        axi_mst_tproc_agent.AXI4LITE_READ_BURST(ADDR_AXI, 0, DATA_RD, resp);
-        $display("READ AXI_DATA %d",  DATA_RD);
-        endtask
-
-
-        task tproc_load_mem(string test_name);
-          string pmem_file, wmem_file, dmem_file;
-
-          $display("### Task tproc_load_mem() start ###");
-          $display("Loading Test: %s", test_name);
-
-          pmem_file = {"../../../../src/tb/",test_name,"/pmem.mem"};
-          wmem_file = {"../../../../src/tb/",test_name,"/wmem.mem"};
-          dmem_file = {"../../../../src/tb/",test_name,"/dmem.mem"};
-
-          $readmemh(pmem_file, AXIS_QPROC.QPROC.CORE_0.CORE_MEM.P_MEM.RAM);
-          $readmemh(wmem_file, AXIS_QPROC.QPROC.CORE_0.CORE_MEM.W_MEM.RAM);
-          $readmemh(dmem_file, AXIS_QPROC.QPROC.CORE_0.CORE_MEM.D_MEM.RAM);
-
-          $display("### Task sg_load_mem() end ###");
-
-          endtask
+    task READ_AXI(integer ADDR_AXI);
+      integer DATA_RD;
+      $display("Running READ_AXI() Task");
+      @(posedge s_ps_dma_aclk); #0.1;
+      axi_mst_tproc_agent.AXI4LITE_READ_BURST(ADDR_AXI, 0, DATA_RD, resp);
+      $display("READ AXI_DATA %d",  DATA_RD);
+    endtask
 
 
-          // Load pulse data into memory.
-          task sg_load_mem(string test_name) /*, input logic tb_load_mem, output logic tb_load_mem_done)*/;
-            string sg_file;
-            int fd,vali,valq;
-            bit signed [15:0] ii,qq;
+    task tproc_load_mem(string test_name);
+      string pmem_file, wmem_file, dmem_file;
 
-            $display("### %t - Task sg_load_mem() start ###", $realtime());
+      $display("### Task tproc_load_mem() start ###");
+      $display("Loading Test: %s", test_name);
 
-            sg_s0_axis_tvalid = 0;
-            sg_s0_axis_tdata  = 0;
+      pmem_file = {"../../../../src/tb/",test_name,"/pmem.mem"};
+      wmem_file = {"../../../../src/tb/",test_name,"/wmem.mem"};
+      dmem_file = {"../../../../src/tb/",test_name,"/dmem.mem"};
 
+      $readmemh(pmem_file, AXIS_QPROC.QPROC.CORE_0.CORE_MEM.P_MEM.RAM);
+      $readmemh(wmem_file, AXIS_QPROC.QPROC.CORE_0.CORE_MEM.W_MEM.RAM);
+      $readmemh(dmem_file, AXIS_QPROC.QPROC.CORE_0.CORE_MEM.D_MEM.RAM);
 
-            $display("################################");
-            $display("### Load envelope into Table ###");
-            $display("################################");
-            $display("t = %0t", $time);
+      $display("### Task sg_load_mem() end ###");
 
-            // start_addr.
-            data_wr = 0;
-            axi_mst_sg_agent.AXI4LITE_WRITE_BURST(SG_ADDR_START_ADDR, prot, data_wr, resp);
-            #100ns;
-
-            // we.
-            data_wr = 1;
-            axi_mst_sg_agent.AXI4LITE_WRITE_BURST(SG_ADDR_WE, prot, data_wr, resp);
-            #100ns;
-
-            // Load Envelope Table Memory.
-            tb_load_mem    = 1;
-
-            // File must be relative to where the simulation is run from (i.e.: xxx.sim/sim_x/behav/xsim)
-            sg_file = {"../../../../src/tb/",test_name,"/sg_0.mem"};
-            fd = $fopen(sg_file,"r");
-
-            wait (sg_s0_axis_tready);
-
-            while($fscanf(fd,"%d,%d", vali,valq) == 2) begin
-              // $display("I,Q: %d, %d", vali,valq);
-              ii = vali;
-              qq = valq;
-              @(posedge sg_s0_axis_aclk);
-              sg_s0_axis_tvalid    = 1;
-              sg_s0_axis_tdata     = {qq,ii};
-            end
-            $fclose(fd);
-
-            @(posedge sg_s0_axis_aclk);
-            sg_s0_axis_tvalid    = 0;
-
-            tb_load_mem_done = 1;
-
-            $display("### %t - Task sg_load_mem() end ###", $realtime());
-            endtask
-
-            task config_decimated_readout(integer channel, integer length);
-
-              // Stop Decimated Buffer Capture
-              data_wr = 0;
-              axi_mst_avg_agent.AXI4LITE_WRITE_BURST(BUF_START_REG, prot, data_wr, resp);
-              #100ns;
-
-              // Set Decimated Buffer Capture Length
-              data_wr = length;
-              axi_mst_avg_agent.AXI4LITE_WRITE_BURST(BUF_LEN_REG, prot, data_wr, resp);
-              #100ns;
-
-              // Start Decimated Buffer Capture
-              data_wr = 1;
-              axi_mst_avg_agent.AXI4LITE_WRITE_BURST(BUF_START_REG, prot, data_wr, resp);
-              #100ns;
-
-              // // Readout Decimated Buffer Data
-              // data_wr = 0;
-              // axi_mst_avg_agent.AXI4LITE_WRITE_BURST(BUF_DR_START_REG, prot, data_wr, resp);
-              // #100ns;
-
-            endtask
-
-            task config_average_readout(integer channel, integer length);
-
-              // Stop Average Buffer Capture
-              data_wr = 0;
-              axi_mst_avg_agent.AXI4LITE_WRITE_BURST(AVG_START_REG, prot, data_wr, resp);
-              #100ns;
-
-              // Set Average Buffer Capture Length
-              data_wr = length;
-              axi_mst_avg_agent.AXI4LITE_WRITE_BURST(AVG_LEN_REG, prot, data_wr, resp);
-              #100ns;
-
-              // Start Average Buffer Capture
-              data_wr = 1;
-              axi_mst_avg_agent.AXI4LITE_WRITE_BURST(AVG_START_REG, prot, data_wr, resp);
-              #100ns;
-
-            endtask
-
-            task read_decimated_readout(integer channel, integer length);
-
-              // Set Decimated Buffer Read Length
-              data_wr = length;
-              axi_mst_avg_agent.AXI4LITE_WRITE_BURST(BUF_DR_LEN_REG, prot, data_wr, resp);
-              #100ns;
-
-              // Readout Decimated Buffer Data
-              data_wr = 1;
-              axi_mst_avg_agent.AXI4LITE_WRITE_BURST(BUF_DR_START_REG, prot, data_wr, resp);
-              #100ns;
-
-              // Stop Readout Decimated Buffer Data
-              data_wr = 0;
-              axi_mst_avg_agent.AXI4LITE_WRITE_BURST(BUF_DR_START_REG, prot, data_wr, resp);
-              #100ns;
-
-            endtask
-
-            task read_average_readout(integer channel, integer length);
-
-              // Set Average Buffer Capture Length
-              data_wr = length;
-              axi_mst_avg_agent.AXI4LITE_WRITE_BURST(AVG_DR_LEN_REG, prot, data_wr, resp);
-              #100ns;
-
-              // Start Average Buffer Read
-              data_wr = 1;
-              axi_mst_avg_agent.AXI4LITE_WRITE_BURST(AVG_DR_START_REG, prot, data_wr, resp);
-              #100ns;
-
-              // Stop Average Buffer Read
-              data_wr = 0;
-              axi_mst_avg_agent.AXI4LITE_WRITE_BURST(AVG_DR_START_REG, prot, data_wr, resp);
-              #100ns;
-
-            endtask
+    endtask
 
 
+    // Load pulse data into memory.
+    task sg_load_mem(string test_name) /*, input logic tb_load_mem, output logic tb_load_mem_done)*/;
+      string sg_file;
+      int fd,vali,valq;
+      bit signed [15:0] ii,qq;
 
-            task qubit_emulator_config();
+      $display("### %t - Task sg_load_mem() start ###", $realtime());
 
-              // From https://github.com/openquantumhardware/QCE2024/blob/main/labs_solns/LabDay1_Resonator.ipynb
-              // soc.config_resonator(c0=0.85, c1=0.8, verbose=True)
-              // SimuChain: f = 500.0 MHz, fd = -114.39999999999998 MHz, k = 232, fdds = 0.8000000000000114 MHz
-              // AxisKidsimV3: sel        = resonator
-              // AxisKidsimV3: channel    = 232
-              // AxisKidsimV3: lane       = 0
-              // AxisKidsimV3: punct_id   = 29
-              // AxisKidsimV3: iir_c0     = 0.85
-              // AxisKidsimV3: iir_c1     = 0.8
-              // AxisKidsimV3: iir_g      = 0.9729729729729729
-              // AxisKidsimV3: dds_freq   = 0.8000000000000114
-              // AxisKidsimV3: dds_wait   = 95
-              // AxisKidsimV3: sweep_freq = 2.0
-              // AxisKidsimV3: sweep_time = 10.0
-              // AxisKidsimV3: nstep      = 1
-              // freq = 5461, bval = 13653, slope = 13653, steps = 1, wait = 95
-              // c0 = 27853, c1 = 26214, g = 15882
-              // sel = 0, punct_id = 29, addr = 0
-              // def config_resonator(self, simu_ch=0, q_adc=6, q_dac=0, f=500.0, df=2.0, dt=10.0, c0=0.99, c1=0.8, verbose=False):
-              // simu.set_resonator(cfg, verbose=verbose)
-              // kidsim_b.set_resonator(cfg, verbose=verbose)
-              // self.set_resonator_config(config, verbose)
-              // self.set_resonator_regs(config, verbose)
+      sg_s0_axis_tvalid = 0;
+      sg_s0_axis_tdata  = 0;
 
-              real     qemu_f      = 100.0;      // in MHz
-              // real     qemu_df     = 2.0;      // in MHz
-              // real     qemu_dt     = 10.0;     // in us
-              real     qemu_c0     = 0.98;
-              real     qemu_c1     = 0.85;
-              real     qemu_g      = 0.9;
-              integer  qemu_sel    = 0;        // 0: 'resonator', 1: 'dds', 2: 'bypass'
 
-              // xil_axi_ulong   QEMU_DDS_BVAL_REG     = 4 * 0;
-              // xil_axi_ulong   QEMU_DDS_SLOPE_REG    = 4 * 1;
-              // xil_axi_ulong   QEMU_DDS_STEPS_REG    = 4 * 2;
-              // xil_axi_ulong   QEMU_DDS_WAIT_REG     = 4 * 3;
-              // xil_axi_ulong   QEMU_DDS_FREQ_REG     = 4 * 4;
-              // xil_axi_ulong   QEMU_IIR_C0_REG       = 4 * 5;
-              // xil_axi_ulong   QEMU_IIR_C1_REG       = 4 * 6;
-              // xil_axi_ulong   QEMU_IIR_G_REG        = 4 * 7;
-              // xil_axi_ulong   QEMU_OUTSEL_REG       = 4 * 8;
-              // xil_axi_ulong   QEMU_PUNCT_ID_REG     = 4 * 9;
-              // xil_axi_ulong   QEMU_ADDR_REG         = 4 * 10;
-              // xil_axi_ulong   QEMU_WE_REG           = 4 * 11;
+      $display("################################");
+      $display("### Load envelope into Table ###");
+      $display("################################");
+      $display("t = %0t", $time);
 
-              // data_wr = qemu_f * 1e6 / (/*f_adc*/ (1/(2.0*T_RO_CLK*1e-9)) / 2.0**16);
-              data_wr = qemu_f * 1e6 / (/*f_adc*/ (1*8/(2.0*T_RO_CLK*1e-9)) / 2.0**16);
-              axi_mst_qemu_agent.AXI4LITE_WRITE_BURST(QEMU_DDS_FREQ_REG, prot, data_wr, resp);
-              #100ns;
+      // start_addr.
+      data_wr = 0;
+      axi_mst_sg_agent.AXI4LITE_WRITE_BURST(SG_ADDR_START_ADDR, prot, data_wr, resp);
+      #100ns;
 
-              data_wr = qemu_c0 * 2**(16-1);
-              axi_mst_qemu_agent.AXI4LITE_WRITE_BURST(QEMU_IIR_C0_REG, prot, data_wr, resp);
-              #100ns;
+      // we.
+      data_wr = 1;
+      axi_mst_sg_agent.AXI4LITE_WRITE_BURST(SG_ADDR_WE, prot, data_wr, resp);
+      #100ns;
 
-              data_wr = qemu_c1 * 2**(16-1);
-              axi_mst_qemu_agent.AXI4LITE_WRITE_BURST(QEMU_IIR_C1_REG, prot, data_wr, resp);
-              #100ns;
+      // Load Envelope Table Memory.
+      tb_load_mem    = 1;
 
-              data_wr = qemu_g * 2**(16-1);
-              axi_mst_qemu_agent.AXI4LITE_WRITE_BURST(QEMU_IIR_G_REG, prot, data_wr, resp);
-              #100ns;
+      // File must be relative to where the simulation is run from (i.e.: xxx.sim/sim_x/behav/xsim)
+      sg_file = {"../../../../src/tb/",test_name,"/sg_0.mem"};
+      fd = $fopen(sg_file,"r");
 
-              // Write Enable Pulse
-              data_wr = 1;
-              axi_mst_qemu_agent.AXI4LITE_WRITE_BURST(QEMU_WE_REG, prot, data_wr, resp);
-              #100ns;
+      wait (sg_s0_axis_tready);
 
-              data_wr = 0;
-              axi_mst_qemu_agent.AXI4LITE_WRITE_BURST(QEMU_WE_REG, prot, data_wr, resp);
-              #100ns;
+      while($fscanf(fd,"%d,%d", vali,valq) == 2) begin
+        // $display("I,Q: %d, %d", vali,valq);
+        ii = vali;
+        qq = valq;
+        @(posedge sg_s0_axis_aclk);
+        sg_s0_axis_tvalid    = 1;
+        sg_s0_axis_tdata     = {qq,ii};
+      end
+      $fclose(fd);
 
-            endtask
+      @(posedge sg_s0_axis_aclk);
+      sg_s0_axis_tvalid    = 0;
+
+      tb_load_mem_done = 1;
+
+      $display("### %t - Task sg_load_mem() end ###", $realtime());
+    endtask
+
+    task config_decimated_readout(integer channel, integer length);
+
+      // Stop Decimated Buffer Capture
+      data_wr = 0;
+      axi_mst_avg_agent.AXI4LITE_WRITE_BURST(BUF_START_REG, prot, data_wr, resp);
+      #100ns;
+
+      // Set Decimated Buffer Capture Length
+      data_wr = length;
+      axi_mst_avg_agent.AXI4LITE_WRITE_BURST(BUF_LEN_REG, prot, data_wr, resp);
+      #100ns;
+
+      // Start Decimated Buffer Capture
+      data_wr = 1;
+      axi_mst_avg_agent.AXI4LITE_WRITE_BURST(BUF_START_REG, prot, data_wr, resp);
+      #100ns;
+
+      // // Readout Decimated Buffer Data
+      // data_wr = 0;
+      // axi_mst_avg_agent.AXI4LITE_WRITE_BURST(BUF_DR_START_REG, prot, data_wr, resp);
+      // #100ns;
+
+    endtask
+
+    task config_average_readout(integer channel, integer length);
+
+      // Stop Average Buffer Capture
+      data_wr = 0;
+      axi_mst_avg_agent.AXI4LITE_WRITE_BURST(AVG_START_REG, prot, data_wr, resp);
+      #100ns;
+
+      // Set Average Buffer Capture Length
+      data_wr = length;
+      axi_mst_avg_agent.AXI4LITE_WRITE_BURST(AVG_LEN_REG, prot, data_wr, resp);
+      #100ns;
+
+      // Start Average Buffer Capture
+      data_wr = 1;
+      axi_mst_avg_agent.AXI4LITE_WRITE_BURST(AVG_START_REG, prot, data_wr, resp);
+      #100ns;
+
+    endtask
+
+    task read_decimated_readout(integer channel, integer length);
+
+      // Set Decimated Buffer Read Length
+      data_wr = length;
+      axi_mst_avg_agent.AXI4LITE_WRITE_BURST(BUF_DR_LEN_REG, prot, data_wr, resp);
+      #100ns;
+
+      // Readout Decimated Buffer Data
+      data_wr = 1;
+      axi_mst_avg_agent.AXI4LITE_WRITE_BURST(BUF_DR_START_REG, prot, data_wr, resp);
+      #100ns;
+
+      // Stop Readout Decimated Buffer Data
+      data_wr = 0;
+      axi_mst_avg_agent.AXI4LITE_WRITE_BURST(BUF_DR_START_REG, prot, data_wr, resp);
+      #100ns;
+
+    endtask
+
+    task read_average_readout(integer channel, integer length);
+
+      // Set Average Buffer Capture Length
+      data_wr = length;
+      axi_mst_avg_agent.AXI4LITE_WRITE_BURST(AVG_DR_LEN_REG, prot, data_wr, resp);
+      #100ns;
+
+      // Start Average Buffer Read
+      data_wr = 1;
+      axi_mst_avg_agent.AXI4LITE_WRITE_BURST(AVG_DR_START_REG, prot, data_wr, resp);
+      #100ns;
+
+      // Stop Average Buffer Read
+      data_wr = 0;
+      axi_mst_avg_agent.AXI4LITE_WRITE_BURST(AVG_DR_START_REG, prot, data_wr, resp);
+      #100ns;
+
+    endtask
+
+
+
+    task qubit_emulator_config();
+
+      // From https://github.com/openquantumhardware/QCE2024/blob/main/labs_solns/LabDay1_Resonator.ipynb
+      // soc.config_resonator(c0=0.85, c1=0.8, verbose=True)
+      // SimuChain: f = 500.0 MHz, fd = -114.39999999999998 MHz, k = 232, fdds = 0.8000000000000114 MHz
+      // AxisKidsimV3: sel        = resonator
+      // AxisKidsimV3: channel    = 232
+      // AxisKidsimV3: lane       = 0
+      // AxisKidsimV3: punct_id   = 29
+      // AxisKidsimV3: iir_c0     = 0.85
+      // AxisKidsimV3: iir_c1     = 0.8
+      // AxisKidsimV3: iir_g      = 0.9729729729729729
+      // AxisKidsimV3: dds_freq   = 0.8000000000000114
+      // AxisKidsimV3: dds_wait   = 95
+      // AxisKidsimV3: sweep_freq = 2.0
+      // AxisKidsimV3: sweep_time = 10.0
+      // AxisKidsimV3: nstep      = 1
+      // freq = 5461, bval = 13653, slope = 13653, steps = 1, wait = 95
+      // c0 = 27853, c1 = 26214, g = 15882
+      // sel = 0, punct_id = 29, addr = 0
+      // def config_resonator(self, simu_ch=0, q_adc=6, q_dac=0, f=500.0, df=2.0, dt=10.0, c0=0.99, c1=0.8, verbose=False):
+      // simu.set_resonator(cfg, verbose=verbose)
+      // kidsim_b.set_resonator(cfg, verbose=verbose)
+      // self.set_resonator_config(config, verbose)
+      // self.set_resonator_regs(config, verbose)
+
+      real     qemu_f      = 100.0;      // in MHz
+      // real     qemu_df     = 2.0;      // in MHz
+      // real     qemu_dt     = 10.0;     // in us
+      real     qemu_c0     = 0.98;
+      real     qemu_c1     = 0.85;
+      real     qemu_g      = 0.9;
+      integer  qemu_sel    = 0;        // 0: 'resonator', 1: 'dds', 2: 'bypass'
+
+      // xil_axi_ulong   QEMU_DDS_BVAL_REG     = 4 * 0;
+      // xil_axi_ulong   QEMU_DDS_SLOPE_REG    = 4 * 1;
+      // xil_axi_ulong   QEMU_DDS_STEPS_REG    = 4 * 2;
+      // xil_axi_ulong   QEMU_DDS_WAIT_REG     = 4 * 3;
+      // xil_axi_ulong   QEMU_DDS_FREQ_REG     = 4 * 4;
+      // xil_axi_ulong   QEMU_IIR_C0_REG       = 4 * 5;
+      // xil_axi_ulong   QEMU_IIR_C1_REG       = 4 * 6;
+      // xil_axi_ulong   QEMU_IIR_G_REG        = 4 * 7;
+      // xil_axi_ulong   QEMU_OUTSEL_REG       = 4 * 8;
+      // xil_axi_ulong   QEMU_PUNCT_ID_REG     = 4 * 9;
+      // xil_axi_ulong   QEMU_ADDR_REG         = 4 * 10;
+      // xil_axi_ulong   QEMU_WE_REG           = 4 * 11;
+
+      // data_wr = qemu_f * 1e6 / (/*f_adc*/ (1/(2.0*T_RO_CLK*1e-9)) / 2.0**16);
+      data_wr = qemu_f * 1e6 / (/*f_adc*/ (1*8/(2.0*T_RO_CLK*1e-9)) / 2.0**16);
+      axi_mst_qemu_agent.AXI4LITE_WRITE_BURST(QEMU_DDS_FREQ_REG, prot, data_wr, resp);
+      #100ns;
+
+      data_wr = qemu_c0 * 2**(16-1);
+      axi_mst_qemu_agent.AXI4LITE_WRITE_BURST(QEMU_IIR_C0_REG, prot, data_wr, resp);
+      #100ns;
+
+      data_wr = qemu_c1 * 2**(16-1);
+      axi_mst_qemu_agent.AXI4LITE_WRITE_BURST(QEMU_IIR_C1_REG, prot, data_wr, resp);
+      #100ns;
+
+      data_wr = qemu_g * 2**(16-1);
+      axi_mst_qemu_agent.AXI4LITE_WRITE_BURST(QEMU_IIR_G_REG, prot, data_wr, resp);
+      #100ns;
+
+      // Write Enable Pulse
+      data_wr = 1;
+      axi_mst_qemu_agent.AXI4LITE_WRITE_BURST(QEMU_WE_REG, prot, data_wr, resp);
+      #100ns;
+
+      data_wr = 0;
+      axi_mst_qemu_agent.AXI4LITE_WRITE_BURST(QEMU_WE_REG, prot, data_wr, resp);
+      #100ns;
+
+    endtask
 
 endmodule
 
