@@ -1612,11 +1612,11 @@ module tb_qick ();
 
       // Configure TPROC
       // LFSR Enable (1: Free Running, 2: Step on s1 Read, 3: Step on s0 Write)
-      WRITE_AXI( REG_CORE_CFG , 1);
+      WRITE_AXI_TPROC( REG_CORE_CFG , 1);
       #100ns;
-      WRITE_AXI( REG_CORE_CFG , 0);
+      WRITE_AXI_TPROC( REG_CORE_CFG , 0);
       #100ns;
-      WRITE_AXI( REG_CORE_CFG , 2);
+      WRITE_AXI_TPROC( REG_CORE_CFG , 2);
       #100ns;
 
 
@@ -1629,12 +1629,12 @@ module tb_qick ();
 
         wait(tb_test_run_start);
 
-        WRITE_AXI( REG_TPROC_CTRL , 4); //PROC_START
+        WRITE_AXI_TPROC( REG_TPROC_CTRL , 4); //PROC_START
 
         #(TEST_RUN_TIME);
 
 
-        WRITE_AXI( REG_TPROC_CTRL , 8); //PROC_STOP
+        WRITE_AXI_TPROC( REG_TPROC_CTRL , 8); //PROC_STOP
 
         tb_test_run_done = 1'b1;
 
@@ -1652,9 +1652,9 @@ module tb_qick ();
 
       end
 
-      //   WRITE_AXI( REG_TPROC_CTRL , 16); //CORE_START 
+      //   WRITE_AXI_TPROC( REG_TPROC_CTRL , 16); //CORE_START 
       //   #1000;
-      //   WRITE_AXI( REG_TPROC_CTRL , 128); //PROC_RUN
+      //   WRITE_AXI_TPROC( REG_TPROC_CTRL , 128); //PROC_RUN
       //   #900;
 
       #1us;
@@ -1850,6 +1850,13 @@ module tb_qick ();
         axi_mst_xcom_agent.AXI4LITE_WRITE_BURST(REG_XCOM_CTRL, prot, ('d16 << 1) | 'd1, resp);
         #10ns;
 
+        READ_AXI_XCOM(REG_XCOM_ID);
+        #10ns;
+        READ_AXI_XCOM(REG_XCOM_STATUS);
+        #10ns;
+        READ_AXI_XCOM(REG_XCOM_DEBUG);
+        #10ns;
+
         wait(tb_test_run_done);
 
         $display("*** %t - End of test_xcom Test ***", $realtime());
@@ -1865,17 +1872,27 @@ module tb_qick ();
       axi_mst_xcom_agent.AXI4LITE_WRITE_BURST(PORT_AXI, prot, DATA_AXI, resp);
     endtask
 
-    task WRITE_AXI(integer PORT_AXI, DATA_AXI);
-      $display("Running WRITE_AXI() Task");
+    task READ_AXI_XCOM(integer ADDR_AXI);
+      integer DATA_RD;
+      $display("Running READ_AXI_XCOM() Task");
+      //$display("ADDR %d",  ADDR_AXI);
+      //$display("DATA %d",  DATA_AXI);
+      @(posedge s_ps_dma_aclk); #0.1;
+      axi_mst_xcom_agent.AXI4LITE_READ_BURST(ADDR_AXI, 0, DATA_RD, resp);
+      $display("   * READ AXI_DATA %d",  DATA_RD);
+    endtask
+
+    task WRITE_AXI_TPROC(integer PORT_AXI, DATA_AXI);
+      $display("Running WRITE_AXI_TPROC() Task");
       //$display("PORT %d",  PORT_AXI);
       //$display("DATA %d",  DATA_AXI);
       @(posedge s_ps_dma_aclk); #0.1;
       axi_mst_tproc_agent.AXI4LITE_WRITE_BURST(PORT_AXI, prot, DATA_AXI, resp);
     endtask
 
-    task READ_AXI(integer ADDR_AXI);
+    task READ_AXI_TPROC(integer ADDR_AXI);
       integer DATA_RD;
-      $display("Running READ_AXI() Task");
+      $display("Running READ_AXI_TPROC() Task");
       @(posedge s_ps_dma_aclk); #0.1;
       axi_mst_tproc_agent.AXI4LITE_READ_BURST(ADDR_AXI, 0, DATA_RD, resp);
       $display("READ AXI_DATA %d",  DATA_RD);
