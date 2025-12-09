@@ -1791,7 +1791,7 @@
   <spirit:vendorExtensions>
     <xilinx:coreExtensions>
       <xilinx:taxonomies>
-        <xilinx:taxonomy>/QICK</xilinx:taxonomy>
+        <xilinx:taxonomy>/QICK/QICK_Peripheral</xilinx:taxonomy>
       </xilinx:taxonomies>
       <xilinx:displayName>xcom_v1_0</xilinx:displayName>
       <xilinx:autoFamilySupportLevel>level_1</xilinx:autoFamilySupportLevel>
@@ -1799,9 +1799,6 @@
       <xilinx:vendorDisplayName>Quantum Instrumentation Control Kit</xilinx:vendorDisplayName>
       <xilinx:vendorURL>https://github.com/openquantumhardware/qick</xilinx:vendorURL>
       <xilinx:coreRevision>5</xilinx:coreRevision>
-      <xilinx:upgrades>
-        <xilinx:canUpgradeFrom>fnal:qick:xcom:1.0</xilinx:canUpgradeFrom>
-      </xilinx:upgrades>
       <xilinx:coreCreationDateTime>2025-12-08T22:25:24Z</xilinx:coreCreationDateTime>
     </xilinx:coreExtensions>
     <xilinx:packagingInfo>

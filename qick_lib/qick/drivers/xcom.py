@@ -30,7 +30,7 @@ class QICK_Xcom(SocIP):
     XCOM_STATUS     Read Only    32-Bits
     XCOM_DEBUG      Read Only    32-Bits
     """
-    bindto = ['fnal:qick:xcom:1.0','user.org:user:xcom_axil_slv:1.0'] 
+    bindto = ['QICK:QICK:xcom:1.0','user.org:user:xcom_axil_slv:1.0'] 
 
     def __init__(self, description):
         """
@@ -209,7 +209,6 @@ class QICK_Xcom(SocIP):
             print( ' tx_st     : ' + 'WRDY' )
         else:
             print( ' tx_st     : ' + 'UNKNOWN' )
-
         rx_status = (debug_num & 0x01C0)>>6
         if rx_status == 0:
             print( ' rx_st     : ' + 'IDLE')
@@ -223,7 +222,6 @@ class QICK_Xcom(SocIP):
             print( ' rx_st     : ' + 'ACK' )
         else:
             print( ' rx_st     : ' + 'UNKNOWN' )
-
         print( ' tx_ready     : ' + debug_bin[15]    )
         print( ' board_id     : ' + debug_bin[11:15] )
         print( ' rx_data_cntr : ' + debug_bin[7:11]  )
