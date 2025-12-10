@@ -1844,6 +1844,13 @@ module tb_qick ();
         wait (tb_qick.AXIS_QPROC.t_resetn == 1'b1);
         #100ns;
 
+        READ_AXI_XCOM(REG_XCOM_ID);
+        #10ns;
+        READ_AXI_XCOM(REG_XCOM_STATUS);
+        #10ns;
+        READ_AXI_XCOM(REG_XCOM_DEBUG);
+        #10ns;
+
         // assign an ID to the XCOM module.
         s_xcom_id = 32'd2;
         axi_mst_xcom_agent.AXI4LITE_WRITE_BURST(REG_XCOM_AXI_DATA1, prot, s_xcom_id, resp);
@@ -1879,7 +1886,7 @@ module tb_qick ();
       //$display("DATA %d",  DATA_AXI);
       @(posedge s_ps_dma_aclk); #0.1;
       axi_mst_xcom_agent.AXI4LITE_READ_BURST(ADDR_AXI, 0, DATA_RD, resp);
-      $display("   * READ AXI_DATA %d",  DATA_RD);
+      $display("   * READ AXI_DATA - reg addr: %h / data - dec: %d, hex: %x, bin: %32b", ADDR_AXI, DATA_RD, DATA_RD, DATA_RD);
     endtask
 
     task WRITE_AXI_TPROC(integer PORT_AXI, DATA_AXI);

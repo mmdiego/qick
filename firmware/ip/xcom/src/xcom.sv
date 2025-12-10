@@ -176,7 +176,7 @@ module xcom import qick_pkg::*;
 
   logic [32-1:0] s_dbg_rx_data      ;
   logic [32-1:0] s_dbg_tx_data      ;
-  logic [21-1:0] s_dbg_status       ;
+  logic [32-1:0] s_dbg_status       ;
   logic [32-1:0] s_dbg_data         ;
   logic [32-1:0] s_dbg_debug        ;
   logic [32-1:0] s_dbg_rx_data_ps   ;
