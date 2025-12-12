@@ -120,7 +120,6 @@ module xcom_txrx import qick_pkg::*;
 
 // SIGNAL DECLARATION
 ///////////////////////////////////////////////////////////////////////////////
-logic  [4-1:0] s_cfg_tick;
 logic  [5-1:0] s_rx_dbg_state [NCH];
 logic  [2-1:0] s_tx_dbg_state;
 
@@ -281,13 +280,12 @@ assign s_cmd_exec = s_loc_sid | s_wflg | s_wreg | s_wmem | s_rst;
 //Transmission
 // TRANSMIT NET COMMAND
 ///////////////////////////////////////////////////////////////////////////////
-assign s_cfg_tick = {i_cfg_tick[3-1:0]+1'b1, 1'b0};
 
 tx_cmd u_tx_cmd(
     .i_clk      ( i_clk          ),
     .i_rstn     ( i_rstn         ),
     .i_sync     ( i_sync         ),
-    .i_cfg_tick ( s_cfg_tick     ),
+    .i_cfg_tick ( i_cfg_tick     ),
     .i_req      ( s_req_net      ),
     .i_header   ( i_header       ),
     .i_data     ( i_data         ),
@@ -439,7 +437,7 @@ assign o_dbg_rx_data = s_rx_data;
 assign o_dbg_tx_data = i_data;
 
 assign o_dbg_status  = {11'h000, board_id_r, s_tx_ready, 5'b0_0000, s_rx_dbg_state[0], 2'b00, s_rx_valid, rx_qctrl, s_tx_dbg_state};//FIXME: here was cmd_st_ds. Also we are seeing only state[0] here
-assign o_dbg_data    = {s_cfg_tick, s_rx_chid, rx_cmd_ds, s_net_dbg_status, s_loc_dbg_status};//4+4+9+10+6
+assign o_dbg_data    = {i_cfg_tick, s_rx_chid, rx_cmd_ds, s_net_dbg_status, s_loc_dbg_status};//4+4+9+10+6
 
 
 // OUT SIGNALS

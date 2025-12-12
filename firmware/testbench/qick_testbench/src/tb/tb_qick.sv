@@ -1489,6 +1489,8 @@ module tb_qick ();
 
     logic tb_test_run_start;
     logic tb_test_run_done;
+    logic tb_test_iter_start;
+    logic tb_test_iter_done;
     logic tb_test_read_start;
     logic tb_test_read_done;
 
@@ -1582,6 +1584,10 @@ module tb_qick ();
 
       tb_test_run_start       = 1'b1;
       tb_test_run_done        = 1'b0;
+
+      tb_test_iter_start      = 1'b0;
+      tb_test_iter_done       = 1'b0;
+
       tb_test_read_start      = 1'b1;
       tb_test_read_done       = 1'b0;
 
@@ -1592,7 +1598,7 @@ module tb_qick ();
       sg_s0_axis_tvalid       = 0;
       sg_s0_axis_tdata        = 0;
 
-      m1_axis_buf_dec_tready      = 1'b1;
+      m1_axis_buf_dec_tready  = 1'b1;
 
       m_dma_axis_tready_i     = 1'b1; 
       // max_value               = 0;
@@ -1622,21 +1628,24 @@ module tb_qick ();
 
       #100ns;
 
+      wait(tb_test_run_start);
+      
       repeat (REPEAT_EXEC) begin
+
+        tb_test_iter_done   = 1'b0;
+        tb_test_read_done   = 1'b0;
+        tb_test_iter_start  = 1'b1;
 
         config_decimated_readout(0, ro_length);
         config_average_readout(0, ro_length);
-
-        wait(tb_test_run_start);
 
         WRITE_AXI_TPROC( REG_TPROC_CTRL , 4); //PROC_START
 
         #(TEST_RUN_TIME);
 
+        tb_test_iter_start  = 1'b0;
 
         WRITE_AXI_TPROC( REG_TPROC_CTRL , 8); //PROC_STOP
-
-        tb_test_run_done = 1'b1;
 
         wait(tb_test_read_start);
 
@@ -1648,9 +1657,14 @@ module tb_qick ();
 
         #(TEST_READ_TIME);
 
-        tb_test_read_done = 1'b1;
+        tb_test_read_done   = 1'b1;
+
+        tb_test_iter_done   = 1'b1;
+
+        #(100ns);
 
       end
+
 
       //   WRITE_AXI_TPROC( REG_TPROC_CTRL , 16); //CORE_START 
       //   #1000;
@@ -1834,8 +1848,8 @@ module tb_qick ();
 
       if (TEST_NAME == "test_xcom") begin
         $display("\n\n*** %t - Start test_xcom Test \n\n***", $realtime());
-        TEST_RUN_TIME        = 10us * 10;
-        REPEAT_EXEC          = 2;
+        TEST_RUN_TIME        = 10us;
+        REPEAT_EXEC          = 10;
 
         ro_length            = 500;
         ro_decimated_length  = 50;
@@ -1864,7 +1878,20 @@ module tb_qick ();
         READ_AXI_XCOM(REG_XCOM_DEBUG);
         #10ns;
 
-        wait(tb_test_run_done);
+
+        // Cycle through iterations
+        for (int i=0; i<REPEAT_EXEC; i=i+1) begin
+
+          $display("\n\n*** %t - XCOM Test Iteration %0d ***\n\n", $realtime(), (REPEAT_EXEC - i + 1));
+
+          wait(tb_test_iter_start);
+
+          // Configure XCOM clock frequency
+          axi_mst_xcom_agent.AXI4LITE_WRITE_BURST(REG_XCOM_CFG, prot, i, resp);
+
+          wait(tb_test_iter_done);
+
+        end // for loop
 
         $display("*** %t - End of test_xcom Test ***", $realtime());
       end

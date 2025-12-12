@@ -70,7 +70,7 @@ module xcom_link_tx (
     logic  [ 6-1:0] tx_pkt_size_r, tx_pkt_size_n;
 
     // Number of tx_clk per Data 
-    logic  [ 4-1:0] tick_cnt; 
+    logic  [ 5-1:0] tick_cnt; 
     logic   tick_en ; 
     logic   tick_clk ; 
     logic   tick_dt ; 
@@ -89,6 +89,14 @@ module xcom_link_tx (
 
     // TICK GENERATOR
     ///////////////////////////////////////////////////////////////////////////////
+
+    // Weird mapping, removes msb from cfg_tick, adds 1 and multiplies by 2
+    // needs to increase width of cfg_tick_int by 1 bit
+    logic [4-1:0] cfg_tick_limit;
+    assign cfg_tick_limit = i_cfg_tick < 'd10 ? i_cfg_tick : 'd10;
+    logic [5-1:0] cfg_tick_int;
+    assign cfg_tick_int = {cfg_tick_limit+4'd1, 1'b0};
+
     always_ff @ (posedge i_clk) begin
         if (!i_rstn) begin
             tick_cnt    <= 0;
@@ -96,17 +104,17 @@ module xcom_link_tx (
             tick_dt     <= 1'b0;
         end else begin 
             if (tick_en) begin
-                if (tick_cnt == i_cfg_tick) begin
+                if (tick_cnt == cfg_tick_int) begin
                     tick_dt  <= 1'b1;
                     tick_cnt <= 4'b0001;
                 end else begin 
                     tick_dt  <= 1'b0;
                     tick_cnt <= tick_cnt + 1'b1 ;
                 end
-                if (tick_cnt == i_cfg_tick>>1) tick_clk <= 1'b1;
+                if (tick_cnt == cfg_tick_int>>1) tick_clk <= 1'b1;
                 else                           tick_clk <= 1'b0;
             end else begin 
-                tick_cnt    <= i_cfg_tick>>1;
+                tick_cnt    <= cfg_tick_int>>1;
                 tick_dt     <= 1'b0;
                 tick_clk    <= 1'b0;
             end
