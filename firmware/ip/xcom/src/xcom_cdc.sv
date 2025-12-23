@@ -266,9 +266,9 @@ assign o_axi_data2_sync = i_axi_data2;
 wide_en_signal sync_core_en(
    .i_clk  ( i_time_clk     ),
    .i_rstn ( i_time_rstn    ),
-   .i_en   ( i_core_en      ),
+   .i_en   ( core_en_req    ),
    .o_en   ( o_core_en_sync )
-   );
+);
 
 //------------------------------------------------------
 // NOTE: no synchronizers are needed for data buses!!!
@@ -278,6 +278,8 @@ logic [ 4:0]   o_core_op_reg;
 logic [31:0]   o_core_data1_reg;
 logic [31:0]   o_core_data2_reg;
 logic          core_en_req;
+logic          core_en_req_sync;
+logic          core_en_ack;
 logic          core_en_ack_sync;
 
 always_ff @(posedge i_core_clk, negedge i_core_rstn) begin
@@ -365,14 +367,14 @@ synchronizer #(
 // NOTE: time domain clock is faster than core domain clock, need to stretch pulses!!!
 toggle_synchronizer
 sync_core_valid (
-  .i_rstn     ( i_core_rstn       ),
+  .i_rst_in_n ( i_core_rstn       ),
+  .i_rst_out_n( i_time_rstn       ),
   .i_clk_in   ( i_time_clk        ),
   .i_clk_out  ( i_core_clk        ),
   .i_en       ( i_core_valid      ),
   .o_en       ( o_core_valid_sync )
 );
 
-logic core_en_ack;
 assign core_en_ack = core_en_req_sync;
 
 synchronizer #(

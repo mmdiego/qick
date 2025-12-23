@@ -112,9 +112,9 @@ module xcom_link_tx (
                     tick_cnt <= tick_cnt + 1'b1 ;
                 end
                 if (tick_cnt == cfg_tick_int>>1) tick_clk <= 1'b1;
-                else                           tick_clk <= 1'b0;
+                else                             tick_clk <= 1'b0;
             end else begin 
-                tick_cnt    <= cfg_tick_int>>1;
+                tick_cnt    <= 4'b0001;
                 tick_dt     <= 1'b0;
                 tick_clk    <= 1'b0;
             end
@@ -164,21 +164,21 @@ module xcom_link_tx (
                 s_ready = 1'b1;
                 tick_en = 1'b0;
                 if ( i_valid ) begin
-                    state_n = TX_DATA;
+                    state_n = TX_CLK;
                 end     
             end
             TX_DATA:  begin
                 if ( tick_dt ) begin
-                    if ( s_last ) state_n = TX_END;
+                    if ( s_last ) state_n = TX_IDLE;
                     else          state_n = TX_CLK;
                 end
             end
             TX_CLK:  begin
                 if ( tick_clk ) state_n = TX_DATA;
             end
-            TX_END    :  begin
-                if ( tick_clk ) state_n = TX_IDLE;
-            end
+            // TX_END    :  begin
+            //     if ( tick_clk ) state_n = TX_IDLE;
+            // end
             default: state_n = state_r;
         endcase
     end
@@ -201,7 +201,7 @@ module xcom_link_tx (
 
     //next-state logic
     assign tx_data_n     = (i_valid & s_ready) ? tx_buff       : (tick_dt)  ? tx_data_r << 1      : tx_data_r;
-    assign tx_bit_cnt_n  = (i_valid & s_ready) ? 6'b0000_01    : (tick_dt)  ? tx_bit_cnt_r + 1'b1 : tx_bit_cnt_r;
+    assign tx_bit_cnt_n  = (i_valid & s_ready) ? 6'b0000_00    : (tick_dt)  ? tx_bit_cnt_r + 1'b1 : tx_bit_cnt_r;
     assign tx_pkt_size_n = (i_valid & s_ready) ? s_tx_pkt_size : tx_pkt_size_r;
     assign tx_clk_n      = (s_ready)           ? 1'b0          : (tick_clk) ? ~tx_clk_r           : tx_clk_r;
 
