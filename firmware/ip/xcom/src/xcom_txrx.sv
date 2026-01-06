@@ -159,7 +159,7 @@ logic         s_tx_ready;
 logic         s_req_net;
 
 //RX related signals
-logic [4-1:0] board_id_r, board_id_n; 
+logic [4-1:0] board_id_r; 
 
    typedef enum logic [4-1:0] {IDLE    = 4'b0000, 
                                ST_LOC  = 4'b0001, 
@@ -303,18 +303,24 @@ assign tx_qrst_sync = s_nack & (loc_cmd_op == XCOM_QRST_SYNC);
 
 //end Transmission
 //
+
 // Reception
+
 // Write ID
 ///////////////////////////////////////////////////////////////////////////////
+logic set_id_en ;
 always_ff @ (posedge i_clk) begin
-   if ( !i_rstn | s_rst | rx_rst ) board_id_r <= '0;
-   else                            board_id_r <= board_id_n;
-end
-//next-state logic
-always_comb begin
-   if      ( s_loc_sid  ) board_id_n = i_header[4-1:0];
-   else if ( rx_auto_id ) board_id_n = s_rx_chid + 1'b1;
-   else                   board_id_n = board_id_r;
+   if ( !i_rstn | s_rst | rx_rst ) begin
+      board_id_r  <= 0;
+      set_id_en   <= 0;
+   end else if ( s_loc_sid )
+      board_id_r  <= i_header[3:0];
+   else if (tx_auto_id)
+      set_id_en <= 1'b1;
+   else if (rx_auto_id & set_id_en) begin
+      set_id_en   <= 1'b0;
+      board_id_r  <= s_rx_chid + 1'b1;
+  end
 end
 
 // RX COMMAND
