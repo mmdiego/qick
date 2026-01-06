@@ -1,7 +1,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 // vim:set shiftwidth=3 softtabstop=3 expandtab:
 //
-// Fermi Fordward Alliance LLC
+// Fermi National Accelerator Laboratory
 //
 // Module: xcom_txrx.sv
 // Project: QICK 
@@ -75,8 +75,9 @@
 ///////////////////////////////////////////////////////////////////////////////
 module xcom_txrx import qick_pkg::*;
 #(
-   parameter NCH  = 2 ,
-   parameter SYNC = 1 
+   parameter NCH        = 2 ,
+   parameter LOOPBACK   = 0,
+   parameter SYNC       = 1 
 )(
    input  logic             i_clk              ,
    input  logic             i_rstn             ,
@@ -104,6 +105,9 @@ module xcom_txrx import qick_pkg::*;
    output logic             o_core_stop        ,
 // XCOM CFG
    input  logic [4-1:0]     i_cfg_tick         ,
+   input  logic             i_cfg_clk_pol      ,
+   input  logic             i_cfg_clk_pha      ,
+   input  logic             i_cfg_loopback     ,
    output logic [ 4-1:0]    o_xcom_id          ,
    output logic [32-1:0]    o_xcom_mem[16]     ,
 // Xlogic COM
@@ -149,8 +153,6 @@ logic [32-1:0] s_rx_data ;
 
 logic          tx_auto_id;
 logic          tx_qrst_sync;
-logic [NCH-1:0]s_xcom_clk_sync;
-logic [NCH-1:0]s_xcom_data_sync;
 
 //TX related signals
 logic         s_nack;
@@ -282,17 +284,19 @@ assign s_cmd_exec = s_loc_sid | s_wflg | s_wreg | s_wmem | s_rst;
 ///////////////////////////////////////////////////////////////////////////////
 
 tx_cmd u_tx_cmd(
-    .i_clk      ( i_clk          ),
-    .i_rstn     ( i_rstn         ),
-    .i_sync     ( i_sync         ),
-    .i_cfg_tick ( i_cfg_tick     ),
-    .i_req      ( s_req_net      ),
-    .i_header   ( i_header       ),
-    .i_data     ( i_data         ),
-    .o_ready    ( s_tx_ready     ),
-    .o_data     ( o_xcom_data    ),
-    .o_clk      ( o_xcom_clk     ),
-    .o_dbg_state( s_tx_dbg_state )
+    .i_clk        ( i_clk          ),
+    .i_rstn       ( i_rstn         ),
+    .i_sync       ( i_sync         ),
+    .i_cfg_tick   ( i_cfg_tick     ),
+    .i_cfg_clk_pol( i_cfg_clk_pol  ),
+   //  .i_cfg_clk_pha( i_cfg_clk_pha  ),
+    .i_req        ( s_req_net      ),
+    .i_header     ( i_header       ),
+    .i_data       ( i_data         ),
+    .o_ready      ( s_tx_ready     ),
+    .o_data       ( o_xcom_data    ),
+    .o_clk        ( o_xcom_clk     ),
+    .o_dbg_state  ( s_tx_dbg_state )
 );
 
 assign tx_auto_id   = s_req_net & (loc_cmd_op == XCOM_AUTO_ID); 
@@ -325,30 +329,16 @@ end
 
 // RX COMMAND
 ///////////////////////////////////////////////////////////////////////////////
-synchronizer#(
-   .NB(NCH)
-   ) sync_xcom_clk(
-  .i_clk      ( i_clk           ),
-  .i_rstn     ( i_rstn          ),
-  .i_async    ( i_xcom_clk      ),
-  .o_sync     ( s_xcom_clk_sync )
-);
-
-synchronizer#(
-   .NB(NCH)
-   ) sync_xcom_data(
-  .i_clk      ( i_clk            ),
-  .i_rstn     ( i_rstn           ),
-  .i_async    ( i_xcom_data      ),
-  .o_sync     ( s_xcom_data_sync )
-);
-
-rx_cmd#(.NCH(NCH)) u_rx_cmd(
+rx_cmd #(
+   .NCH(NCH),
+   .LOOPBACK(LOOPBACK)
+) u_rx_cmd (
   .i_clk           ( i_clk             ),
   .i_rstn          ( i_rstn            ),
   .i_id            ( board_id_r        ),
-  .i_xcom_data     ( s_xcom_data_sync  ),
-  .i_xcom_clk      ( s_xcom_clk_sync   ),
+  .i_cfg_loopback  ( i_cfg_loopback    ),
+  .i_xcom_data     ( i_xcom_data       ),
+  .i_xcom_clk      ( i_xcom_clk        ),
   .o_valid         ( s_rx_valid        ),
   .o_op            ( s_rx_op           ),
   .o_data          ( s_rx_data         ),
@@ -452,7 +442,6 @@ always_ff @ (posedge i_clk) begin
    if ( !i_rstn ) o_qp_ready <= 1'b0;
    else o_qp_ready  <= s_tx_ready & ~i_req_loc & ~s_lack;
 end
-// assign o_qp_ready  = s_tx_ready & ~i_req_loc & ~s_lack;
 assign o_qp_flag   = data_flag;
 assign o_qp_valid  = wreg_r;
 assign o_qp_data1  = reg1_dt;

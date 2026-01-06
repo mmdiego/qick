@@ -1,7 +1,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 // vim:set shiftwidth=3 softtabstop=3 expandtab:
 //
-// Fermi Fordward Alliance LLC
+// Fermi National Accelerator Laboratory
 //
 // Module: xcom_link_tx.sv
 // Project: QICK 
@@ -50,6 +50,7 @@ module xcom_link_tx (
     input  logic          i_rstn     ,
     // Config 
     input  logic [ 4-1:0] i_cfg_tick , 
+    input  logic          i_cfg_clk_pol,
     // Transmittion 
     input  logic          i_valid    ,
     input  logic [ 8-1:0] i_header   ,
@@ -80,8 +81,7 @@ module xcom_link_tx (
 
     typedef enum logic [2-1:0]{ TX_IDLE = 2'b00, 
                                 TX_DATA = 2'b01, 
-                                TX_CLK  = 2'b10, 
-                                TX_END  = 2'b11
+                                TX_CLK  = 2'b10
     } state_t;
     state_t state_r, state_n;
     logic   s_ready;
@@ -176,9 +176,6 @@ module xcom_link_tx (
             TX_CLK:  begin
                 if ( tick_clk ) state_n = TX_DATA;
             end
-            // TX_END    :  begin
-            //     if ( tick_clk ) state_n = TX_IDLE;
-            // end
             default: state_n = state_r;
         endcase
     end
@@ -203,7 +200,7 @@ module xcom_link_tx (
     assign tx_data_n     = (i_valid & s_ready) ? tx_buff       : (tick_dt)  ? tx_data_r << 1      : tx_data_r;
     assign tx_bit_cnt_n  = (i_valid & s_ready) ? 6'b0000_00    : (tick_dt)  ? tx_bit_cnt_r + 1'b1 : tx_bit_cnt_r;
     assign tx_pkt_size_n = (i_valid & s_ready) ? s_tx_pkt_size : tx_pkt_size_r;
-    assign tx_clk_n      = (s_ready)           ? 1'b0          : (tick_clk) ? ~tx_clk_r           : tx_clk_r;
+    assign tx_clk_n      = (s_ready)           ? i_cfg_clk_pol : (tick_clk) ? ~tx_clk_r           : tx_clk_r;
 
     ///////////////////////////////////////////////////////////////////////////////
     // OUTPUTS

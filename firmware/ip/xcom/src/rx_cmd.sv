@@ -1,7 +1,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 // vim:set shiftwidth=3 softtabstop=3 expandtab:
 //
-// Fermi Fordward Alliance LLC
+// Fermi National Accelerator Laboratory
 //
 // Module: rx_cmd.sv
 // Project: QICK 
@@ -35,12 +35,14 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 module rx_cmd # (
-   parameter NCH = 2
+   parameter NCH = 2,
+   parameter LOOPBACK = 0
 )( 
    input  logic           i_clk            ,
    input  logic           i_rstn           ,
    // XCOM CFG
    input  logic   [4-1:0] i_id             ,
+   input  logic           i_cfg_loopback   ,
    // XCOM CNX
    input  logic [NCH-1:0] i_xcom_data      ,
    input  logic [NCH-1:0] i_xcom_clk       ,
@@ -60,13 +62,14 @@ typedef enum logic [2-1:0]{ IDLE = 2'b00,
 state_t state_r, state_n;
 
 logic [NCH-1:0]         s_req       ;
+logic [NCH-1:0]         s_req_int   ;
 logic [NCH-1:0]         s_ack       ;
 logic  [ 4-1:0]         s_cmd  [NCH];
 logic  [32-1:0]         s_data [NCH];
-logic [$clog2(NCH):0]   s_channel   ;
+logic [4-1:0]           s_channel   ;
 logic                   s_valid     ;
 logic                   s_cmd_req   ;
-logic [NCH-1:0]         s_cmd_chid  ;
+logic [4-1:0]           s_cmd_chid  ;
 logic                   cmd_ack_r   ;
 logic                   cmd_ack_n   ;
 logic [5-1:0]           s_dbg_state [NCH];
@@ -76,45 +79,59 @@ logic [5-1:0]           s_dbg_state [NCH];
 genvar k;
 generate
    for (k=0; k < NCH ; k=k+1) begin: RX
-       xcom_link_rx u_xcom_link_rx(
-           .i_clk      ( i_clk          ),
-           .i_rstn     ( i_rstn         ),
-           .i_id       ( i_id           ),
-           .o_req      ( s_req[k]       ),
-           .i_ack      ( s_ack[k]       ),
-           .o_cmd      ( s_cmd[k]       ),
-           .o_data     ( s_data[k]      ),
-           .i_xcom_data( i_xcom_data[k] ),
-           .i_xcom_clk ( i_xcom_clk[k]  ),
-           .o_dbg_state( s_dbg_state[k] )
-       );
-       //debug
-       assign o_dbg_state[k]  = s_dbg_state[k];
+      xcom_link_rx u_xcom_link_rx(
+         .i_clk      ( i_clk          ),
+         .i_rstn     ( i_rstn         ),
+         .i_id       ( i_id           ),
+         .o_req      ( s_req[k]       ),
+         .i_ack      ( s_ack[k]       ),
+         .o_cmd      ( s_cmd[k]       ),
+         .o_data     ( s_data[k]      ),
+         .i_xcom_data( i_xcom_data[k] ),
+         .i_xcom_clk ( i_xcom_clk[k]  ),
+         .o_dbg_state( s_dbg_state[k] )
+      );
+      //debug
+      assign o_dbg_state[k]  = s_dbg_state[k];
   end
 endgenerate
 
 
 // RX Command Priority Encoder
 /////////////////////////////////////////////////////////////////////////////
-assign s_valid = |s_req;
+assign s_valid = |s_req_int;
+
+generate
+   if (LOOPBACK == 0) begin : GEN_NO_LOOPBACK
+      assign s_req_int  = s_req ;
+   end else begin : GEN_LOOPBACK
+      assign s_req_int  = ~i_cfg_loopback ? {1'b0,s_req[NCH-2:0]} : {s_req[NCH-1:1],1'b0};
+   end
+endgenerate
 
 always_comb begin
-    s_channel = 0; // Default: clog2(1) = 0
-    if (s_req > 1)     s_channel = 1;
-    if (s_req > 2)     s_channel = 2;
-    if (s_req > 4)     s_channel = 3;
-    if (s_req > 8)     s_channel = 4;
-    if (s_req > 16)    s_channel = 5;
-    if (s_req > 32)    s_channel = 6;
-    if (s_req > 64)    s_channel = 7;
-    if (s_req > 128)   s_channel = 8;
-    if (s_req > 256)   s_channel = 9;
-    if (s_req > 512)   s_channel = 10;
-    if (s_req > 1024)  s_channel = 11;
-    if (s_req > 2048)  s_channel = 12;
-    if (s_req > 4096)  s_channel = 13;
-    if (s_req > 8192)  s_channel = 14;
-    if (s_req > 16384) s_channel = 15;
+   unique case (1'b1)
+      s_req_int[0] : s_channel = 0;
+      s_req_int[1] : s_channel = 1;
+      s_req_int[2] : s_channel = 2;
+      s_req_int[3] : s_channel = 3;
+      s_req_int[4] : s_channel = 4;
+      s_req_int[5] : s_channel = 5;
+      s_req_int[6] : s_channel = 6;
+      s_req_int[7] : s_channel = 7;
+      s_req_int[8] : s_channel = 8;
+      s_req_int[9] : s_channel = 9;
+      s_req_int[10]: s_channel = 10;
+      s_req_int[11]: s_channel = 11;
+      s_req_int[12]: s_channel = 12;
+      s_req_int[13]: s_channel = 13;
+      s_req_int[14]: s_channel = 14;
+      s_req_int[15]: s_channel = 15;
+      default      : s_channel = 0;
+   endcase
+   if (s_channel > NCH-1) begin
+      s_channel = 0;
+   end
 end
 
 // RX Caller ID

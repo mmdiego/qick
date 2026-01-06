@@ -256,12 +256,19 @@ module tb_qick ();
   logic [31:0] qp1_d_dt_o;        
   logic        qp1_rdy;         
   logic        qp1_vld;         
-  logic        qp1_flag;        
-  logic        s_xcom_clk_p;        
-  logic        s_xcom_clk_n;        
-  logic        s_xcom_data_p;        
-  logic        s_xcom_data_n;        
-  logic [4-1:0] s_xcom_id;
+  logic        qp1_flag;
+
+  localparam XCOM_NCH = 2;
+  wire [XCOM_NCH-1:0]  s_xcom_rx_clk_p;        
+  wire [XCOM_NCH-1:0]  s_xcom_rx_clk_n;        
+  wire [XCOM_NCH-1:0]  s_xcom_rx_data_p;        
+  wire [XCOM_NCH-1:0]  s_xcom_rx_data_n;        
+  logic [XCOM_NCH-1:0]  s_xcom_tx_clk_p;        
+  logic [XCOM_NCH-1:0]  s_xcom_tx_clk_n;        
+  logic [XCOM_NCH-1:0]  s_xcom_tx_data_p;        
+  logic [XCOM_NCH-1:0]  s_xcom_tx_data_n;        
+  logic [4-1:0]         s_xcom_1_id;
+  logic [4-1:0]         s_xcom_2_id;
 
   //logic  qp1_en_o;
   //reg qp1_en_r;
@@ -597,8 +604,9 @@ module tb_qick ();
   );
 
   xcom #(
-    .NCH          ( 5 ),
+    .NCH          ( XCOM_NCH ),
     .SYNC         ( 1 ),
+    .LOOPBACK     ( 1 ),
     .DEBUG        ( 1 )
   ) 
   u_xcom (
@@ -625,15 +633,15 @@ module tb_qick ();
     .o_time_update_data (                       ),
     .o_core_start       (                       ),
     .o_core_stop        (                       ),
-    .o_xcom_id          (                       ),
-    .i_xcom_clk_p       ( s_xcom_clk_p          ),//simple loopback
-    .i_xcom_clk_n       ( s_xcom_clk_n          ),
-    .i_xcom_data_p      ( s_xcom_data_p         ),
-    .i_xcom_data_n      ( s_xcom_data_n         ),
-    .o_xcom_clk_p       ( s_xcom_clk_p          ),
-    .o_xcom_clk_n       ( s_xcom_clk_n          ),
-    .o_xcom_data_p      ( s_xcom_data_p         ),
-    .o_xcom_data_n      ( s_xcom_data_n         ),
+    .o_xcom_id          ( s_xcom_1_id           ),
+    .i_xcom_clk_p       ( s_xcom_rx_clk_p       ),
+    .i_xcom_clk_n       ( s_xcom_rx_clk_n       ),
+    .i_xcom_data_p      ( s_xcom_rx_data_p      ),
+    .i_xcom_data_n      ( s_xcom_rx_data_n      ),
+    .o_xcom_clk_p       ( s_xcom_tx_clk_p[0]    ),
+    .o_xcom_clk_n       ( s_xcom_tx_clk_n[0]    ),
+    .o_xcom_data_p      ( s_xcom_tx_data_p[0]   ),
+    .o_xcom_data_n      ( s_xcom_tx_data_n[0]   ),
     .s_axi_awaddr       (s_axi_xcom_awaddr      ),
     .s_axi_awprot       (s_axi_xcom_awprot      ),
     .s_axi_awvalid      (s_axi_xcom_awvalid     ),
@@ -654,6 +662,92 @@ module tb_qick ();
     .s_axi_rvalid       (s_axi_xcom_rvalid      ),
     .s_axi_rready       (s_axi_xcom_rready      )
   );
+
+  generate
+    genvar i;
+    for (i=0; i<XCOM_NCH; i++) begin : pulldown_gen
+      pulldown(s_xcom_rx_clk_p[i]);
+      pulldown(s_xcom_rx_clk_n[i]);
+      pulldown(s_xcom_rx_data_p[i]);
+      pulldown(s_xcom_rx_data_n[i]);
+    end
+  endgenerate
+
+  assign s_xcom_rx_clk_p  = s_xcom_tx_clk_p;
+  assign s_xcom_rx_clk_n  = s_xcom_tx_clk_n;
+  assign s_xcom_rx_data_p = s_xcom_tx_data_p;
+  assign s_xcom_rx_data_n = s_xcom_tx_data_n;
+
+  logic t_clk_2;
+  initial begin
+    t_clk_2 = 1'b0;
+    forever # (T_TCLK*1.01ns) t_clk_2 = ~t_clk_2;
+  end
+
+  logic         xcom2_rdy;
+  logic [31:0]  xcom2_dt_1;
+  logic [31:0]  xcom2_dt_2;
+  logic         xcom2_valid;
+  logic         xcom2_flag;
+  xcom #(
+    .NCH          ( XCOM_NCH ),
+    .SYNC         ( 1 ),
+    .DEBUG        ( 1 )
+  ) 
+  u_xcom_ch2 (
+    .i_ps_clk           ( s_ps_dma_aclk         ),
+    .i_ps_rstn          ( s_ps_dma_aresetn      ),
+    .i_core_clk         ( c_clk                 ),
+    .i_core_rstn        ( rst_ni                ),
+    .i_time_clk         ( t_clk_2               ),
+    .i_time_rstn        ( rst_ni                ),
+    .i_core_en          ( xcom2_valid & xcom2_rdy ),
+    .i_core_op          ( 5'd6                  ),  // send 32b to tproc
+    .i_core_data1       ( 32'd1                 ),  // to board id 1
+    .i_core_data2       ( xcom2_dt_1            ),  // send received data
+    .o_core_ready       ( xcom2_rdy             ),
+    .o_core_data1       ( xcom2_dt_1            ),
+    .o_core_data2       ( xcom2_dt_2            ),   
+    .o_core_valid       ( xcom2_valid           ),
+    .o_core_flag        ( xcom2_flag            ),   
+    .i_sync             ( 1'b0                  ),   
+    .o_proc_start       (                       ),   
+    .o_proc_stop        (                       ),
+    .o_time_rst         (                       ),   
+    .o_time_update      (                       ),   
+    .o_time_update_data (                       ),
+    .o_core_start       (                       ),
+    .o_core_stop        (                       ),
+    .o_xcom_id          ( s_xcom_2_id           ),
+    .i_xcom_clk_p       ( s_xcom_rx_clk_p       ),
+    .i_xcom_clk_n       ( s_xcom_rx_clk_n       ),
+    .i_xcom_data_p      ( s_xcom_rx_data_p      ),
+    .i_xcom_data_n      ( s_xcom_rx_data_n      ),
+    .o_xcom_clk_p       ( s_xcom_tx_clk_p[1]    ),
+    .o_xcom_clk_n       ( s_xcom_tx_clk_n[1]    ),
+    .o_xcom_data_p      ( s_xcom_tx_data_p[1]   ),
+    .o_xcom_data_n      ( s_xcom_tx_data_n[1]   ),
+    .s_axi_awaddr       (/*s_axi_xcom_awaddr*/      ),
+    .s_axi_awprot       (/*s_axi_xcom_awprot*/      ),
+    .s_axi_awvalid      (/*s_axi_xcom_awvalid*/     ),
+    .s_axi_awready      (/*s_axi_xcom_awready*/     ),
+    .s_axi_wdata        (/*s_axi_xcom_wdata*/       ),
+    .s_axi_wstrb        (/*s_axi_xcom_wstrb*/       ),
+    .s_axi_wvalid       (/*s_axi_xcom_wvalid*/      ),
+    .s_axi_wready       (/*s_axi_xcom_wready*/      ),
+    .s_axi_bresp        (/*s_axi_xcom_bresp*/       ),
+    .s_axi_bvalid       (/*s_axi_xcom_bvalid*/      ),
+    .s_axi_bready       (/*s_axi_xcom_bready*/      ),
+    .s_axi_araddr       (/*s_axi_xcom_araddr*/      ),
+    .s_axi_arprot       (/*s_axi_xcom_arprot*/      ), 
+    .s_axi_arvalid      (/*s_axi_xcom_arvalid*/     ),
+    .s_axi_arready      (/*s_axi_xcom_arready*/     ),
+    .s_axi_rdata        (/*s_axi_xcom_rdata*/       ),
+    .s_axi_rresp        (/*s_axi_xcom_rresp*/       ),
+    .s_axi_rvalid       (/*s_axi_xcom_rvalid*/      ),
+    .s_axi_rready       (/*s_axi_xcom_rready*/      )
+  );
+
 
   //--------------------------------------
   // SIGNAL GENERATOR
@@ -1847,8 +1941,10 @@ module tb_qick ();
       end
 
       if (TEST_NAME == "test_xcom") begin
+        logic [3:0] XCOM_ID_2;
+
         $display("\n\n*** %t - Start test_xcom Test \n\n***", $realtime());
-        TEST_RUN_TIME        = 10us;
+        TEST_RUN_TIME        = 25us;
         REPEAT_EXEC          = 10;
 
         ro_length            = 500;
@@ -1858,17 +1954,23 @@ module tb_qick ();
         wait (tb_qick.AXIS_QPROC.t_resetn == 1'b1);
         #100ns;
 
+        tb_test_run_start   = 1'b0;
+
         READ_AXI_XCOM(REG_XCOM_ID);
         #10ns;
         READ_AXI_XCOM(REG_XCOM_STATUS);
         #10ns;
         READ_AXI_XCOM(REG_XCOM_DEBUG);
         #10ns;
+
+        // Execute Auto-ID NET command
+        axi_mst_xcom_agent.AXI4LITE_WRITE_BURST(REG_XCOM_CTRL, prot, (XCOM_AUTO_ID << 1) | 'd1, resp);
+        #100ns;
+
 
         // assign an ID to the XCOM module.
-        s_xcom_id = 32'd2;
-        axi_mst_xcom_agent.AXI4LITE_WRITE_BURST(REG_XCOM_AXI_DATA1, prot, s_xcom_id, resp);
-        axi_mst_xcom_agent.AXI4LITE_WRITE_BURST(REG_XCOM_CTRL, prot, ('d16 << 1) | 'd1, resp);
+        axi_mst_xcom_agent.AXI4LITE_WRITE_BURST(REG_XCOM_AXI_DATA1, prot, 4'd1, resp);
+        axi_mst_xcom_agent.AXI4LITE_WRITE_BURST(REG_XCOM_CTRL, prot, ({1'b1,XCOM_SET_ID} << 1) | 'd1, resp);
         #10ns;
 
         READ_AXI_XCOM(REG_XCOM_ID);
@@ -1878,6 +1980,38 @@ module tb_qick ();
         READ_AXI_XCOM(REG_XCOM_DEBUG);
         #10ns;
 
+        // Configure XCOM clock frequency
+        WRITE_AXI_XCOM(REG_XCOM_CFG, 'd4);
+
+        // // Write to Local Memory of this board (LOC command)
+        // for (int addr=0; addr<16; addr=addr+1) begin
+        //   axi_mst_xcom_agent.AXI4LITE_WRITE_BURST(REG_XCOM_AXI_DATA1, prot, addr, resp);
+        //   axi_mst_xcom_agent.AXI4LITE_WRITE_BURST(REG_XCOM_AXI_DATA2, prot, 32'h55AA_0000 + addr, resp);
+        //   axi_mst_xcom_agent.AXI4LITE_WRITE_BURST(REG_XCOM_CTRL, prot, ({1'b1,XCOM_WRITE_MEM} << 1) | 'd1, resp);
+        //   #10ns;
+        // end
+
+        // // Read from Local Memory of this board
+        // for (int addr=0; addr<16; addr=addr+1) begin
+        //   axi_mst_xcom_agent.AXI4LITE_WRITE_BURST(REG_XCOM_ADDR, prot, addr, resp);
+        //   READ_AXI_XCOM(REG_XCOM_MEM);
+        //   #10ns;
+        // end
+
+        // force xcom id of slave board
+        XCOM_ID_2 = 4'd2;
+        force tb_qick.u_xcom_ch2.u_xcom_txrx.board_id_r = XCOM_ID_2;
+
+        // // Write to Local Memory of Slave board (NET command)
+        // for (int net_data=0; net_data<20; net_data=net_data+1) begin
+        //   axi_mst_xcom_agent.AXI4LITE_WRITE_BURST(REG_XCOM_AXI_DATA1, prot, XCOM_ID_2, resp);
+        //   axi_mst_xcom_agent.AXI4LITE_WRITE_BURST(REG_XCOM_AXI_DATA2, prot, 32'h55AA_0000 + net_data, resp);
+        //   axi_mst_xcom_agent.AXI4LITE_WRITE_BURST(REG_XCOM_CTRL, prot, ({1'b0,XCOM_SEND_32BIT_2} << 1) | 'd1, resp);
+        //   #10ns;
+        //   wait(tb_qick.u_xcom.o_core_ready);
+        // end
+
+        tb_test_run_start   = 1'b1;
 
         // Cycle through iterations
         for (int i=0; i<REPEAT_EXEC; i=i+1) begin

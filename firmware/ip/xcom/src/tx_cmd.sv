@@ -1,7 +1,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 // vim:set shiftwidth=3 softtabstop=3 expandtab:
 //
-// Fermi Fordward Alliance LLC
+// Fermi National Accelerator Laboratory
 //
 // Module: tx_cmd.sv
 // Project: QICK 
@@ -60,6 +60,7 @@ module tx_cmd(
    input  logic          i_sync     ,
    // Config 
    input  logic [4-1:0]  i_cfg_tick ,
+   input  logic          i_cfg_clk_pol,
    // Transmission 
    input  logic          i_req      ,
    input  logic [8-1:0]  i_header   ,
@@ -138,15 +139,16 @@ always_comb begin
 end
 
 xcom_link_tx u_xcom_link_tx(
-  .i_clk      ( i_clk      ),
-  .i_rstn     ( i_rstn     ),
-  .i_cfg_tick ( i_cfg_tick ),
-  .i_valid    ( s_tx_valid ),
-  .i_header   ( i_header   ),
-  .i_data     ( i_data     ), 
-  .o_ready    ( s_ready    ),
-  .o_data     ( o_data     ),
-  .o_clk      ( o_clk      )
+  .i_clk          ( i_clk           ),
+  .i_rstn         ( i_rstn          ),
+  .i_cfg_tick     ( i_cfg_tick      ),
+  .i_cfg_clk_pol  ( i_cfg_clk_pol   ),
+  .i_valid        ( s_tx_valid      ),
+  .i_header       ( i_header        ),
+  .i_data         ( i_data          ), 
+  .o_ready        ( s_ready         ),
+  .o_data         ( o_data          ),
+  .o_clk          ( o_clk           )
 );
 
 // OUTPUTS

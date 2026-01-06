@@ -1,7 +1,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 // vim:set shiftwidth=3 softtabstop=3 expandtab:
 //
-// Fermi Fordward Alliance LLC
+// Fermi National Accelerator Laboratory
 //
 // Module: axil_slv.sv
 // Project: QICK 

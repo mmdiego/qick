@@ -1,7 +1,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 // vim:set shiftwidth=3 softtabstop=3 expandtab:
 //
-// Fermi Fordward Alliance LLC
+// Fermi National Accelerator Laboratory
 //
 // Module: xcom_cdc.sv
 // Project: QICK 
@@ -263,6 +263,12 @@ assign o_axi_data2_sync = i_axi_data2;
 
 ///////////////////////////////////////////////////////////////////////////////
 //Core domain -> Time domain
+
+logic          core_en_req;
+logic          core_en_req_sync;
+logic          core_en_ack;
+logic          core_en_ack_sync;
+
 wide_en_signal sync_core_en(
    .i_clk  ( i_time_clk     ),
    .i_rstn ( i_time_rstn    ),
@@ -277,10 +283,6 @@ wide_en_signal sync_core_en(
 logic [ 4:0]   o_core_op_reg;
 logic [31:0]   o_core_data1_reg;
 logic [31:0]   o_core_data2_reg;
-logic          core_en_req;
-logic          core_en_req_sync;
-logic          core_en_ack;
-logic          core_en_ack_sync;
 
 always_ff @(posedge i_core_clk, negedge i_core_rstn) begin
    if (~i_core_rstn)

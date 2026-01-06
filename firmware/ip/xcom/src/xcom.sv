@@ -1,7 +1,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 // vim:set shiftwidth=3 softtabstop=3 expandtab:
 //
-// Fermi Fordward Alliance LLC
+// Fermi National Accelerator Laboratory
 //
 // Module: xcom.sv
 // Project: QICK 
@@ -69,6 +69,7 @@ module xcom import qick_pkg::*;
   # (
     parameter NCH          = 2 ,
     parameter SYNC         = 1 ,
+    parameter LOOPBACK     = 1 ,  // Enable internal loopback channel
     parameter DEBUG        = 1
   )(
     input  logic             i_ps_clk           ,
@@ -126,14 +127,25 @@ module xcom import qick_pkg::*;
     output logic  [32-1:0]   s_axi_rdata        ,
     output logic  [ 2-1:0]   s_axi_rresp        ,
     output logic             s_axi_rvalid       ,
-    input  logic             s_axi_rready        
+    input  logic             s_axi_rready       ,
+    // DEBUG
+    output logic  [32-1:0]   o_dbg_probe1,
+    output logic  [32-1:0]   o_dbg_probe2
   );
+
+  // Local Parameters
+  localparam NCH_INT = NCH + LOOPBACK;
 
   // Signal Declaration 
   ///////////////////////////////////////////////////////////////////////////////
   logic [ 8-1:0] s_op ;
   logic [32-1:0] s_data;
   logic [ 4-1:0] s_data_cntr;
+
+  logic [ 4-1:0] s_cfg_tick;
+  logic          s_cfg_clk_pol;
+  logic          s_cfg_clk_pha;
+  logic          s_cfg_loopback;
 
   logic [ 4-1:0] s_xcom_id;
   logic [ 4-1:0] s_xcom_id_ps;
@@ -177,20 +189,18 @@ module xcom import qick_pkg::*;
   logic [32-1:0] s_dbg_rx_data      ;
   logic [32-1:0] s_dbg_tx_data      ;
   logic [32-1:0] s_dbg_status       ;
-  logic [32-1:0] s_dbg_data         ;
   logic [32-1:0] s_dbg_debug        ;
   logic [32-1:0] s_dbg_rx_data_ps   ;
   logic [32-1:0] s_dbg_tx_data_ps   ;
   logic [32-1:0] s_dbg_status_ps    ;
-  logic [32-1:0] s_dbg_data_ps      ;
   logic [32-1:0] s_dbg_debug_ps     ;
 
-  logic [NCH-1:0] si_xcom_clk       ;
-  logic [NCH-1:0] si_xcom_data      ;
-  logic           so_xcom_clk       ;
-  logic           so_xcom_data      ;
-  logic [32-1:0] s_xcom_i_regs[0:16-1];
-  logic [32-1:0] s_xcom_o_regs[0:16-1];
+  logic [NCH-1:0]     si_xcom_clk       ;
+  logic [NCH-1:0]     si_xcom_data      ;
+  logic [NCH_INT-1:0] si_xcom_clk_int   ;
+  logic [NCH_INT-1:0] si_xcom_data_int  ;
+  logic               so_xcom_clk       ;
+  logic               so_xcom_data      ;
 
   ///////////////////////////////////////////////////////////////////////////////
   // AXI Registers
@@ -234,51 +244,7 @@ module xcom import qick_pkg::*;
     .i_xcom_debug    ( xreg_debug         ) 
   );
   
-  // axil_slv#(
-  //   .C_S_AXI_ADDR_WIDTH ( 6  ),   
-  //   .C_S_AXI_DATA_WIDTH ( 32 ),   
-  //   .NUM_REGS           ( 16 )   
-  // )u_axil_slv(
-  //   .S_AXI_ACLK    ( i_ps_clk           ), 
-  //   .S_AXI_ARESETN ( i_ps_rstn          ), 
-  //   .S_AXI_AWADDR  ( s_axi_awaddr [6-1:0] ), 
-  //   .S_AXI_AWVALID ( s_axi_awvalid      ),
-  //   .S_AXI_AWREADY ( s_axi_awready      ), 
-  //   .S_AXI_WDATA   ( s_axi_wdata        ), 
-  //   .S_AXI_WSTRB   ( s_axi_wstrb        ), 
-  //   .S_AXI_WVALID  ( s_axi_wvalid       ), 
-  //   .S_AXI_WREADY  ( s_axi_wready       ), 
-  //   .S_AXI_BRESP   ( s_axi_bresp        ), 
-  //   .S_AXI_BVALID  ( s_axi_bvalid       ), 
-  //   .S_AXI_BREADY  ( s_axi_bready       ), 
-  //   .S_AXI_ARADDR  ( s_axi_araddr       ), 
-  //   .S_AXI_ARVALID ( s_axi_arvalid      ),
-  //   .S_AXI_ARREADY ( s_axi_arready      ), 
-  //   .S_AXI_RDATA   ( s_axi_rdata        ), 
-  //   .S_AXI_RRESP   ( s_axi_rresp        ), 
-  //   .S_AXI_RVALID  ( s_axi_rvalid       ), 
-  //   .S_AXI_RREADY  ( s_axi_rready       ), 
-  //   .o_slv_regs    ( s_xcom_o_regs      ), 
-  //   .i_slv_regs    ( s_xcom_i_regs      )
-  // );
-  
-  // //outputs
-  // assign s_xcom_ctrl = s_xcom_o_regs[0];
-  // assign s_xcom_cfg  = s_xcom_o_regs[1];
-  // assign s_axi_data1 = s_xcom_o_regs[2];
-  // assign s_axi_data2 = s_xcom_o_regs[3];
-  // assign s_axi_addr  = s_xcom_o_regs[4];
-  // //inputs
-  // assign s_xcom_i_regs[6] = {28'h000_0000,s_xcom_id_ps};
-  // assign s_xcom_i_regs[7] = s_xcom_flag_ps;
-  // assign s_xcom_i_regs[8] = s_core_data1_ps;
-  // assign s_xcom_i_regs[9] = s_core_data2_ps;
-  // assign s_xcom_i_regs[10] = axi_mem_data;
-  // assign s_xcom_i_regs[12] = s_dbg_rx_data_ps;
-  // assign s_xcom_i_regs[13] = s_dbg_tx_data_ps;
-  // assign s_xcom_i_regs[14] = xreg_status;
-  // assign s_xcom_i_regs[15] = xreg_debug; 
-
+  // AXI read data from Memory
   assign axi_mem_data = xcom_mem_data[s_axi_addr[4-1:0]];
 
   xcom_cdc u_xcom_cdc(
@@ -349,7 +315,7 @@ module xcom import qick_pkg::*;
       end
     end
   end
-  assign o_core_ready    = ~s_core_ready_ack & s_core_ready_sync;
+  assign o_core_ready = ~s_core_ready_ack & s_core_ready_sync;
 
   assign s_core_data  = {s_core_data2_sync, s_core_data1_sync};
   assign s_ps_data    = {s_axi_data2_sync, s_axi_data1_sync};
@@ -371,9 +337,10 @@ module xcom import qick_pkg::*;
     .o_data_cntr     ( s_data_cntr      )
   );
 
-  xcom_txrx#(
-    .NCH  ( NCH  ),
-    .SYNC ( 1'b1 )
+  xcom_txrx #(
+    .NCH      ( NCH_INT ),
+    .LOOPBACK ( LOOPBACK ),
+    .SYNC     ( 1'b1 )
   ) u_xcom_txrx(
     .i_clk             ( i_time_clk         ),
     .i_rstn            ( i_time_rstn        ),
@@ -396,18 +363,26 @@ module xcom import qick_pkg::*;
     .o_time_update_data( o_time_update_data ),
     .o_core_start      ( o_core_start       ),
     .o_core_stop       ( o_core_stop        ),
-    .i_cfg_tick        ( s_xcom_cfg_sync[4-1:0] ),
+    .i_cfg_tick        ( s_cfg_tick         ),
+    .i_cfg_clk_pol     ( s_cfg_clk_pol      ),
+    .i_cfg_clk_pha     ( s_cfg_clk_pha      ),
+    .i_cfg_loopback    ( s_cfg_loopback     ),
     .o_xcom_id         ( s_xcom_id          ),
     .o_xcom_mem        ( xcom_mem_data      ),
-    .i_xcom_data       ( si_xcom_data       ),
-    .i_xcom_clk        ( si_xcom_clk        ),
+    .i_xcom_data       ( si_xcom_data_int   ),
+    .i_xcom_clk        ( si_xcom_clk_int    ),
     .o_xcom_data       ( so_xcom_data       ),
     .o_xcom_clk        ( so_xcom_clk        ),
     .o_dbg_rx_data     ( s_dbg_rx_data      ),
     .o_dbg_tx_data     ( s_dbg_tx_data      ),
     .o_dbg_status      ( s_dbg_status       ),
-    .o_dbg_data        ( s_dbg_debug        )                                                               
+    .o_dbg_data        ( s_dbg_debug        )
   );
+
+  assign s_cfg_tick     = s_xcom_cfg_sync[4-1:0];
+  assign s_cfg_clk_pol  = (LOOPBACK == 0) ? s_xcom_cfg_sync[8] : (s_xcom_cfg_sync[8] & ~s_cfg_loopback);
+  assign s_cfg_clk_pha  = s_xcom_cfg_sync[9];
+  assign s_cfg_loopback = s_xcom_cfg_sync[31];
 
   i_diff_nb #(
     .NB( NCH ) 
@@ -442,7 +417,22 @@ module xcom import qick_pkg::*;
   );
 
   assign o_xcom_id   = s_xcom_id;
-  assign xreg_status = {7'd0,s_data_cntr, s_dbg_status_ps[21-1:0]};
+  assign xreg_status = {7'd0, s_data_cntr, s_dbg_status_ps[21-1:0]};
+
+
+  generate
+    if (LOOPBACK == 0) begin : NO_LOOPBACK_GEN
+      assign si_xcom_data_int = si_xcom_data;
+      assign si_xcom_clk_int  = si_xcom_clk;
+    end
+    else if (LOOPBACK == 1) begin : LOOPBACK_GEN
+      assign si_xcom_data_int[NCH-1:0]    = si_xcom_data;
+      assign si_xcom_clk_int[NCH-1:0]     = si_xcom_clk;
+      assign si_xcom_data_int[NCH_INT-1]  = so_xcom_data;
+      assign si_xcom_clk_int[NCH_INT-1]   = so_xcom_clk;
+    end
+  endgenerate
+
 
   //end of SYNC STAGES
   ///////////////////////////////////////////////////////////////////////////////
@@ -455,5 +445,17 @@ module xcom import qick_pkg::*;
       assign xreg_debug  = s_dbg_debug_ps;
     end
   endgenerate
+
+  // DEBUG PROBES
+  //////////////////////////////////////////////////////////////////////////////
+  assign o_dbg_probe1[7:0]   = {1'b1, s_cfg_loopback, s_cfg_clk_pha, s_cfg_clk_pol, si_xcom_data_int[NCH_INT-1], si_xcom_clk_int[NCH_INT-1],si_xcom_data_int[0], si_xcom_clk_int[0]};
+  assign o_dbg_probe1[15:8]  = {u_xcom_txrx.u_rx_cmd.RX[0].u_xcom_link_rx.i_id, u_xcom_txrx.u_rx_cmd.RX[0].u_xcom_link_rx.o_cmd, u_xcom_txrx.u_rx_cmd.RX[0].u_xcom_link_rx.i_ack, u_xcom_txrx.u_rx_cmd.RX[0].u_xcom_link_rx.o_req};
+  assign o_dbg_probe1[23:16] = {u_xcom_txrx.u_rx_cmd.RX[0].u_xcom_link_rx.o_data[7:0]};
+  assign o_dbg_probe1[31:24] = {u_xcom_txrx.u_rx_cmd.RX[0].u_xcom_link_rx.o_dbg_state};
+
+  assign o_dbg_probe2[7:0]   = {6'd0, u_xcom_txrx.u_tx_cmd.u_xcom_link_tx.o_ready, u_xcom_txrx.u_tx_cmd.u_xcom_link_tx.i_valid};
+  assign o_dbg_probe2[15:8]  = {u_xcom_txrx.u_tx_cmd.u_xcom_link_tx.i_header};
+  assign o_dbg_probe2[23:16] = {u_xcom_txrx.u_tx_cmd.u_xcom_link_tx.i_data[7:0]};
+  assign o_dbg_probe2[31:24] = {u_xcom_txrx.u_tx_cmd.o_dbg_state};
 
 endmodule
