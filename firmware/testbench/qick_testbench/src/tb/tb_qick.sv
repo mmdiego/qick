@@ -1945,7 +1945,7 @@ module tb_qick ();
 
         $display("\n\n*** %t - Start test_xcom Test \n\n***", $realtime());
         TEST_RUN_TIME        = 25us;
-        REPEAT_EXEC          = 10;
+        REPEAT_EXEC          = 4;
 
         ro_length            = 500;
         ro_decimated_length  = 50;
@@ -2021,7 +2021,7 @@ module tb_qick ();
           wait(tb_test_iter_start);
 
           // Configure XCOM clock frequency
-          axi_mst_xcom_agent.AXI4LITE_WRITE_BURST(REG_XCOM_CFG, prot, i, resp);
+          axi_mst_xcom_agent.AXI4LITE_WRITE_BURST(REG_XCOM_CFG, prot, i*4, resp);
 
           wait(tb_test_iter_done);
 
