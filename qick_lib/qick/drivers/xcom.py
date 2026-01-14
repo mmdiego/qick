@@ -193,12 +193,12 @@ class QICK_Xcom(SocIP):
             print(f'{xreg:>10}', f'{reg_num:>11}'+' - '+f'{reg_bin:>33}' )
             
     def print_status(self):
-        debug_num = self.status
-        debug_bin = '{:032b}'.format(debug_num)
-        #print(debug_bin)
+        status_num = self.status
+        status_bin = '{:032b}'.format(status_num)
+        #print(status_bin)
         print('---------------------------------------------')
         print('--- AXI XCOM Register STATUS')
-        tx_status = debug_num & 0x3
+        tx_status = status_num & 0x3
         if tx_status == 0:
             print( ' tx_st     : ' + 'IDLE')
         elif tx_status == 1:
@@ -209,7 +209,7 @@ class QICK_Xcom(SocIP):
             print( ' tx_st     : ' + 'WRDY' )
         else:
             print( ' tx_st     : ' + 'UNKNOWN' )
-        rx_status = (debug_num & 0x01C0)>>6
+        rx_status = (status_num & 0x01C0)>>6
         if rx_status == 0:
             print( ' rx_st     : ' + 'IDLE')
         elif rx_status == 1:
@@ -222,9 +222,9 @@ class QICK_Xcom(SocIP):
             print( ' rx_st     : ' + 'ACK' )
         else:
             print( ' rx_st     : ' + 'UNKNOWN' )
-        print( ' tx_ready     : ' + debug_bin[15]    )
-        print( ' board_id     : ' + debug_bin[11:15] )
-        print( ' rx_data_cntr : ' + debug_bin[7:11]  )
+        print( ' tx_ready     : ' + status_bin[15]    )
+        print( ' board_id     : ' + status_bin[11:15] )
+        print( ' rx_data_cntr : ' + status_bin[7:11]  )
         
     def print_debug(self):
         debug_num = self.debug
@@ -247,8 +247,10 @@ class QICK_Xcom(SocIP):
         print( ' rx_wflg       : ' + debug_bin[9]     )
         print( ' rx_wreg       : ' + debug_bin[8]     )
         print( ' rx_wmem       : ' + debug_bin[7]     )
-        print( ' rx_cmd_id     : ' + debug_bin[4:7]   )
-        print( ' cfg_i         : ' + debug_bin[0:4]   )
+        # print( ' rx_chid     : ' + debug_bin[4:7]   )
+        # print( ' cfg_i         : ' + debug_bin[0:4]   )
+        print( ' rx_chid       : ' + debug_bin[3:7]   )
+        print( ' cfg_i         : ' + debug_bin[0:3]   ) # missing msb bit
         print('---------------------------------------------')
         print('--- AXI XCOM RX_DT')
         debug_num = self.rx_dt
