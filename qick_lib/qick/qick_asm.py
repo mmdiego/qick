@@ -217,8 +217,15 @@ class QickConfig():
                         (tproc['type'], tproc_version, tproc['revision'], tproc['f_core']))
                 lines.append("\t\tmemories (words): program %d, data %d, waveform %d" %
                         (tproc['pmem_size'], tproc['dmem_size'], tproc['wmem_size']))
+                if tproc['revision'] >= 28:
+                    lines.append("\t\tports (ch x words): wave %dch x %d, trigger %dch x %d, data %dch x %d" %
+                            (tproc['out_wport_qty'], 2**tproc['wport_depth'], 
+                             tproc['out_trig_qty'],  2**tproc['tport_depth'], 
+                             tproc['out_dport_qty'], 2**tproc['dport_depth']))
                 lines.append("\t\texternal start pin: %s" % (tproc['start_pin']))
                 lines.append("\t\texternal stop pin: %s" % (tproc['stop_pin']))
+
+
 
         if "ddr4_buf" in self._cfg:
             buf = self['ddr4_buf']

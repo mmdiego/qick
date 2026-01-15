@@ -30,7 +30,6 @@ module axis_qick_processor # (
    parameter ARITH          =  0 , // Arith 0-No 1-Yes 
    parameter EXT_FLAG       =  0 , // External Flag Input 0-No 1-Yes
    parameter TIME_READ      =  1 , // Time in sreg and AXI-Reg 0-No 1-Yes
-   parameter FIFO_DEPTH     =  9 , // 9 Bits in Dispatcher FIFOs address
    parameter PMEM_AW        =  8 , // Bits in Program Memory address
    parameter DMEM_AW        =  8 , // Bits in Data Memory address
    parameter WMEM_AW        =  8 , // Bits in WaveParam Memory address
@@ -39,7 +38,10 @@ module axis_qick_processor # (
    parameter OUT_TRIG_QTY   =  2 , // Number of Output Trigger  Ports
    parameter OUT_DPORT_QTY  =  1 , // Number of Output Data Ports
    parameter OUT_DPORT_DW   =  4 , // BitSize of Output Data Ports
-   parameter OUT_WPORT_QTY  =  1 ,  // Number of Output Wave Ports
+   parameter OUT_WPORT_QTY  =  1 , // Number of Output Wave Ports
+   parameter TPORT_DEPTH    =  9 , // Bits in Trigger Dispatcher FIFOs address
+   parameter DPORT_DEPTH    =  9 , // Bits in Data Dispatcher FIFOs address
+   parameter WPORT_DEPTH    =  9 , // Bits in Wave Dispatcher FIFOs address
    parameter CALL_DEPTH     =  255 // Nested Functions
 
 )(
@@ -399,7 +401,9 @@ qick_processor# (
    .DIVIDER        ( DIVIDER        ),
    .ARITH          ( ARITH          ),
    .TIME_READ      ( TIME_READ      ),
-   .FIFO_DEPTH     ( FIFO_DEPTH     ),
+   .TPORT_DEPTH    ( TPORT_DEPTH    ),
+   .DPORT_DEPTH    ( DPORT_DEPTH    ),
+   .WPORT_DEPTH    ( WPORT_DEPTH    ),
    .PMEM_AW        ( PMEM_AW        ),
    .DMEM_AW        ( DMEM_AW        ),
    .WMEM_AW        ( WMEM_AW        ),
