@@ -42,6 +42,8 @@ module rx_cmd # (
    input  logic           i_rstn           ,
    // XCOM CFG
    input  logic   [4-1:0] i_id             ,
+   input  logic           i_cfg_clk_pha    ,
+   input  logic           i_cfg_auto_pha   ,
    input  logic           i_cfg_loopback   ,
    // XCOM CNX
    input  logic [NCH-1:0] i_xcom_data      ,
@@ -83,6 +85,8 @@ generate
          .i_clk      ( i_clk          ),
          .i_rstn     ( i_rstn         ),
          .i_id       ( i_id           ),
+         .i_pha      ( i_cfg_clk_pha  ),
+         .i_auto_pha ( i_cfg_auto_pha ),
          .o_req      ( s_req[k]       ),
          .i_ack      ( s_ack[k]       ),
          .o_cmd      ( s_cmd[k]       ),

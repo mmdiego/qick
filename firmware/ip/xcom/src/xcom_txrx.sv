@@ -87,6 +87,7 @@ module xcom_txrx import qick_pkg::*;
    input  logic             i_req_net          ,
    input  logic [ 8-1:0]    i_header           ,
    input  logic [32-1:0]    i_data             ,
+   input  logic [ 4-1:0]    i_cmd_cntr         ,
    output logic             o_ack_loc          ,
    output logic             o_ack_net          ,
 // QICK INTERFACE
@@ -107,15 +108,16 @@ module xcom_txrx import qick_pkg::*;
    input  logic [4-1:0]     i_cfg_tick         ,
    input  logic             i_cfg_clk_pol      ,
    input  logic             i_cfg_clk_pha      ,
+   input  logic             i_cfg_auto_pha     ,
    input  logic             i_cfg_loopback     ,
    output logic [ 4-1:0]    o_xcom_id          ,
    output logic [32-1:0]    o_xcom_mem[16]     ,
 // Xlogic COM
    input  logic [NCH-1:0]   i_xcom_data        ,
    input  logic [NCH-1:0]   i_xcom_clk         ,
-   output logic             o_xcom_data        ,
-   output logic             o_xcom_clk         ,
-// DEBUG
+   output logic [1:0]       o_xcom_data        ,
+   output logic [1:0]       o_xcom_clk         ,
+// DEBUG1:0
    output logic [32-1:0]    o_dbg_rx_data      ,
    output logic [32-1:0]    o_dbg_tx_data      ,
    output logic [32-1:0]    o_dbg_status       ,
@@ -136,12 +138,16 @@ logic          rx_wflg_en, rx_wreg_en, rx_wmem_en;
 logic          rx_qsync, rx_qctrl, rx_auto_id, rx_rst; 
 
 logic          s_data_flag, rst_flg, s_rx_valid, wflg_en;
-logic          data_flag, wreg_r, wreg_en, wmem_en;
+logic          data_flag, wreg_en_r, wreg_en, wmem_en;
 logic [32-1:0] reg_dt_s;
 logic [ 4-1:0] mem_addr;
 logic [32-1:0] reg1_dt, reg2_dt;
 logic [32-1:0] mem_data [16];
 logic          s_cmd_exec;
+
+logic          wmem_en_r;
+logic [4-1:0]  mem_addr_r;
+logic [32-1:0] reg_dt_r;
 
 logic          set_id_flg, wflg_flg, wreg_flg, wmem_flg;
 logic          s_loc_sid; //local set ID
@@ -155,8 +161,8 @@ logic          tx_auto_id;
 logic          tx_qrst_sync;
 
 //TX related signals
-logic         s_nack;
-logic         s_lack;
+logic         s_ack_net;
+logic         s_ack_loc;
 logic         s_tx_ready;
 logic         s_req_net;
 
@@ -192,8 +198,8 @@ logic [4-1:0] board_id_r;
         s_wreg    = 1'b0;
         s_wmem    = 1'b0;
         s_rst     = 1'b0;
-        s_lack    = 1'b0;
-        s_nack    = 1'b0;
+        s_ack_loc = 1'b0;
+        s_ack_net = 1'b0;
         s_req_net = 1'b0;
         case (state_r)
             IDLE: begin
@@ -256,11 +262,11 @@ logic [4-1:0] board_id_r;
                end
             end
             ST_LACK:  begin
-               s_lack  = 1'b1;
+               s_ack_loc  = 1'b1;
                state_n = IDLE;  
             end
             ST_NACK:  begin
-               s_nack  = 1'b1;
+               s_ack_net  = 1'b1;
                state_n = IDLE;  
             end
             default: 
@@ -289,7 +295,6 @@ tx_cmd u_tx_cmd(
     .i_sync       ( i_sync         ),
     .i_cfg_tick   ( i_cfg_tick     ),
     .i_cfg_clk_pol( i_cfg_clk_pol  ),
-   //  .i_cfg_clk_pha( i_cfg_clk_pha  ),
     .i_req        ( s_req_net      ),
     .i_header     ( i_header       ),
     .i_data       ( i_data         ),
@@ -303,7 +308,7 @@ assign tx_auto_id   = s_req_net & (loc_cmd_op == XCOM_AUTO_ID);
 
 //logic to take into account the XCOM_QRST_SYNC command for board
 //synchronization
-assign tx_qrst_sync = s_nack & (loc_cmd_op == XCOM_QRST_SYNC); 
+assign tx_qrst_sync = s_ack_net & (loc_cmd_op == XCOM_QRST_SYNC); 
 
 //end Transmission
 //
@@ -333,17 +338,19 @@ rx_cmd #(
    .NCH(NCH),
    .LOOPBACK(LOOPBACK)
 ) u_rx_cmd (
-  .i_clk           ( i_clk             ),
-  .i_rstn          ( i_rstn            ),
-  .i_id            ( board_id_r        ),
-  .i_cfg_loopback  ( i_cfg_loopback    ),
-  .i_xcom_data     ( i_xcom_data       ),
-  .i_xcom_clk      ( i_xcom_clk        ),
-  .o_valid         ( s_rx_valid        ),
-  .o_op            ( s_rx_op           ),
-  .o_data          ( s_rx_data         ),
-  .o_chid          ( s_rx_chid         ),
-  .o_dbg_state     ( s_rx_dbg_state    )
+   .i_clk           ( i_clk             ),
+   .i_rstn          ( i_rstn            ),
+   .i_id            ( board_id_r        ),
+   .i_cfg_clk_pha   ( i_cfg_clk_pha     ),
+   .i_cfg_auto_pha  ( i_cfg_auto_pha    ),
+   .i_cfg_loopback  ( i_cfg_loopback    ),
+   .i_xcom_data     ( i_xcom_data       ),
+   .i_xcom_clk      ( i_xcom_clk        ),
+   .o_valid         ( s_rx_valid        ),
+   .o_op            ( s_rx_op           ),
+   .o_data          ( s_rx_data         ),
+   .o_chid          ( s_rx_chid         ),
+   .o_dbg_state     ( s_rx_dbg_state    )
 );
 
 // RX Decoding
@@ -383,18 +390,24 @@ always_ff @ (posedge i_clk) begin
       reg1_dt   <= '{default:'0} ; 
       reg2_dt   <= '{default:'0} ;
       mem_data  <= '{default:'0} ;
-      wreg_r    <= 1'b0; 
+      wreg_en_r <= 1'b0; 
+      wmem_en_r <= 1'b0; 
+      mem_addr_r<= 4'd0;
+      reg_dt_r  <= 32'd0;
    end else begin 
-      wreg_r    <= wreg_en ;
+      wreg_en_r <= wreg_en ;
       if ( wflg_en )
          data_flag <= s_data_flag; // FLAG
-      else if ( wreg_en )
+      if ( wreg_en )
          case ( s_data_flag )
             1'b0 : reg1_dt <= reg_dt_s;      // Reg_dt1
             1'b1 : reg2_dt <= reg_dt_s;      // Reg_dt2
          endcase
-      else if ( wmem_en )
-         mem_data[mem_addr]  <= reg_dt_s;
+      wmem_en_r  <= wmem_en ;
+      mem_addr_r <= mem_addr ;
+      reg_dt_r   <= reg_dt_s ;
+      if ( wmem_en_r )
+         mem_data[mem_addr_r]  <= reg_dt_r;
    end
 end
 
@@ -405,7 +418,8 @@ end
 generate
    if (SYNC == 0) begin : SYNC_NO
       
-   end else if   (SYNC == 1) begin : SYNC_YES
+   end 
+   else if   (SYNC == 1) begin : SYNC_YES
       xcom_qctrl u_xcom_qctrl(
          .i_clk        ( i_clk          ),
          .i_rstn       ( i_rstn         ),
@@ -425,25 +439,29 @@ endgenerate
 
 // DEBUG
 ///////////////////////////////////////////////////////////////////////////////
-assign s_loc_dbg_status = {wmem_flg, wreg_flg, wflg_flg, set_id_flg, s_lack, i_req_loc};
-assign s_net_dbg_status = {i_header, s_nack, i_req_net};
-assign rx_cmd_ds  = {rx_wmem, rx_wreg, rx_wflg, rx_no_dt, tx_auto_id, s_rx_op};
-
 assign o_dbg_rx_data = s_rx_data;
 assign o_dbg_tx_data = i_data;
 
-assign o_dbg_status  = {11'h000, board_id_r, s_tx_ready, 5'b0_0000, s_rx_dbg_state[0], 2'b00, s_rx_valid, rx_qctrl, s_tx_dbg_state};//FIXME: here was cmd_st_ds. Also we are seeing only state[0] here
-assign o_dbg_data    = {i_cfg_tick, s_rx_chid, rx_cmd_ds, s_net_dbg_status, s_loc_dbg_status};//4+4+9+10+6
+assign o_dbg_status  = {7'd0, i_cmd_cntr, board_id_r, s_tx_ready, 5'd0, s_rx_dbg_state[0], 2'b00, s_rx_valid, rx_qctrl, s_tx_dbg_state};
+// 7 + 4 + 4 + 1 + 5 + 5 + 2 + 1 + 1 + 2 = 32 bits
+
+
+assign s_loc_dbg_status = {wmem_flg, wreg_flg, wflg_flg, set_id_flg, s_ack_loc, i_req_loc};
+assign s_net_dbg_status = {i_header, s_ack_net, i_req_net};
+assign rx_cmd_ds  = {rx_wmem, rx_wreg, rx_wflg, rx_no_dt, tx_auto_id, s_rx_op};
+
+assign o_dbg_data    = {i_cfg_tick, s_rx_chid, rx_cmd_ds, s_net_dbg_status, s_loc_dbg_status};
+// 4 + 4 + 9 + 10 + 6 = 33 bits, one bit will be truncated (FIXME)
 
 
 // OUT SIGNALS
 ///////////////////////////////////////////////////////////////////////////////
 always_ff @ (posedge i_clk) begin
    if ( !i_rstn ) o_qp_ready <= 1'b0;
-   else o_qp_ready  <= s_tx_ready & ~i_req_loc & ~s_lack;
+   else o_qp_ready  <= s_tx_ready & ~i_req_loc & ~s_ack_loc;
 end
 assign o_qp_flag   = data_flag;
-assign o_qp_valid  = wreg_r;
+assign o_qp_valid  = wreg_en_r;
 assign o_qp_data1  = reg1_dt;
 assign o_qp_data2  = reg2_dt;
 assign o_xcom_id   = board_id_r;
@@ -451,7 +469,7 @@ assign o_xcom_mem  = mem_data;
 
 assign o_time_update_data = reg1_dt;
 
-assign o_ack_loc = s_lack ;
-assign o_ack_net = s_nack;
+assign o_ack_loc = s_ack_loc ;
+assign o_ack_net = s_ack_net;
 
 endmodule

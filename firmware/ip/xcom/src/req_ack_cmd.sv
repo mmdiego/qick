@@ -28,7 +28,7 @@
 //               network (remote) command should be excecuted.
 // - o_op        operation to be excecuted (local or remote).
 // - o_data      data to be excecuted (local or remote).
-// - o_data_cntr command counter. It counts the number of commands received
+// - o_cmd_cntr  command counter. It counts the number of commands received
 //               locally. This is a port for debug purposes.
 //
 //
@@ -54,7 +54,7 @@ module req_ack_cmd(
     output logic          o_req_net   ,
     output logic [ 8-1:0] o_op        ,
     output logic [32-1:0] o_data      ,
-    output logic [ 4-1:0] o_data_cntr
+    output logic [ 4-1:0] o_cmd_cntr
 );
 
     logic [ 8-1:0]   cmd_op_r, cmd_op_n;
@@ -138,6 +138,6 @@ module req_ack_cmd(
 
     // DEBUG
     ///////////////////////////////////////////////////////////////////////////////
-    assign o_data_cntr = cmd_cnt_r; 
+    assign o_cmd_cntr = cmd_cnt_r; 
 
 endmodule

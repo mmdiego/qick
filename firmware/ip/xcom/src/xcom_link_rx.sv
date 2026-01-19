@@ -39,6 +39,8 @@ module xcom_link_rx (
     input  logic            i_clk          ,
     input  logic            i_rstn         ,
     input  logic  [4-1:0]   i_id           ,
+    input  logic            i_pha          ,
+    input  logic            i_auto_pha     ,
     // Command Processing    
     input  logic            i_ack          ,
     output logic            o_req          ,
@@ -56,7 +58,7 @@ logic          s_no_data, s_timeout, s_data_last ;
 logic          s_broadcast, s_local_id;
 
 logic [ 8-1:0] s_header_shreg ;
-logic [ 8-1:0] s_header         ;
+logic [ 8-1:0] s_header       ;
 logic [32-1:0] s_data_shreg ;  
 logic          s_new_data;
 logic          s_new_bit;
@@ -71,7 +73,8 @@ typedef enum logic [3-1:0]{ IDLE   = 3'b000,
 } state_t;
 state_t state_r, state_n;
 
-logic [6-1:0] s_rx_pack_size;
+// logic [6-1:0] s_rx_pack_size;
+logic [2-1:0] s_rx_data_size;
 
 // Timeout counter, up to 32 clock cycles. This gives roughly 64 ns with
 // a t_clk = 500 MHz
@@ -79,33 +82,53 @@ logic [5-1:0] timeout_cntr_r, timeout_cntr_n;
 // logic [6-1:0] bit_cntr_r, bit_cntr_n        ; // Receive up to 40 bits
 logic [1:0] data_cntr_r, data_cntr_n       ; // Receive up to 4 data words
 
+// Auto Phase Control
+logic [3:0] s_auto_pha;
+logic       s_pha;
+
 // DDR - RX Serial to Paralel
 ///////////////////////////////////////////////////////////////////////////////
 
 logic [3:0] ddr_data0_reg_pos, ddr_data0_reg_neg;
 logic [3:0] ddr_data1_reg_pos, ddr_data1_reg_neg;
 logic ddr_last_toggle;
+logic ddr_last_toggle_pos;
 always_ff @ (posedge i_xcom_clk) begin
-   if (~ddr_last_toggle) begin
-      ddr_data0_reg_pos <= {ddr_data0_reg_pos[2:0], i_xcom_data};
-   end else begin
-      ddr_data1_reg_pos <= {ddr_data1_reg_pos[2:0], i_xcom_data};
-   end
+   if (s_pha == 0)
+      if (ddr_last_toggle == 0) begin
+         ddr_data0_reg_pos <= {ddr_data0_reg_pos[2:0], i_xcom_data};
+      end else begin
+         ddr_data1_reg_pos <= {ddr_data1_reg_pos[2:0], i_xcom_data};
+      end
+   else
+      if (ddr_last_toggle_pos == 0) begin
+         ddr_data0_reg_pos <= {ddr_data0_reg_pos[2:0], i_xcom_data};
+      end else begin
+         ddr_data1_reg_pos <= {ddr_data1_reg_pos[2:0], i_xcom_data};
+      end
 end
 always_ff @ (negedge i_xcom_clk) begin
-   if (~ddr_last_toggle) begin
-      ddr_data0_reg_neg <= {ddr_data0_reg_neg[2:0], i_xcom_data};
-   end else begin
-      ddr_data1_reg_neg <= {ddr_data1_reg_neg[2:0], i_xcom_data};
-   end
+   if (s_pha == 0)
+      if (ddr_last_toggle == 0) begin
+         ddr_data0_reg_neg <= {ddr_data0_reg_neg[2:0], i_xcom_data};
+      end else begin
+         ddr_data1_reg_neg <= {ddr_data1_reg_neg[2:0], i_xcom_data};
+      end
+   else
+      if (ddr_last_toggle_pos == 0) begin
+         ddr_data0_reg_neg <= {ddr_data0_reg_neg[2:0], i_xcom_data};
+      end else begin
+         ddr_data1_reg_neg <= {ddr_data1_reg_neg[2:0], i_xcom_data};
+      end
 end
 
 
 // DDR Bit Counter
 ///////////////////////////////////////////////////////////////////////////////
-logic [3:0] ddr_bit_cntr;
 logic ddr_bit_cntr_rstn;
 assign ddr_bit_cntr_rstn = i_rstn & ~s_timeout;
+
+logic [3:0] ddr_bit_cntr;
 always_ff @ (negedge i_xcom_clk, negedge ddr_bit_cntr_rstn) begin
    if (!ddr_bit_cntr_rstn) begin
       ddr_bit_cntr  <= 'd1;
@@ -152,9 +175,17 @@ always_ff @ (negedge i_xcom_clk, negedge i_rstn) begin
    end
 end
 
+always_ff @ (posedge i_xcom_clk, negedge i_rstn) begin
+   if (!i_rstn) begin
+      ddr_last_toggle_pos  <= 1'b0;
+   end else begin
+      ddr_last_toggle_pos  <= ddr_last_toggle;
+   end
+end
 
-logic ddr_last_sync;
-logic ddr_last_sync_d;
+
+logic ddr_last_sync, ddr_last_pos_sync;
+logic ddr_last_sync_d, ddr_last_pos_sync_d;
 synchronizer #(
    .NB         (1)
 ) 
@@ -164,41 +195,72 @@ u_ddr_last_sync (
   .i_async    ( ddr_last_toggle  ),
   .o_sync     ( ddr_last_sync    )
 );
+synchronizer #(
+   .NB         (1)
+) 
+u_ddr_last_pos_sync (
+  .i_clk      ( i_clk            ),
+  .i_rstn     ( i_rstn           ),
+  .i_async    ( ddr_last_toggle_pos  ),
+  .o_sync     ( ddr_last_pos_sync    )
+);
 
 always_ff @ (posedge i_clk, negedge i_rstn) begin
    if (!i_rstn) begin
       ddr_last_sync_d  <= 1'b0;
+      ddr_last_pos_sync_d  <= 1'b0;
    end else begin
       ddr_last_sync_d  <= ddr_last_sync;
+      ddr_last_pos_sync_d  <= ddr_last_pos_sync ;
    end
 end
 
 logic ddr_last_sync_edge;
 assign ddr_last_sync_edge = ddr_last_sync ^ ddr_last_sync_d;
+logic ddr_last_pos_sync_edge;
+assign ddr_last_pos_sync_edge = ddr_last_pos_sync ^ ddr_last_pos_sync_d;
 
 
 // DDR Data CDC
 ///////////////////////////////////////////////////////////////////////////////
 logic [ 7:0] ddr_data_cdc ;
-logic       ddr_data_dv  ;
+logic        ddr_data_dv  ;
 
 always_ff @ (posedge i_clk) begin
    if (!i_rstn) begin
       ddr_data_cdc   <= '0;
       ddr_data_dv    <= 1'b0;
    end else begin
-      ddr_data_dv      <= ddr_last_sync_edge;
-      if (ddr_last_sync_edge) begin
-         if (~ddr_last_toggle) begin
-            ddr_data_cdc   <= {ddr_data1_reg_pos[3], ddr_data1_reg_neg[3],
-                                 ddr_data1_reg_pos[2], ddr_data1_reg_neg[2],
-                                 ddr_data1_reg_pos[1], ddr_data1_reg_neg[1],
-                                 ddr_data1_reg_pos[0], ddr_data1_reg_neg[0]};
-         end else begin
-            ddr_data_cdc   <= {ddr_data0_reg_pos[3], ddr_data0_reg_neg[3],
-                                 ddr_data0_reg_pos[2], ddr_data0_reg_neg[2],
-                                 ddr_data0_reg_pos[1], ddr_data0_reg_neg[1],
-                                 ddr_data0_reg_pos[0], ddr_data0_reg_neg[0]};
+      if (~s_pha) begin
+         ddr_data_dv      <= ddr_last_sync_edge;
+         if (ddr_last_sync_edge) begin
+            if (~ddr_last_toggle) begin
+               ddr_data_cdc   <= {ddr_data1_reg_pos[3], ddr_data1_reg_neg[3],
+                                    ddr_data1_reg_pos[2], ddr_data1_reg_neg[2],
+                                    ddr_data1_reg_pos[1], ddr_data1_reg_neg[1],
+                                    ddr_data1_reg_pos[0], ddr_data1_reg_neg[0]};
+            end else begin
+               ddr_data_cdc   <= {ddr_data0_reg_pos[3], ddr_data0_reg_neg[3],
+                                    ddr_data0_reg_pos[2], ddr_data0_reg_neg[2],
+                                    ddr_data0_reg_pos[1], ddr_data0_reg_neg[1],
+                                    ddr_data0_reg_pos[0], ddr_data0_reg_neg[0]};
+            end
+         end
+      end
+      else begin
+         ddr_data_dv      <= ddr_last_pos_sync_edge;
+         if (ddr_last_pos_sync_edge) begin
+            if (~ddr_last_toggle_pos) begin
+               ddr_data_cdc   <= {ddr_data1_reg_neg[3], ddr_data1_reg_pos[3],
+                                    ddr_data1_reg_neg[2], ddr_data1_reg_pos[2],
+                                    ddr_data1_reg_neg[1], ddr_data1_reg_pos[1],
+                                    ddr_data1_reg_neg[0], ddr_data1_reg_pos[0]};
+            end else begin
+               ddr_data_cdc   <= {ddr_data0_reg_neg[3], ddr_data0_reg_pos[3],
+                                    ddr_data0_reg_neg[2], ddr_data0_reg_pos[2],
+                                    ddr_data0_reg_neg[1], ddr_data0_reg_pos[1],
+                                    ddr_data0_reg_neg[0], ddr_data0_reg_pos[0]};
+            end
          end
       end
    end
@@ -246,6 +308,30 @@ always_ff @ (posedge i_clk) begin
 end
 
 assign s_new_bit   = s_xcom_clk_dly ^ s_xcom_clk_sync;
+
+// Auto Phase Control
+///////////////////////////////////////////////////////////////////////////////
+always_ff @ (posedge i_clk) begin
+   if (!i_rstn) begin
+      s_auto_pha  <= 4'h0;
+      s_pha       <= 1'b0;
+   end 
+   else begin
+      if (i_auto_pha) begin
+         if (s_rx_idle) begin
+            s_auto_pha  <= {s_auto_pha[2:0], s_xcom_clk_sync};
+            s_pha       <= s_auto_pha[3];
+         end
+         else begin
+            s_auto_pha <= {4{s_auto_pha[3]}};
+         end
+      end
+      else begin
+         s_pha <= i_pha;
+      end
+   end
+end
+
 
 ///// DDR RX STATE
 ///////////////////////////////////////////////////////////////////////////////
@@ -299,12 +385,12 @@ end
 // RX Length Decoding
 ///////////////////////////////////////////////////////////////////////////////
 always_comb begin
-   case ( s_header [6:5] )
-      2'b00  : s_rx_pack_size = 6'd8  ; //8-bit header + no data
-      2'b01  : s_rx_pack_size = 6'd16 ; //8-bit header + 8-bit data 
-      2'b10  : s_rx_pack_size = 6'd24 ; //8-bit header + 16-bit data
-      2'b11  : s_rx_pack_size = 6'd40 ; //8-bit header + 32-bit data
-      default: s_rx_pack_size = 6'd8  ; //8-bit header + no data
+   case ( s_header_shreg [6:5] )
+      // 2'b00  : s_rx_pack_size = 6'd8  ; //8-bit header + no data
+      2'b01  : s_rx_data_size = 'd1-1 ; //8-bit header + 8-bit data 
+      2'b10  : s_rx_data_size = 'd2-1 ; //8-bit header + 16-bit data
+      2'b11  : s_rx_data_size = 'd4-1 ; //8-bit header + 32-bit data
+      default: s_rx_data_size = 'd0   ; //8-bit header + no data
    endcase
 end
 
@@ -325,7 +411,7 @@ end
 assign data_cntr_n    = (s_new_data) ? (s_rx_header) ? 2'd0 : data_cntr_r + 1'b1 : data_cntr_r; 
 assign timeout_cntr_n = (s_new_bit)  ? '0                   : (s_rx_idle) ? '0   : timeout_cntr_r + 1'b1; 
 
-assign s_data_last   = s_new_data & (data_cntr_r == ((s_rx_pack_size-8)/8 - 1) ) ; // Last Data Received
+assign s_data_last   = s_new_data & (data_cntr_r == s_rx_data_size) ; // Last Data Received
 assign s_no_data     = (s_header[6:5] == 2'b00) ; // cmd with no data
 assign s_broadcast   = (s_header[3:0] == 4'd0); //broadcast
 assign s_local_id    = (s_header[3:0] == i_id) ;
@@ -336,7 +422,7 @@ assign s_timeout     = &timeout_cntr_r ; // New Data was not received in time
 ///////////////////////////////////////////////////////////////////////////////
 assign o_dbg_state  = {2'b00,state_r};
 assign o_req        = s_rx_req;
-assign o_cmd        = s_header[7:4];
+assign o_cmd        = s_header_shreg[7:4];
 assign o_data       = s_data_shreg;
    
 endmodule

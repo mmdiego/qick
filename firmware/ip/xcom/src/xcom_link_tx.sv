@@ -57,15 +57,18 @@ module xcom_link_tx (
     input  logic [32-1:0] i_data     ,
     output logic          o_ready    ,
     // Xwire COM
-    output logic          o_data     ,
-    output logic          o_clk      
+    output logic [1:0]    o_data     ,
+    output logic [1:0]    o_clk      
 );
 
     logic s_last;
     //Out Shift Register For Par 2 Ser. (Data encoded on tx_dt)
-    logic [40-1:0] tx_data_r, tx_data_n ; 
-    // Data and Clock
-    logic tx_clk_r, tx_clk_n; 
+    logic [40-1:0] tx_data_r, tx_data_n;
+    logic tx_data_out_r;
+    // Clock
+    logic tx_clk_r, tx_clk_n;
+    logic  tx_clk_out_r;
+
     //Number of bits transmited  (Total Defined in s_tx_pkt_size)
     logic  [ 6-1:0] tx_bit_cnt_r, tx_bit_cnt_n;
     logic  [ 6-1:0] tx_pkt_size_r, tx_pkt_size_n;
@@ -185,7 +188,7 @@ module xcom_link_tx (
     always_ff @ (posedge i_clk) begin
         if (!i_rstn) begin
             tx_clk_r      <= 1'b0;
-            tx_data_r     <= '0; 
+            tx_data_r     <= '0;
             tx_bit_cnt_r  <= '0;
             tx_pkt_size_r <= '0;
         end else begin 
@@ -206,8 +209,68 @@ module xcom_link_tx (
     // OUTPUTS
     ///////////////////////////////////////////////////////////////////////////////
 
+    // // TX clock implementation with normal registers
+    // ///////////////////////////////////////////////////////////////////////////////
+
+    // always_ff @ (posedge i_clk) begin
+    //     if (!i_rstn) begin
+    //         tx_clk_out_r  <= 1'b0;
+    //         tx_data_out_r <= 1'b0;
+    //     end else begin 
+    //         tx_clk_out_r  <= tx_clk_r;
+    //         tx_data_out_r <= tx_data_r[40-1];
+    //     end
+    // end
+
+
+    // TX outputs implementation with ODDRE1
+    ///////////////////////////////////////////////////////////////////////////////
+
+    // ODDRE1: Dedicated Double Data Rate (DDR) Output Register
+    //         Virtex UltraScale+
+    // Xilinx HDL Language Template, version 2023.1
+    ODDRE1 #(
+        .IS_C_INVERTED(1'b0),           // Optional inversion for C
+        .IS_D1_INVERTED(1'b0),          // Unsupported, do not use
+        .IS_D2_INVERTED(1'b0),          // Unsupported, do not use
+        .SIM_DEVICE("ULTRASCALE_PLUS"), // Set the device version for simulation functionality (ULTRASCALE,
+                                        // ULTRASCALE_PLUS, ULTRASCALE_PLUS_ES1, ULTRASCALE_PLUS_ES2)
+        .SRVAL(1'b0)                    // Initializes the ODDRE1 Flip-Flops to the specified value (1'b0, 1'b1)
+    )
+    ODDRE1_tx_data (
+        .Q          (tx_data_out_r),    // 1-bit output: Data output to IOB
+        .C          (i_clk),            // 1-bit input: High-speed clock input
+        .D1         (tx_data_r[40-1]),  // 1-bit input: Parallel data input 1
+        .D2         (tx_data_r[40-1]),  // 1-bit input: Parallel data input 2
+        .SR         (1'b0)              // 1-bit input: Active-High Async Reset
+    );
+
+    ODDRE1 #(
+        .IS_C_INVERTED(1'b0),           // Optional inversion for C
+        .IS_D1_INVERTED(1'b0),          // Unsupported, do not use
+        .IS_D2_INVERTED(1'b0),          // Unsupported, do not use
+        .SIM_DEVICE("ULTRASCALE_PLUS"), // Set the device version for simulation functionality (ULTRASCALE,
+                                        // ULTRASCALE_PLUS, ULTRASCALE_PLUS_ES1, ULTRASCALE_PLUS_ES2)
+        .SRVAL(1'b0)                    // Initializes the ODDRE1 Flip-Flops to the specified value (1'b0, 1'b1)
+    )
+    ODDRE1_tx_clk (
+        .Q          (tx_clk_out_r),     // 1-bit output: Data output to IOB
+        .C          (i_clk),            // 1-bit input: High-speed clock input
+        .D1         (tx_clk_r),         // 1-bit input: Parallel data input 1
+        .D2         (tx_clk_r),         // 1-bit input: Parallel data input 2
+        .SR         (1'b0)              // 1-bit input: Active-High Async Reset
+    );
+
+    // End of ODDRE1_inst instantiation
+
     assign o_ready = s_ready;
-    assign o_data  = tx_data_r[40-1] ;
-    assign o_clk   = tx_clk_r;
+
+    // Outputs for XCOM to IOB registers
+    assign o_data[0]  = tx_data_out_r;
+    assign o_clk[0]   = tx_clk_out_r;
+
+    // Outputs for loopback testing
+    assign o_data[1]  = tx_data_r[40-1];
+    assign o_clk[1]   = tx_clk_r;
 
 endmodule

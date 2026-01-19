@@ -67,8 +67,8 @@ module tx_cmd(
    input  logic [32-1:0] i_data     ,
    output logic          o_ready    ,
    // XCOM CNX
-   output logic          o_data     ,
-   output logic          o_clk      ,
+   output logic [1:0]    o_data     ,
+   output logic [1:0]    o_clk      ,
    // XCOM TX DEBUG
    output logic  [2-1:0] o_dbg_state   
    );

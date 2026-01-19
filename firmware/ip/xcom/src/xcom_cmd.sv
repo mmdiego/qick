@@ -31,7 +31,7 @@
 // - o_req_net    signal requesting a NETWORK command.
 // - o_op         opcode transmitted
 // - o_data       data transmittted 
-// - o_data_cntr  data counter for debug 
+// - o_cmd_cntr   command counter for debug 
 //
 // Change history: 09/20/24 - v1 Started by @mdifederico
 //                 05/06/25 - Refactored by @lharnaldi
@@ -59,7 +59,7 @@ module xcom_cmd(
   input  logic                  i_ack_net        ,
   output logic [ 8-1:0]         o_op             ,
   output logic [32-1:0]         o_data           ,
-  output logic [ 4-1:0]         o_data_cntr    
+  output logic [ 4-1:0]         o_cmd_cntr    
 );
 
   logic          s_ack; 
@@ -89,7 +89,7 @@ module xcom_cmd(
     .o_req_net  ( o_req_net   ),
     .o_op       ( o_op        ),
     .o_data     ( o_data      ),
-    .o_data_cntr( o_data_cntr )
+    .o_cmd_cntr ( o_cmd_cntr  )
   );                        
 
 endmodule

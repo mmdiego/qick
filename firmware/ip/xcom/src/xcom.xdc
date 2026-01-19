@@ -1,3 +1,82 @@
+# Create clocks for XCOM RX lanes
+create_clock -name xcom_rx_clk_0  -period 8.0 [get_ports i_xcom_clk_p[0]] -waveform {2.0 6.0}    ; # one interface must be always present
+create_clock -name xcom_rx_clk_1  -period 8.0 [get_ports i_xcom_clk_p[1]] -waveform {2.0 6.0} -quiet 
+create_clock -name xcom_rx_clk_2  -period 8.0 [get_ports i_xcom_clk_p[2]] -waveform {2.0 6.0} -quiet 
+create_clock -name xcom_rx_clk_3  -period 8.0 [get_ports i_xcom_clk_p[3]] -waveform {2.0 6.0} -quiet 
+create_clock -name xcom_rx_clk_4  -period 8.0 [get_ports i_xcom_clk_p[4]] -waveform {2.0 6.0} -quiet 
+create_clock -name xcom_rx_clk_5  -period 8.0 [get_ports i_xcom_clk_p[5]] -waveform {2.0 6.0} -quiet 
+create_clock -name xcom_rx_clk_6  -period 8.0 [get_ports i_xcom_clk_p[6]] -waveform {2.0 6.0} -quiet 
+create_clock -name xcom_rx_clk_7  -period 8.0 [get_ports i_xcom_clk_p[7]] -waveform {2.0 6.0} -quiet 
+create_clock -name xcom_rx_clk_8  -period 8.0 [get_ports i_xcom_clk_p[8]] -waveform {2.0 6.0} -quiet 
+create_clock -name xcom_rx_clk_9  -period 8.0 [get_ports i_xcom_clk_p[9]] -waveform {2.0 6.0} -quiet 
+create_clock -name xcom_rx_clk_10 -period 8.0 [get_ports i_xcom_clk_p[10]]-waveform {2.0 6.0} -quiet 
+create_clock -name xcom_rx_clk_11 -period 8.0 [get_ports i_xcom_clk_p[11]]-waveform {2.0 6.0} -quiet 
+create_clock -name xcom_rx_clk_12 -period 8.0 [get_ports i_xcom_clk_p[12]]-waveform {2.0 6.0} -quiet 
+create_clock -name xcom_rx_clk_13 -period 8.0 [get_ports i_xcom_clk_p[13]]-waveform {2.0 6.0} -quiet 
+create_clock -name xcom_rx_clk_14 -period 8.0 [get_ports i_xcom_clk_p[14]]-waveform {2.0 6.0} -quiet 
+create_clock -name xcom_rx_clk_15 -period 8.0 [get_ports i_xcom_clk_p[15]]-waveform {2.0 6.0} -quiet 
+
+# Virtual clock that drives the data of the External Source Device for XCOM RX lanes
+create_clock -name xcom_clk_virt -period 8.0 
+
+
+# Create generated clock for XCOM TX lane
+
+# # Create generated clock for XCOM TX lane with normal register implementation
+# create_generated_clock \
+#     -name xcom_tx_clk_out \
+#     -source [get_ports i_time_clk] \
+#     -divide_by 4 \
+#     [get_pins -filter {REF_PIN_NAME =~ Q} -of_objects [get_cells -hier -filter {name =~ *u_xcom_txrx/u_tx_cmd/u_xcom_link_tx/tx_clk_out_r_reg}]]
+
+# create_generated_clock \
+#     -name xcom_tx_clk_data \
+#     -source [get_ports i_time_clk] \
+#     -divide_by 4 \
+#     [get_pins -filter {REF_PIN_NAME =~ Q} -of_objects [get_cells -hier -filter {name =~ *u_xcom_txrx/u_tx_cmd/u_xcom_link_tx/tx_data_clk_r_reg}]]
+
+
+create_generated_clock \
+    -name xcom_tx_clk_out \
+    -source [get_ports i_time_clk] \
+    -divide_by 4 \
+    [get_ports o_xcom_clk_p]
+
+
+
+# # Create generated clock for XCOM TX data clock
+# create_generated_clock \
+#     -name xcom_tx_clk_data \
+#     -source [get_ports i_time_clk] \
+#     -divide_by 4 \
+#     [get_pins -filter {REF_PIN_NAME =~ Q} -of_objects [get_cells -hier -filter {name =~ *u_xcom_txrx/u_tx_cmd/u_xcom_link_tx/tx_data_clk_d_reg[1]}]]
+
+# # Create generated clock for XCOM TX shifted clock
+# create_generated_clock \
+#     -name xcom_tx_clk_90 \
+#     -source [get_ports i_time_clk] \
+#     -edges {3 7 11} \
+#     [get_pins -filter {REF_PIN_NAME =~ Q} -of_objects [get_cells -hier -filter {name =~ *u_xcom_txrx/u_tx_cmd/u_xcom_link_tx/tx_clk_d_reg[1]}]]
+#     # -divide_by 4 \
+
+# # Create generated clock for XCOM TX output clock
+# create_generated_clock \
+#     -name xcom_tx_clk_out \
+#     -source [get_pins -filter {REF_PIN_NAME =~ Q} -of_objects [get_cells -hier -filter {name =~ *u_xcom_txrx/u_tx_cmd/u_xcom_link_tx/tx_clk_d_reg[1]}]] \
+#     -divide_by 1 \
+#     [get_ports o_xcom_clk_p]
+
+
+
+# Create generated clock for XCOM Loopback
+create_generated_clock \
+    -name xcom_loop_clk \
+    -source [get_ports i_time_clk] \
+    -divide_by 4 \
+    [get_pins -filter {REF_PIN_NAME =~ Q} -of_objects [get_cells -hier -filter {name =~ *u_xcom_txrx/u_tx_cmd/u_xcom_link_tx/tx_clk_r_reg}]] \
+    -quiet
+
+
 # False Path of Synchronizers
 #set_false_path -to [get_pins -filter {REF_PIN_NAME =~ D} -of_objects [get_cells -hier -filter {name=~*data_int_reg_reg[0]*}]]
 set_false_path -to [get_pins -filter {REF_PIN_NAME =~ D} -of_objects  [get_cells -hier -filter {name=~*_cdc_reg*}]]
@@ -14,6 +93,10 @@ set_false_path \
     -from [get_clocks -of_objects [get_nets i_core_clk]] \
     -to [get_pins -filter {REF_PIN_NAME =~ D} -of_objects [get_cells -hier -filter {name =~ *u_xcom_axil_slv/rdata_reg_reg*}]] \
 
+set_false_path \
+    -from [get_pins -filter {REF_PIN_NAME =~ C} -of_objects [get_cells -hier -filter {name =~ *u_xcom_link_rx/s_pha_reg}]] \
+    -to [get_clocks -of_objects [get_nets i_xcom_clk_p*]]
+
 # AXI Interface from/to PS clock
 set_false_path \
     -from [get_clocks -of_objects [get_nets i_time_clk]] \
@@ -24,43 +107,33 @@ set_false_path \
     -to [get_clocks -of_objects [get_nets i_time_clk]]
 
 
+## RX input delays
+## Rising-edge lunch from Source Device (+/- 100ps skew)
+set_input_delay -clock xcom_clk_virt -max  0.10 [get_ports i_xcom_data_p*]
+set_input_delay -clock xcom_clk_virt -min -0.10 [get_ports i_xcom_data_p*]
+## Falling-edge lunch from Source Device (+/- 100ps skew)
+set_input_delay -clock xcom_clk_virt -max  0.10 -clock_fall [get_ports i_xcom_data_p*] -add_delay
+set_input_delay -clock xcom_clk_virt -min -0.10 -clock_fall [get_ports i_xcom_data_p*] -add_delay
 
-create_clock -quiet -period 6.0 -name xcom_rx_clk_0 [get_ports i_xcom_clk_p[0]]
-create_clock -quiet -period 6.0 -name xcom_rx_clk_1 [get_ports i_xcom_clk_p[1]]
-create_clock -quiet -period 6.0 -name xcom_rx_clk_2 [get_ports i_xcom_clk_p[2]]
-create_clock -quiet -period 6.0 -name xcom_rx_clk_3 [get_ports i_xcom_clk_p[3]]
-create_clock -quiet -period 6.0 -name xcom_rx_clk_4 [get_ports i_xcom_clk_p[4]]
-
-# # To be added later
-# create_clock -quiet -period 6.0 -name xcom_rx_clk_5 [get_ports i_xcom_clk_p[5]]
-# create_clock -quiet -period 6.0 -name xcom_rx_clk_6 [get_ports i_xcom_clk_p[6]]
-# create_clock -quiet -period 6.0 -name xcom_rx_clk_7 [get_ports i_xcom_clk_p[7]]
-# create_clock -quiet -period 6.0 -name xcom_rx_clk_8 [get_ports i_xcom_clk_p[8]]
-# create_clock -quiet -period 6.0 -name xcom_rx_clk_9 [get_ports i_xcom_clk_p[9]]
-# create_clock -quiet -period 6.0 -name xcom_rx_clk_10 [get_ports i_xcom_clk_p[10]]
-# create_clock -quiet -period 6.0 -name xcom_rx_clk_11 [get_ports i_xcom_clk_p[11]]
-# create_clock -quiet -period 6.0 -name xcom_rx_clk_12 [get_ports i_xcom_clk_p[12]]
-# create_clock -quiet -period 6.0 -name xcom_rx_clk_13 [get_ports i_xcom_clk_p[13]]
-# create_clock -quiet -period 6.0 -name xcom_rx_clk_14 [get_ports i_xcom_clk_p[14]]
-# create_clock -quiet -period 6.0 -name xcom_rx_clk_15 [get_ports i_xcom_clk_p[15]]
-
-create_clock -period 6.0 -name xcom_clk_virt 
-
-set_input_delay -clock xcom_clk_virt -max  0.25 [get_ports i_xcom_data*]
-set_input_delay -clock xcom_clk_virt -min -0.10 [get_ports i_xcom_data*]
+# ## RX Center-Aligned DDR transfers Timing Exceptions
+# set_false_path -setup -fall_from [get_clocks xcom_clk_virt] -rise_to [get_clocks xcom_rx_clk_*]
+# set_false_path -setup -rise_from [get_clocks xcom_clk_virt] -fall_to [get_clocks xcom_rx_clk_*]
+# set_false_path -hold  -rise_from [get_clocks xcom_clk_virt] -rise_to [get_clocks xcom_rx_clk_*]
+# set_false_path -hold  -fall_from [get_clocks xcom_clk_virt] -fall_to [get_clocks xcom_rx_clk_*]
 
 
+## TX output delays
+# ## Rising-edge capture at receiver
+# set_output_delay -clock [get_clocks xcom_tx_clk_out] -max  0.1 [get_ports o_xcom_data_p*]              ;# tSU + skew
+# set_output_delay -clock [get_clocks xcom_tx_clk_out] -min -0.1  [get_ports o_xcom_data_p*]              ;# -tH + skew
+# ## Falling-edge capture at receiver
+# set_output_delay -clock [get_clocks xcom_tx_clk_out] -max  0.1 -clock_fall [get_ports o_xcom_data_p*] -add_delay
+# set_output_delay -clock [get_clocks xcom_tx_clk_out] -min -0.1  -clock_fall [get_ports o_xcom_data_p*] -add_delay
+set_max_delay -datapath_only -from [all_registers] -to [get_ports o_xcom_data_p*] 2.0
+set_min_delay  -from [all_registers] -to [get_ports o_xcom_data_p*] 1.5
+set_max_delay -datapath_only -from [all_registers] -to [get_ports o_xcom_clk_p*]  2.0
+set_min_delay  -from [all_registers] -to [get_ports o_xcom_clk_p*]  1.5
 
-create_generated_clock -name xcom_tx_clk -source [get_ports i_time_clk] -divide_by 4 [get_pins -filter {REF_PIN_NAME =~ Q} -of_objects [get_cells -hier -filter {name =~ *u_xcom_txrx/u_tx_cmd/u_xcom_link_tx/tx_clk_r_reg*}]]
- 
-
-set_output_delay -clock [get_clocks xcom_tx_clk] -max  0.0 [get_ports o_xcom_data*]
-set_output_delay -clock [get_clocks xcom_tx_clk] -min -0.0 [get_ports o_xcom_data*]
-
-# set_output_delay -clock [get_clocks xcom_tx_clk] -max  1.0 [get_ports o_xcom_data*]
-# set_output_delay -clock [get_clocks xcom_tx_clk] -min -0.2 [get_ports o_xcom_data*]
-
-# set_multicycle_path -start -to [get_ports o_xcom_data*] 2
 
 # RX DDR bit counter regs resets - false paths
 set_false_path \
