@@ -38,10 +38,10 @@ create_clock -name xcom_clk_virt -period 8.0
 
 create_generated_clock \
     -name xcom_tx_clk_out \
-    -source [get_ports i_time_clk] \
-    -divide_by 4 \
+    -source [get_pins -filter {REF_PIN_NAME =~ CLK} -of_objects [get_cells -hier -filter {name =~ *u_xcom_link_tx/ODDRE1_tx_clk}]] \
+    -edges {3 7 11} \
     [get_ports o_xcom_clk_p]
-
+    # -divide_by 4 \
 
 
 # # Create generated clock for XCOM TX data clock
@@ -123,16 +123,16 @@ set_input_delay -clock xcom_clk_virt -min -0.10 -clock_fall [get_ports i_xcom_da
 
 
 ## TX output delays
-# ## Rising-edge capture at receiver
-# set_output_delay -clock [get_clocks xcom_tx_clk_out] -max  0.1 [get_ports o_xcom_data_p*]              ;# tSU + skew
-# set_output_delay -clock [get_clocks xcom_tx_clk_out] -min -0.1  [get_ports o_xcom_data_p*]              ;# -tH + skew
-# ## Falling-edge capture at receiver
-# set_output_delay -clock [get_clocks xcom_tx_clk_out] -max  0.1 -clock_fall [get_ports o_xcom_data_p*] -add_delay
-# set_output_delay -clock [get_clocks xcom_tx_clk_out] -min -0.1  -clock_fall [get_ports o_xcom_data_p*] -add_delay
-set_max_delay -datapath_only -from [all_registers] -to [get_ports o_xcom_data_p*] 2.0
-set_min_delay  -from [all_registers] -to [get_ports o_xcom_data_p*] 1.5
-set_max_delay -datapath_only -from [all_registers] -to [get_ports o_xcom_clk_p*]  2.0
-set_min_delay  -from [all_registers] -to [get_ports o_xcom_clk_p*]  1.5
+## Rising-edge capture at receiver
+set_output_delay -clock [get_clocks xcom_tx_clk_out] -max  0.5 [get_ports o_xcom_data_p*]
+set_output_delay -clock [get_clocks xcom_tx_clk_out] -min -0.5 [get_ports o_xcom_data_p*]
+## Falling-edge capture at receiver
+set_output_delay -clock [get_clocks xcom_tx_clk_out] -max  0.5 -clock_fall [get_ports o_xcom_data_p*] -add_delay
+set_output_delay -clock [get_clocks xcom_tx_clk_out] -min -0.5 -clock_fall [get_ports o_xcom_data_p*] -add_delay
+
+set_multicycle_path -to [get_ports o_xcom_data_p] -start 1
+set_multicycle_path -to [get_ports o_xcom_data_p] -start 1 -hold
+set_false_path -fall_from [get_clocks i_time_clk] -to [get_clocks xcom_tx_clk_out]
 
 
 # RX DDR bit counter regs resets - false paths

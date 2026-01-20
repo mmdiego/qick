@@ -226,6 +226,17 @@ module xcom_link_tx (
     // TX outputs implementation with ODDRE1
     ///////////////////////////////////////////////////////////////////////////////
 
+    logic tx_clk_d_r, tx_data_d_r;
+    always @ (posedge i_clk) begin
+        if (!i_rstn) begin
+            tx_clk_d_r  <= 1'b0;
+            tx_data_d_r <= 1'b0;
+        end else begin 
+            tx_clk_d_r  <= tx_clk_r;
+            tx_data_d_r <= tx_data_r[40-1];
+        end
+    end
+
     // ODDRE1: Dedicated Double Data Rate (DDR) Output Register
     //         Virtex UltraScale+
     // Xilinx HDL Language Template, version 2023.1
@@ -240,8 +251,8 @@ module xcom_link_tx (
     ODDRE1_tx_data (
         .Q          (tx_data_out_r),    // 1-bit output: Data output to IOB
         .C          (i_clk),            // 1-bit input: High-speed clock input
-        .D1         (tx_data_r[40-1]),  // 1-bit input: Parallel data input 1
-        .D2         (tx_data_r[40-1]),  // 1-bit input: Parallel data input 2
+        .D1         (tx_data_d_r),      // 1-bit input: Parallel data input 1
+        .D2         (tx_data_d_r),      // 1-bit input: Parallel data input 2
         .SR         (1'b0)              // 1-bit input: Active-High Async Reset
     );
 
@@ -256,8 +267,8 @@ module xcom_link_tx (
     ODDRE1_tx_clk (
         .Q          (tx_clk_out_r),     // 1-bit output: Data output to IOB
         .C          (i_clk),            // 1-bit input: High-speed clock input
-        .D1         (tx_clk_r),         // 1-bit input: Parallel data input 1
-        .D2         (tx_clk_r),         // 1-bit input: Parallel data input 2
+        .D1         (tx_clk_d_r),       // 1-bit input: Parallel data input 1
+        .D2         (tx_clk_d_r),       // 1-bit input: Parallel data input 2
         .SR         (1'b0)              // 1-bit input: Active-High Async Reset
     );
 
