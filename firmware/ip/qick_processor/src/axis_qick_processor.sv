@@ -17,14 +17,14 @@ qick_processor top level file
 module axis_qick_processor # (
    parameter DUAL_CORE      =  0 , // 0-Single Core  1-Dual core
    parameter GEN_SYNC       =  0 , // Generate Sync Signal
-   parameter IO_CTRL        =  0 , // 0-No IO control 1-Add proc_strat and Proc Stop IN
-   parameter TIME_CTRL      =  0 , // 0-No NET control 1-Add proc_strat and Proc Stop IN
-   parameter CORE_CTRL      =  0 , // 0-No NET control 1-Add proc_strat and Proc Stop IN
+   parameter IO_CTRL        =  0 , // 0-No IO control 1-Add proc_start_i and proc_stop_i INPUTS
+   parameter TIME_CTRL      =  0 , // 0-No NET control 1-Add time_rst_i, time_init_i, time_updt_i and time_dt_i INPUTS
+   parameter CORE_CTRL      =  0 , // 0-No NET control 1-Add core_start_i and core_stop_i INPUTS
    parameter OUT_TIME       =  0 , // 
    parameter DEBUG          =  1 , // 0-No Debug 1-AXI control 2-Only Registers 3-Registers and OUT Signals
-   parameter QNET           =  0 , // QNET Interfrace 0-No 1-Yes
-   parameter QCOM           =  0 , // QCOM Interfrace 0-No 1-Yes
-   parameter CUSTOM_PERIPH  =  0 , // PERIPH Interfrace 0-No 1-ONE 2-Two
+   parameter QNET           =  0 , // QNET Interface 0-No 1-Yes
+   parameter QCOM           =  0 , // QCOM Interface 0-No 1-Yes
+   parameter CUSTOM_PERIPH  =  0 , // PERIPH Interface 0-No 1-ONE 2-Two
    parameter LFSR           =  1 , // LFSR 0-No 1-Yes 
    parameter DIVIDER        =  0 , // DIVIDER 0-No 1-Yes 
    parameter ARITH          =  0 , // Arith 0-No 1-Yes 
@@ -52,13 +52,13 @@ module axis_qick_processor # (
    input  wire                ps_resetn      ,
 // External Control
    input  wire                ext_flag_i     ,
-   input  wire                proc_start_i   ,
-   input  wire                proc_stop_i    ,
-   input  wire                core_start_i   ,
-   input  wire                core_stop_i    ,
-   input  wire                time_rst_i     ,
-   input  wire                time_init_i    ,
-   input  wire                time_updt_i    ,
+   input  wire                proc_start_i   ,  // t_clk domain
+   input  wire                proc_stop_i    ,  // t_clk domain
+   input  wire                core_start_i   ,  // c_clk domain
+   input  wire                core_stop_i    ,  // c_clk domain
+   input  wire                time_rst_i     ,  // t_clk domain
+   input  wire                time_init_i    ,  // t_clk domain
+   input  wire                time_updt_i    ,  // t_clk domain
    input  wire  [31:0]        time_dt_i      ,
    output wire  [47:0]        t_time_abs_o   ,
    output wire                pulse_sync_o   ,
@@ -379,12 +379,12 @@ always_ff @(posedge c_clk_i)
       proc_stop_r     <= 0 ;
       proc_stop_r2    <= 0 ;
    end else begin 
-      proc_start_cdc  <= proc_start_i    ;
-      proc_start_r    <= proc_start_cdc  ;
-      proc_start_r2   <= proc_start_r  ;
-      proc_stop_cdc   <= proc_stop_i     ;
-      proc_stop_r     <= proc_stop_cdc     ;
-      proc_stop_r2    <= proc_stop_r     ;
+      proc_start_cdc  <= proc_start_i;
+      proc_start_r    <= proc_start_cdc;
+      proc_start_r2   <= proc_start_r;
+      proc_stop_cdc   <= proc_stop_i;
+      proc_stop_r     <= proc_stop_cdc;
+      proc_stop_r2    <= proc_stop_r;
    end
 
 // The C_TPROC_CTRL is only ONE clock.
@@ -423,7 +423,7 @@ qick_processor# (
    .core_start_i        ( core_start_i          ) ,
    .core_stop_i         ( core_stop_i           ) ,
    .time_rst_i          ( time_rst_i            ) ,
-   .time_init_i         ( time_init_i           ) ,
+   // .time_init_i         ( time_init_i           ) ,   // removed in 331b7a3
    .time_updt_i         ( time_updt_i           ) ,
    .time_updt_dt_i      ( time_dt_i             ) ,
    .time_abs_o          ( t_time_abs_o          ) ,

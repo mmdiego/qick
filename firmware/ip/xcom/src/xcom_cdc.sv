@@ -62,7 +62,10 @@ module xcom_cdc
    input  logic           i_core_rstn        ,
    input  logic           i_time_clk         ,
    input  logic           i_time_rstn        ,
-// QICK PERIPHERAL INTERFACE (i_core_clk)
+   // ASYNC SIGNALS
+   input  logic           i_sync             ,
+   output logic           s_sync             ,
+   // QICK PERIPHERAL INTERFACE (i_core_clk)
    input  logic           i_core_en          , 
    input  logic  [5-1:0]  i_core_op          , 
    input  logic [32-1:0]  i_core_data1       , 
@@ -76,15 +79,19 @@ module xcom_cdc
    input  logic           i_core_flag        , 
    input  logic [32-1:0]  i_core_data1_core  , 
    input  logic [32-1:0]  i_core_data2_core  , 
+   input  logic           i_core_start       , 
+   input  logic           i_core_stop        ,
    output logic           o_core_ready_sync  , 
    output logic           o_core_valid_sync  , 
    output logic           o_core_flag_sync   , 
    output logic [32-1:0]  o_core_data1_core  , 
    output logic [32-1:0]  o_core_data2_core  , 
-// XCOM 
+   output logic           o_core_start_sync  , 
+   output logic           o_core_stop_sync   ,
+   // XCOM 
    input  logic [ 4-1:0]  i_xcom_id          ,
    output logic [ 4-1:0]  o_xcom_id_sync     ,
-// AXI-Lite DATA Slave I/F (i_ps_clk)
+   // AXI-Lite DATA Slave I/F (i_ps_clk)
    input  logic [32-1:0]  i_xcom_ctrl        ,
    input  logic [32-1:0]  i_xcom_cfg         ,
    input  logic [32-1:0]  i_axi_data1        ,
@@ -109,6 +116,20 @@ module xcom_cdc
 ); 
 
 //SYNC STAGES
+///////////////////////////////////////////////////////////////////////////////
+
+// ASYNC domain signals
+
+synchronizer #(
+   .NB(1)
+) u_sync_xcom_sync (
+   .i_clk      ( i_time_clk       ),
+   .i_rstn     ( i_time_rstn      ),
+   .i_async    ( i_sync           ),
+   .o_sync     ( s_sync           )
+);
+
+
 ///////////////////////////////////////////////////////////////////////////////
 //Time domain -> PS domain
 
@@ -386,6 +407,24 @@ synchronizer #(
   .i_rstn     ( i_core_rstn      ),
   .i_async    ( core_en_ack      ),
   .o_sync     ( core_en_ack_sync )
+);
+
+synchronizer #(
+   .NB(1)
+) sync_core_start (
+  .i_clk      ( i_core_clk        ),
+  .i_rstn     ( i_core_rstn       ),
+  .i_async    ( i_core_start      ),
+  .o_sync     ( o_core_start_sync )
+);
+
+synchronizer #(
+   .NB(1)
+) sync_core_stop (
+  .i_clk      ( i_core_clk        ),
+  .i_rstn     ( i_core_rstn       ),
+  .i_async    ( i_core_stop       ),
+  .o_sync     ( o_core_stop_sync  )
 );
 
 //------------------------------------------------------

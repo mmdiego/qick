@@ -88,7 +88,7 @@ module xcom import qick_pkg::*;
     output logic  [32-1:0]   o_core_data2       , 
     output logic             o_core_valid       , 
     output logic             o_core_flag        , 
-    // Qick CONTROL
+    // Qick CONTROL (time_clk domain outputs)
     input  logic             i_sync             ,
     output logic             o_proc_start       ,
     output logic             o_proc_stop        ,
@@ -135,7 +135,8 @@ module xcom import qick_pkg::*;
   );
 
   // Local Parameters
-  localparam NCH_INT = NCH + LOOPBACK;
+  localparam LOOPBACK_EN = LOOPBACK & DEBUG;  // Loopback only if DEBUG is enabled
+  localparam NCH_INT = NCH + LOOPBACK_EN;
 
   // Signal Declaration 
   ///////////////////////////////////////////////////////////////////////////////
@@ -181,6 +182,8 @@ module xcom import qick_pkg::*;
   logic [32-1:0] s_core_data2_sync;
   logic [32-1:0] s_core_data1_ps;
   logic [32-1:0] s_core_data2_ps;
+  logic          s_core_start;
+  logic          s_core_stop;
 
   logic [32-1:0] xcom_mem_data [16];
   logic [32-1:0] axi_mem_data;
@@ -256,6 +259,9 @@ module xcom import qick_pkg::*;
     .i_core_rstn        ( i_core_rstn      ), 
     .i_time_clk         ( i_time_clk       ), 
     .i_time_rstn        ( i_time_rstn      ), 
+    // async domain
+    .i_sync             ( i_sync           ),
+    .s_sync             ( s_sync           ),
     //core domain - time domain
     .i_core_en          ( i_core_en        ), 
     .i_core_op          ( i_core_op        ),
@@ -271,11 +277,15 @@ module xcom import qick_pkg::*;
     .i_core_flag        ( s_core_flag      ), 
     .i_core_data1_core  ( s_core_data1     ), 
     .i_core_data2_core  ( s_core_data2     ), 
+    .i_core_start       ( s_core_start     ),
+    .i_core_stop        ( s_core_stop      ),
     .o_core_ready_sync  ( s_core_ready_sync),
     .o_core_valid_sync  ( o_core_valid     ), 
     .o_core_flag_sync   ( o_core_flag      ), 
     .o_core_data1_core  ( o_core_data1     ), 
     .o_core_data2_core  ( o_core_data2     ), 
+    .o_core_start_sync  ( o_core_start     ),
+    .o_core_stop_sync   ( o_core_stop      ),
     //PS time domain - time domain
     .i_xcom_ctrl        ( s_xcom_ctrl      ), 
     .i_xcom_cfg         ( s_xcom_cfg       ),
@@ -341,12 +351,12 @@ module xcom import qick_pkg::*;
 
   xcom_txrx #(
     .NCH      ( NCH_INT ),
-    .LOOPBACK ( LOOPBACK ),
-    .SYNC     ( 1'b1 )
+    .LOOPBACK ( LOOPBACK_EN ),
+    .SYNC     ( SYNC )
   ) u_xcom_txrx(
     .i_clk             ( i_time_clk         ),
     .i_rstn            ( i_time_rstn        ),
-    .i_sync            ( i_sync             ),
+    .i_sync            ( s_sync             ),
     .i_req_loc         ( s_req_loc          ),
     .i_req_net         ( s_req_net          ),
     .i_header          ( s_op               ),
@@ -364,8 +374,8 @@ module xcom import qick_pkg::*;
     .o_time_rst        ( o_time_rst         ),
     .o_time_update     ( o_time_update      ),
     .o_time_update_data( o_time_update_data ),
-    .o_core_start      ( o_core_start       ),
-    .o_core_stop       ( o_core_stop        ),
+    .o_core_start      ( s_core_start       ),
+    .o_core_stop       ( s_core_stop        ),
     .i_cfg_tick        ( s_cfg_tick         ),
     .i_cfg_clk_pol     ( s_cfg_clk_pol      ),
     .i_cfg_clk_pha     ( s_cfg_clk_pha      ),
@@ -384,7 +394,7 @@ module xcom import qick_pkg::*;
   );
 
   assign s_cfg_tick     = s_xcom_cfg_sync[4-1:0];
-  assign s_cfg_clk_pol  = (LOOPBACK == 0) ? s_xcom_cfg_sync[8] : (s_xcom_cfg_sync[8] & ~s_cfg_loopback);
+  assign s_cfg_clk_pol  = (LOOPBACK_EN == 0) ? s_xcom_cfg_sync[8] : (s_xcom_cfg_sync[8] & ~s_cfg_loopback);
   assign s_cfg_clk_pha  = s_xcom_cfg_sync[9];
   assign s_cfg_auto_pha = s_xcom_cfg_sync[10];
   assign s_cfg_loopback = s_xcom_cfg_sync[31];
@@ -423,11 +433,11 @@ module xcom import qick_pkg::*;
 
 
   generate
-    if (LOOPBACK == 0) begin : NO_LOOPBACK_GEN
+    if (LOOPBACK_EN == 0) begin : NO_LOOPBACK_GEN
       assign si_xcom_data_int = si_xcom_data;
       assign si_xcom_clk_int  = si_xcom_clk;
     end
-    else if (LOOPBACK == 1) begin : LOOPBACK_GEN
+    else if (LOOPBACK_EN == 1) begin : LOOPBACK_GEN
       assign si_xcom_data_int[NCH-1:0]    = si_xcom_data;
       assign si_xcom_clk_int[NCH-1:0]     = si_xcom_clk;
       assign si_xcom_data_int[NCH_INT-1]  = so_xcom_data[1];

@@ -19,12 +19,12 @@ module qproc_ctrl # (
    input   wire        c_clk_i         ,
    input   wire        c_rst_ni        ,
 // External Control  
-   input  wire         proc_start_i    ,
-   input  wire         proc_stop_i     ,
-   input  wire         core_start_i    ,
-   input  wire         core_stop_i     ,
-   input  wire         time_rst_i      ,
-   input  wire         time_updt_i     ,
+   input  wire         t_proc_start_i  ,
+   input  wire         t_proc_stop_i   ,
+   input  wire         c_core_start_i  ,
+   input  wire         c_core_stop_i   ,
+   input  wire         t_time_rst_i    ,
+   input  wire         t_time_updt_i   ,
    input  wire  [31:0] time_updt_dt_i  ,
 // Core Control  
    input  wire         int_time_en      , //int_time_pen
@@ -32,9 +32,10 @@ module qproc_ctrl # (
    input  wire  [31:0] int_time_dt     , //core_usr_operation
 // AXI  Control  
    input wire [15:0]   PS_TPROC_CTRL,
-   input wire [11:9]   PS_TPROC_CFG,
-   // input wire [15:0]   xreg_TPROC_CTRL ,
-   // input wire [15:0]   xreg_TPROC_CFG  ,
+   // input wire [11:9]   PS_TPROC_CFG,
+   input wire          cfg_dis_qnet,
+   input wire          cfg_en_io,
+   input wire          cfg_dis_fifo_pause,
    input wire [31:0]   xreg_TPROC_W_DT ,
 // QPROC_STATE  
    input wire          all_fifo_full_i ,
@@ -57,65 +58,83 @@ module qproc_ctrl # (
 
 //-------------------------------------------------------
 // Code moved from qproc_axi_reg due to issue #33
-(* ASYNC_REG = "TRUE" *) logic [15:0]   tproc_ctrl_cdc, tproc_ctrl_sync;
-logic [15:0]   tproc_ctrl_2r;
-logic [15:0]   xreg_TPROC_CTRL;
+(* ASYNC_REG = "TRUE" *) logic [15:0]   ctrl_cdc, ctrl_sync;
+logic [15:0]   ctrl_2r;
+logic [15:0]   xreg_c_TPROC_CTRL;
 
-(* ASYNC_REG = "TRUE" *) logic [11:9]   tproc_cfg_cdc, tproc_cfg_sync;
-logic [11:9]   xreg_TPROC_CFG;
+// (* ASYNC_REG = "TRUE" *) logic [11:9]   cfg_cdc, cfg_sync;
+// logic [11:9]   xreg_c_TPROC_CFG;
 
 // From PS_CLK to C_CLK
 always_ff @(posedge c_clk_i) begin
    if (!c_rst_ni) begin
-      tproc_ctrl_cdc  <= 0 ;
-      tproc_ctrl_sync <= 0 ;
-      tproc_ctrl_2r   <= 0 ;
-      tproc_cfg_cdc   <= 0 ;
+      ctrl_cdc  <= 0 ;
+      ctrl_sync <= 0 ;
+      ctrl_2r   <= 0 ;
+      // cfg_cdc   <= 0 ;
    end else begin 
-      tproc_ctrl_cdc  <= PS_TPROC_CTRL ;
-      tproc_ctrl_sync <= tproc_ctrl_cdc ;
-      tproc_ctrl_2r   <= tproc_ctrl_sync ;
-      tproc_cfg_cdc   <= PS_TPROC_CFG ;
-      tproc_cfg_sync  <= tproc_cfg_cdc ;
+      ctrl_cdc  <= PS_TPROC_CTRL ;
+      ctrl_sync <= ctrl_cdc ;
+      ctrl_2r   <= ctrl_sync ;
+      // cfg_cdc   <= PS_TPROC_CFG ;
+      // cfg_sync  <= cfg_cdc ;
    end
 end
 
 // The C_TPROC_CTRL is only ONE clock.
-assign xreg_TPROC_CTRL  = tproc_ctrl_sync & ~tproc_ctrl_2r ;
-assign xreg_TPROC_CFG   = tproc_cfg_sync;
+assign xreg_c_TPROC_CTRL  = ctrl_sync & ~ctrl_2r ;
+// assign xreg_c_TPROC_CFG   = cfg_sync;
 //-------------------------------------------------------
 
 
 // Control
 reg            t_core_rst_prev_net; // NET Request to RESET the Processor and go to previous state
-reg  [31:0]    time_updt_dt            ; // New incremental time value
+reg  [31:0]    time_updt_dt; // New incremental time value
 
 ///////////////////////////////////////////////////////////////////////////////
 // CONTROL Signals
 ///////////////////////////////////////////////////////////////////////////////
-// wire fifo_ok;
-// assign fifo_ok    = ~(some_fifo_full_i)  | xreg_TPROC_CFG[11] ;  // With 1 in TPROC_CFG[11] Continue
-// assign core_en    = core_en_s  & fifo_ok;
+
+// xreg_c_TPROC_CTRL[0]    : time_rst       -> reset time and core
+// xreg_c_TPROC_CTRL[1]    : time_update    -> update time, core doesnt change
+// xreg_c_TPROC_CTRL[2]    : start          -> reset core and time, start running
+// xreg_c_TPROC_CTRL[3]    : stop           -> stop program, stop core and time
+// xreg_c_TPROC_CTRL[4]    : core_start     -> reset core, start running (time doesnt change)
+// xreg_c_TPROC_CTRL[5]    : core_stop      -> stop core (time doesnt change)
+// xreg_c_TPROC_CTRL[6:12] : debug
+   // xreg_c_TPROC_CTRL[6]    : proc (time & core) rst_stop
+   // xreg_c_TPROC_CTRL[7]    : proc (time & core) rst_run
+   // xreg_c_TPROC_CTRL[8]    : proc (time & core) pause
+   // xreg_c_TPROC_CTRL[9]    : proc (time & core) freeze
+   // xreg_c_TPROC_CTRL[10]   : proc (time & core) step
+   // xreg_c_TPROC_CTRL[11]   : core step
+   // xreg_c_TPROC_CTRL[12]   : time step
+// xreg_c_TPROC_CTRL[13]   : set_flag
+// xreg_c_TPROC_CTRL[14]   : clr_flag
+
+// xreg_c_TPROC_CFG[9]     : disable qnet
+// xreg_c_TPROC_CFG[10]    : en_io
+// xreg_c_TPROC_CFG[11]    : disable_fifo_pause
 
 
 /// IO CTRL 
-assign proc_start_io  = proc_start_i & xreg_TPROC_CFG[10] ;
-assign proc_stop_io   = proc_stop_i  & xreg_TPROC_CFG[10] ;
+assign t_proc_start_io = t_proc_start_i & cfg_en_io ;
+assign t_proc_stop_io  = t_proc_stop_i  & cfg_en_io ;
 
 /// PYTHON
-assign time_stop_p     = xreg_TPROC_CTRL[3] | xreg_TPROC_CTRL[9] | proc_stop_io ; // STOP  | P_FREEZE
-assign time_run_p      = xreg_TPROC_CTRL[7] | xreg_TPROC_CTRL[8] ; // RUN   | P_PAUSE
-assign time_rst_stop_p = xreg_TPROC_CTRL[6] ; //T_RST | START | P_RST
-assign time_rst_run_p  = xreg_TPROC_CTRL[0] | xreg_TPROC_CTRL[2] | proc_start_io ; // START | T_RST 
-assign time_update_p   = xreg_TPROC_CTRL[1]  ;
-assign time_step_p     = xreg_TPROC_CTRL[10] | xreg_TPROC_CTRL[12] ;
+assign time_stop_p     = xreg_c_TPROC_CTRL[3] | xreg_c_TPROC_CTRL[9] ; // STOP  | P_FREEZE
+assign time_run_p      = xreg_c_TPROC_CTRL[7] | xreg_c_TPROC_CTRL[8] ; // RUN   | P_PAUSE
+assign time_rst_stop_p = xreg_c_TPROC_CTRL[6] ; // T_RST | START | P_RST
+assign time_rst_run_p  = xreg_c_TPROC_CTRL[0] | xreg_c_TPROC_CTRL[2] ; // START | T_RST 
+assign time_update_p   = xreg_c_TPROC_CTRL[1]  ;
+assign time_step_p     = xreg_c_TPROC_CTRL[10] | xreg_c_TPROC_CTRL[12] ;
 
-assign core_stop_p     = xreg_TPROC_CTRL[3] | xreg_TPROC_CTRL[5] | xreg_TPROC_CTRL[8] | proc_stop_io; // STOP | C_STOP | P_PAUSE
-assign core_run_p      = xreg_TPROC_CTRL[7] | xreg_TPROC_CTRL[9] ; // RUN | P_FREEZE
-assign core_rst_stop_p = xreg_TPROC_CTRL[6]  ; // P_RST
-assign core_rst_run_p  = xreg_TPROC_CTRL[2] | xreg_TPROC_CTRL[4] | proc_start_io ; // START | C_START
-assign core_rst_prev_p = xreg_TPROC_CTRL[0]  ; // T_RST
-assign core_step_p     = xreg_TPROC_CTRL[10] | xreg_TPROC_CTRL[11] ;
+assign core_stop_p     = xreg_c_TPROC_CTRL[3] | xreg_c_TPROC_CTRL[5] | xreg_c_TPROC_CTRL[8] ; // STOP | C_STOP | P_PAUSE
+assign core_run_p      = xreg_c_TPROC_CTRL[7] | xreg_c_TPROC_CTRL[9] ; // RUN | P_FREEZE
+assign core_rst_stop_p = xreg_c_TPROC_CTRL[6]  ; // P_RST
+assign core_rst_run_p  = xreg_c_TPROC_CTRL[2] | xreg_c_TPROC_CTRL[4] ; // START | C_START
+assign core_rst_prev_p = xreg_c_TPROC_CTRL[0]  ; // T_RST
+assign core_step_p     = xreg_c_TPROC_CTRL[10] | xreg_c_TPROC_CTRL[11] ;
 
 /// QPROC-CORE
 assign time_rst_core   = ( int_time_en & int_time_cmd[0]) ;
@@ -124,10 +143,10 @@ assign time_ref_set    = ( int_time_en & int_time_cmd[2]) ;
 assign time_ref_inc    = ( int_time_en & int_time_cmd[3]) ;
 
 /// NET CTRL
-assign time_rst_net   = time_rst_i   & ~xreg_TPROC_CFG[9] ;
-assign time_updt_net  = time_updt_i  & ~xreg_TPROC_CFG[9] ;
-assign core_start_net = core_start_i & ~xreg_TPROC_CFG[9] ;
-assign core_stop_net  = core_stop_i  & ~xreg_TPROC_CFG[9] ;
+assign time_rst_net   = t_time_rst_i   & ~cfg_dis_qnet ;
+assign time_updt_net  = t_time_updt_i  & ~cfg_dis_qnet ;
+assign core_start_net = c_core_start_i & ~cfg_dis_qnet ;
+assign core_stop_net  = c_core_stop_i  & ~cfg_dis_qnet ;
 
 assign c_time_rst_run = time_rst_run_p | time_rst_core  ;
 assign c_time_updt    = time_update_p  | time_updt_core ;
@@ -149,8 +168,8 @@ always_ff @(posedge c_clk_i)
    end
 
 assign ctrl_c_rst_stop = core_rst_stop_p  ;
-assign ctrl_c_rst_run  = core_start_net | core_rst_run_p ;
-assign ctrl_c_stop     = core_stop_net | core_stop_p  ;
+assign ctrl_c_rst_run  = core_start_net | core_rst_run_p | t_proc_start_io ;  // FIXME: wrong domain
+assign ctrl_c_stop     = core_stop_net | core_stop_p  | t_proc_stop_io ;      // FIXME: wrong domain
 assign ctrl_c_run      = core_run_p;
 assign ctrl_c_step     = core_step_p ;
 
@@ -204,7 +223,7 @@ always_comb begin
       default:;
    endcase
    // Pause Core on Dispatcher FIFO full; with 1 in TPROC_CFG[11] continue
-   if (some_fifo_full_i & ~(xreg_TPROC_CFG[11])) begin
+   if (some_fifo_full_i & ~(cfg_dis_fifo_pause)) begin
       core_en_o = 0;
    end
 end
@@ -236,16 +255,16 @@ always_ff @(posedge t_clk_i)
    end
 
 assign ctrl_t_rst_stop  = t_time_rst_stop ;
-assign ctrl_t_rst_run   = time_rst_net  | t_time_rst_run ;
+assign ctrl_t_rst_run   = time_rst_net  | t_time_rst_run | t_proc_start_io ;
 assign ctrl_t_updt      = time_updt_net | t_time_update ;
 assign ctrl_t_run       = t_time_run ;
-assign ctrl_t_stop      = t_time_stop;
+assign ctrl_t_stop      = t_time_stop | t_proc_stop_io;
 assign ctrl_t_step      = t_time_step ;
 
 // Time Control State Machine
 ///////////////////////////////////////////////////////////////////////////////
 enum {T_RST_STOP=0, T_RST_RUN=1, T_UPDT=2,  T_RUN=3, T_STOP=4, T_STEP=5} time_st_nxt, time_st;
-// Sequential Stante Machine
+// Sequential State Machine
 always_ff @(posedge t_clk_i)
    if (!t_rst_ni)   time_st  <= T_RST_STOP;
    else             time_st  <= time_st_nxt;
@@ -312,7 +331,7 @@ qproc_time_ctrl QTIME_CTRL (
    .updt_dt_i     ( time_updt_dt ) ,
    .time_abs_o    ( time_abs_o   ) );
    
-assign c_debug_do   = { 2'b00, ctrl_c_step, ctrl_c_stop, ctrl_c_run, ctrl_c_rst_run, ctrl_c_rst_stop }  ;
+assign c_debug_do   = {        1'b0, 1'b0, ctrl_c_step, ctrl_c_stop, ctrl_c_run, ctrl_c_rst_run, ctrl_c_rst_stop }  ;
 assign t_debug_do   = { ctrl_t_updt, 1'b0, ctrl_t_step, ctrl_t_stop, ctrl_t_run, ctrl_t_rst_run, ctrl_t_rst_stop }  ;
 
 ///////////////////////////////////////////////////////////////////////////////

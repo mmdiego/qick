@@ -417,7 +417,13 @@ end
 
 generate
    if (SYNC == 0) begin : SYNC_NO
-      
+      // If no SYNC, processor control feature is disabled
+      assign o_proc_start  = 1'b0;
+      assign o_proc_stop   = 1'b0;
+      assign o_time_rst    = 1'b0;
+      assign o_time_update = 1'b0;
+      assign o_core_start  = 1'b0;
+      assign o_core_stop   = 1'b0;
    end 
    else if   (SYNC == 1) begin : SYNC_YES
       xcom_qctrl u_xcom_qctrl(
