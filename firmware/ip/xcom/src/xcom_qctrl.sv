@@ -41,6 +41,7 @@ module xcom_qctrl (
    input  logic         i_clk        ,
    input  logic         i_rstn       ,
    input  logic         i_sync       ,
+   input  logic         i_cfg_sync_dis ,
    input  logic         i_ctrl_req   ,
    input  logic [3-1:0] i_ctrl_data  ,
    input  logic         i_sync_req   ,
@@ -83,7 +84,8 @@ always_ff@(posedge i_clk) begin
 end          
           
 assign sync_dly_n = i_sync;
-assign s_sync = !sync_dly_r & i_sync ;
+// Pulse on rising edge of i_sync
+assign s_sync = (!sync_dly_r & i_sync) || i_cfg_sync_dis ;
 
 assign qctrl_pulse_end = (qctrl_cnt_r == '1);
 

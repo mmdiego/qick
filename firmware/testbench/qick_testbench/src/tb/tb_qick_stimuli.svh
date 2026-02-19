@@ -136,7 +136,6 @@ initial begin
 
    #1us;
 
-   // Configure TPROC
    // LFSR Enable (1: Free Running, 2: Step on s1 Read, 3: Step on s0 Write)
    WRITE_AXI_TPROC( REG_CORE_CFG , 1);
    #100ns;
@@ -383,6 +382,7 @@ initial begin
 
       tb_test_run_start   = 1'b0;
 
+      // Read some information registers
       READ_AXI_XCOM(REG_XCOM_ID);
       #10ns;
       READ_AXI_XCOM(REG_XCOM_STATUS);
@@ -391,15 +391,16 @@ initial begin
       #10ns;
 
       // Execute Auto-ID NET command
-      axi_mst_xcom_agent.AXI4LITE_WRITE_BURST(REG_XCOM_CTRL, prot, (XCOM_AUTO_ID << 1) | 'd1, resp);
+      WRITE_AXI_XCOM(REG_XCOM_CTRL, (XCOM_AUTO_ID << 1) | 'd1);
       #100ns;
 
 
       // assign an ID to the XCOM module.
-      axi_mst_xcom_agent.AXI4LITE_WRITE_BURST(REG_XCOM_AXI_DATA1, prot, 4'd1, resp);
-      axi_mst_xcom_agent.AXI4LITE_WRITE_BURST(REG_XCOM_CTRL, prot, ({1'b1,XCOM_SET_ID} << 1) | 'd1, resp);
+      WRITE_AXI_XCOM(REG_XCOM_AXI_DATA1, 4'd1);
+      WRITE_AXI_XCOM(REG_XCOM_CTRL, ({1'b1,XCOM_SET_ID} << 1) | 'd1);
       #10ns;
 
+      // Read some information registers
       READ_AXI_XCOM(REG_XCOM_ID);
       #10ns;
       READ_AXI_XCOM(REG_XCOM_STATUS);
@@ -408,8 +409,11 @@ initial begin
       #10ns;
 
       // Configure XCOM clock frequency
-      WRITE_AXI_XCOM(REG_XCOM_CFG, 'd4);
+      WRITE_AXI_XCOM(REG_XCOM_CFG, 'd4 || (1<<28));
 
+      //-----------------------------------------------------------------------
+      // NOTE: This code writes and reads local memory using the LOC command
+      //-----------------------------------------------------------------------
       // // Write to Local Memory of this board (LOC command)
       // for (int addr=0; addr<16; addr=addr+1) begin
       //   axi_mst_xcom_agent.AXI4LITE_WRITE_BURST(REG_XCOM_AXI_DATA1, prot, addr, resp);
@@ -428,7 +432,12 @@ initial begin
       // force xcom id of slave board
       XCOM_ID_2 = 4'd2;
       force tb_qick.qick_dut.u_xcom_ch2.u_xcom_txrx.board_id_r = XCOM_ID_2;
+      force tb_qick.qick_dut.u_xcom_ch2.s_cfg_sync_dis = 1'b1;
 
+
+      //---------------------------------------------------------------------------------
+      // NOTE: This code writes the local memory of a slave board using the NET command
+      //---------------------------------------------------------------------------------
       // // Write to Local Memory of Slave board (NET command)
       // for (int net_data=0; net_data<20; net_data=net_data+1) begin
       //   axi_mst_xcom_agent.AXI4LITE_WRITE_BURST(REG_XCOM_AXI_DATA1, prot, XCOM_ID_2, resp);
@@ -438,21 +447,47 @@ initial begin
       //   wait(tb_qick.qick_dut.u_xcom.o_core_ready);
       // end
 
-      tb_test_run_start   = 1'b1;
 
-      // Cycle through iterations
-      for (int i=0; i<REPEAT_EXEC; i=i+1) begin
+      //-----------------------------------------------------------------------------
+      // NOTE: This code sends a NET command using different XCOM clock frequencies
+      //-----------------------------------------------------------------------------
+      // tb_test_run_start   = 1'b1;
 
-         $display("\n\n*** %t - XCOM Test Iteration %0d ***\n\n", $realtime(), (REPEAT_EXEC - i + 1));
+      // // Cycle through iterations
+      // for (int i=0; i<REPEAT_EXEC; i=i+1) begin
 
-         wait(tb_test_iter_start);
+      //    $display("\n\n*** %t - XCOM Test Iteration %0d ***\n\n", $realtime(), (REPEAT_EXEC - i + 1));
 
-         // Configure XCOM clock frequency
-         axi_mst_xcom_agent.AXI4LITE_WRITE_BURST(REG_XCOM_CFG, prot, i*4, resp);
+      //    wait(tb_test_iter_start);
 
-         wait(tb_test_iter_done);
+      //    // Configure XCOM clock frequency
+      //    axi_mst_xcom_agent.AXI4LITE_WRITE_BURST(REG_XCOM_CFG, prot, i*4, resp);
 
-      end // for loop
+      //    wait(tb_test_iter_done);
+
+      // end // for loop
+
+
+      //-----------------------------------------------------------------------------
+      // NOTE: This code sends a SYNC command to synchronize the boards
+      //-----------------------------------------------------------------------------
+      // Configure TPROC
+      // enable external IO interface [10] and trigger debug ports [12]
+      WRITE_AXI_TPROC( REG_TPROC_CFG , (1<<12) | (1<<10));
+
+      #100ns
+
+      // Disable sync signal and enable loopback
+      WRITE_AXI_XCOM(REG_XCOM_CFG, 4 | (1 << 28) | (1 << 31) );
+      #100ns
+
+      #10us;
+
+      // Send QRST_CMD
+      WRITE_AXI_XCOM(REG_XCOM_AXI_DATA1, 0);
+      WRITE_AXI_XCOM(REG_XCOM_AXI_DATA2, 0);
+      WRITE_AXI_XCOM(REG_XCOM_CTRL, (8 << 1) | 'd1);
+      #100ns
 
       $display("*** %t - End of test_xcom Test ***", $realtime());
    end

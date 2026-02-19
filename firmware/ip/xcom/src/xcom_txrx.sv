@@ -110,6 +110,7 @@ module xcom_txrx import qick_pkg::*;
    input  logic             i_cfg_clk_pha      ,
    input  logic             i_cfg_auto_pha     ,
    input  logic             i_cfg_loopback     ,
+   input  logic             i_cfg_sync_dis     ,
    output logic [ 4-1:0]    o_xcom_id          ,
    output logic [32-1:0]    o_xcom_mem[16]     ,
 // Xlogic COM
@@ -290,18 +291,19 @@ assign s_cmd_exec = s_loc_sid | s_wflg | s_wreg | s_wmem | s_rst;
 ///////////////////////////////////////////////////////////////////////////////
 
 tx_cmd u_tx_cmd(
-    .i_clk        ( i_clk          ),
-    .i_rstn       ( i_rstn         ),
-    .i_sync       ( i_sync         ),
-    .i_cfg_tick   ( i_cfg_tick     ),
-    .i_cfg_clk_pol( i_cfg_clk_pol  ),
-    .i_req        ( s_req_net      ),
-    .i_header     ( i_header       ),
-    .i_data       ( i_data         ),
-    .o_ready      ( s_tx_ready     ),
-    .o_data       ( o_xcom_data    ),
-    .o_clk        ( o_xcom_clk     ),
-    .o_dbg_state  ( s_tx_dbg_state )
+    .i_clk           ( i_clk           ),
+    .i_rstn          ( i_rstn          ),
+    .i_sync          ( i_sync          ),
+    .i_cfg_tick      ( i_cfg_tick      ),
+    .i_cfg_clk_pol   ( i_cfg_clk_pol   ),
+    .i_cfg_sync_dis  ( i_cfg_sync_dis  ),
+    .i_req           ( s_req_net       ),
+    .i_header        ( i_header        ),
+    .i_data          ( i_data          ),
+    .o_ready         ( s_tx_ready      ),
+    .o_data          ( o_xcom_data     ),
+    .o_clk           ( o_xcom_clk      ),
+    .o_dbg_state     ( s_tx_dbg_state  )
 );
 
 assign tx_auto_id   = s_req_net & (loc_cmd_op == XCOM_AUTO_ID); 
@@ -426,19 +428,20 @@ generate
       assign o_core_stop   = 1'b0;
    end 
    else if   (SYNC == 1) begin : SYNC_YES
-      xcom_qctrl u_xcom_qctrl(
-         .i_clk        ( i_clk          ),
-         .i_rstn       ( i_rstn         ),
-         .i_sync       ( i_sync         ),
-         .i_ctrl_req   ( rx_qctrl       ),
-         .i_ctrl_data  ( s_rx_data[2:0] ),
-         .i_sync_req   ( rx_qsync       ),
-         .o_proc_start ( o_proc_start   ),
-         .o_proc_stop  ( o_proc_stop    ),
-         .o_time_rst   ( o_time_rst     ),
-         .o_time_update( o_time_update  ),
-         .o_core_start ( o_core_start   ),
-         .o_core_stop  ( o_core_stop    )
+      xcom_qctrl u_xcom_qctrl (
+         .i_clk            ( i_clk          ),
+         .i_rstn           ( i_rstn         ),
+         .i_sync           ( i_sync         ),
+         .i_cfg_sync_dis   ( i_cfg_sync_dis ),
+         .i_ctrl_req       ( rx_qctrl       ),
+         .i_ctrl_data      ( s_rx_data[2:0] ),
+         .i_sync_req       ( rx_qsync       ),
+         .o_proc_start     ( o_proc_start   ),
+         .o_proc_stop      ( o_proc_stop    ),
+         .o_time_rst       ( o_time_rst     ),
+         .o_time_update    ( o_time_update  ),
+         .o_core_start     ( o_core_start   ),
+         .o_core_stop      ( o_core_stop    )
       );
    end
 endgenerate

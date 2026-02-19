@@ -364,32 +364,27 @@ always_comb begin
 end
 
 
-(* ASYNC_REG = "TRUE" *) reg  proc_start_cdc, proc_start_r;
-reg proc_start_r2;
-(* ASYNC_REG = "TRUE" *) reg  proc_stop_cdc , proc_stop_r;
-reg proc_stop_r2;
+// Capture in T_CLK
+logic proc_start_r, proc_start_r2, proc_start_t01;
+logic proc_stop_r, proc_stop_r2, proc_stop_t01;
 
-// Synchronize to C_CLK
-always_ff @(posedge c_clk_i) 
-   if (!c_resetn) begin
-      proc_start_cdc  <= 0 ;
+always_ff @(posedge t_clk_i) begin
+   if (!t_resetn) begin
       proc_start_r    <= 0 ;
       proc_start_r2   <= 0 ;
-      proc_stop_cdc   <= 0 ;
       proc_stop_r     <= 0 ;
       proc_stop_r2    <= 0 ;
+      proc_start_t01  <= 0 ;
+      proc_stop_t01   <= 0 ;
    end else begin 
-      proc_start_cdc  <= proc_start_i;
-      proc_start_r    <= proc_start_cdc;
+      proc_start_r    <= proc_start_i;
       proc_start_r2   <= proc_start_r;
-      proc_stop_cdc   <= proc_stop_i;
-      proc_stop_r     <= proc_stop_cdc;
+      proc_stop_r     <= proc_stop_i;
       proc_stop_r2    <= proc_stop_r;
+      proc_start_t01  <= proc_start_r & ~proc_start_r2 ;
+      proc_stop_t01   <= proc_stop_r  & ~proc_stop_r2 ;
    end
-
-// The C_TPROC_CTRL is only ONE clock.
-assign proc_start_t01   = proc_start_r & ~proc_start_r2 ;
-assign proc_stop_t01    = proc_stop_r  & ~proc_stop_r2 ;
+end
 
 
 qick_processor# (

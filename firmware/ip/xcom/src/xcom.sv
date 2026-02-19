@@ -88,15 +88,15 @@ module xcom import qick_pkg::*;
     output logic  [32-1:0]   o_core_data2       , 
     output logic             o_core_valid       , 
     output logic             o_core_flag        , 
-    // Qick CONTROL (time_clk domain outputs)
+    // Qick CONTROL
     input  logic             i_sync             ,
-    output logic             o_proc_start       ,
-    output logic             o_proc_stop        ,
-    output logic             o_time_rst         ,
-    output logic             o_time_update      ,
-    output logic  [32-1:0]   o_time_update_data ,
-    output logic             o_core_start       ,
-    output logic             o_core_stop        ,
+    output logic             o_proc_start       , // time_clk domain
+    output logic             o_proc_stop        , // time_clk domain
+    output logic             o_time_rst         , // time_clk domain
+    output logic             o_time_update      , // time_clk domain
+    output logic  [32-1:0]   o_time_update_data , // time_clk domain
+    output logic             o_core_start       , // core_clk domain
+    output logic             o_core_stop        , // core_clk domain
     // XCOM 
     output logic   [4-1:0]   o_xcom_id          ,
     // IO XCOM (i_time_clk)
@@ -381,6 +381,7 @@ module xcom import qick_pkg::*;
     .i_cfg_clk_pha     ( s_cfg_clk_pha      ),
     .i_cfg_auto_pha    ( s_cfg_auto_pha     ),
     .i_cfg_loopback    ( s_cfg_loopback     ),
+    .i_cfg_sync_dis    ( s_cfg_sync_dis     ),
     .o_xcom_id         ( s_xcom_id          ),
     .o_xcom_mem        ( xcom_mem_data      ),
     .i_xcom_data       ( si_xcom_data_int   ),
@@ -397,6 +398,7 @@ module xcom import qick_pkg::*;
   assign s_cfg_clk_pol  = (LOOPBACK_EN == 0) ? s_xcom_cfg_sync[8] : (s_xcom_cfg_sync[8] & ~s_cfg_loopback);
   assign s_cfg_clk_pha  = s_xcom_cfg_sync[9];
   assign s_cfg_auto_pha = s_xcom_cfg_sync[10];
+  assign s_cfg_sync_dis = s_xcom_cfg_sync[28];
   assign s_cfg_loopback = s_xcom_cfg_sync[31];
 
   i_diff_nb #(

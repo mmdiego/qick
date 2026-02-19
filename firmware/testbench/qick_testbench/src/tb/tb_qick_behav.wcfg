@@ -21,14 +21,14 @@
    </db_ref_list>
    <zoom_setting>
       <ZoomStartTime time="0.000000 us"></ZoomStartTime>
-      <ZoomEndTime time="121.205501 us"></ZoomEndTime>
-      <Cursor1Time time="121.205500 us"></Cursor1Time>
+      <ZoomEndTime time="51.000001 us"></ZoomEndTime>
+      <Cursor1Time time="51.000000 us"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
       <NameColumnWidth column_width="207"></NameColumnWidth>
-      <ValueColumnWidth column_width="91"></ValueColumnWidth>
+      <ValueColumnWidth column_width="79"></ValueColumnWidth>
    </column_width_setting>
-   <WVObjectSize size="11" />
+   <WVObjectSize size="16" />
    <wvobject type="group" fp_name="group490">
       <obj_property name="label">RST_CLK</obj_property>
       <obj_property name="DisplayName">label</obj_property>
@@ -76,6 +76,7 @@
    <wvobject type="group" fp_name="group500">
       <obj_property name="label">TPROC_V2</obj_property>
       <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="isExpanded"></obj_property>
       <wvobject type="logic" fp_name="/tb_qick/qick_dut/AXIS_QPROC/proc_start_i">
          <obj_property name="ElementShortName">proc_start_i</obj_property>
          <obj_property name="ObjectShortName">proc_start_i</obj_property>
@@ -83,6 +84,22 @@
       <wvobject type="logic" fp_name="/tb_qick/qick_dut/AXIS_QPROC/proc_stop_i">
          <obj_property name="ElementShortName">proc_stop_i</obj_property>
          <obj_property name="ObjectShortName">proc_stop_i</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/tb_qick/qick_dut/AXIS_QPROC/QPROC/QPROC_CTRL/t_proc_start_io">
+         <obj_property name="ElementShortName">t_proc_start_io</obj_property>
+         <obj_property name="ObjectShortName">t_proc_start_io</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/tb_qick/qick_dut/AXIS_QPROC/QPROC/QPROC_CTRL/c_proc_start_io">
+         <obj_property name="ElementShortName">c_proc_start_io</obj_property>
+         <obj_property name="ObjectShortName">c_proc_start_io</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/tb_qick/qick_dut/AXIS_QPROC/QPROC/QPROC_CTRL/t_proc_stop_io">
+         <obj_property name="ElementShortName">t_proc_stop_io</obj_property>
+         <obj_property name="ObjectShortName">t_proc_stop_io</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/tb_qick/qick_dut/AXIS_QPROC/QPROC/QPROC_CTRL/c_proc_stop_io">
+         <obj_property name="ElementShortName">c_proc_stop_io</obj_property>
+         <obj_property name="ObjectShortName">c_proc_stop_io</obj_property>
       </wvobject>
       <wvobject type="array" fp_name="/tb_qick/qick_dut/AXIS_QPROC/QPROC/QPROC_CTRL/core_st">
          <obj_property name="ElementShortName">core_st[31:0]</obj_property>
@@ -371,7 +388,6 @@
       <wvobject type="group" fp_name="group1521">
          <obj_property name="label">TIME</obj_property>
          <obj_property name="DisplayName">label</obj_property>
-         <obj_property name="isExpanded"></obj_property>
          <wvobject type="array" fp_name="/tb_qick/qick_dut/AXIS_QPROC/QPROC/c_time_usr">
             <obj_property name="ElementShortName">c_time_usr[31:0]</obj_property>
             <obj_property name="ObjectShortName">c_time_usr[31:0]</obj_property>
@@ -622,7 +638,6 @@
       <wvobject type="group" fp_name="group1502">
          <obj_property name="label">WAVE_DISPATCHER_0</obj_property>
          <obj_property name="DisplayName">label</obj_property>
-         <obj_property name="isExpanded"></obj_property>
          <wvobject type="logic" fp_name="/tb_qick/qick_dut/AXIS_QPROC/QPROC/DISPATCHER/\WAVE_PORT[0].wave_fifo_inst /push_i">
             <obj_property name="ElementShortName">push_i</obj_property>
             <obj_property name="ObjectShortName">push_i</obj_property>
@@ -1244,7 +1259,6 @@
    <wvobject type="group" fp_name="group2522">
       <obj_property name="label">model_DAC_ADC</obj_property>
       <obj_property name="DisplayName">label</obj_property>
-      <obj_property name="isExpanded"></obj_property>
       <wvobject type="array" fp_name="/tb_qick/u_model_DAC_ADC/mode">
          <obj_property name="ElementShortName">mode[31:0]</obj_property>
          <obj_property name="ObjectShortName">mode[31:0]</obj_property>
@@ -2501,6 +2515,7 @@
    <wvobject type="group" fp_name="group1879">
       <obj_property name="label">XCOM</obj_property>
       <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="isExpanded"></obj_property>
       <wvobject type="array" fp_name="/tb_qick/qick_dut/AXIS_QPROC/QPROC/CORE_0/CORE_CPU/reg_bank/dreg_32_dt[8]">
          <obj_property name="DisplayName">label</obj_property>
          <obj_property name="ElementShortName">[8][31:0]</obj_property>
@@ -2682,6 +2697,86 @@
          <obj_property name="CustomSignalColor">#FFFF00</obj_property>
          <obj_property name="UseCustomSignalColor">true</obj_property>
       </wvobject>
+      <wvobject type="array" fp_name="/tb_qick/qick_dut/u_xcom/u_xcom_txrx/state_r">
+         <obj_property name="DisplayName">label</obj_property>
+         <obj_property name="ElementShortName">state_r[3:0]</obj_property>
+         <obj_property name="ObjectShortName">state_r[3:0]</obj_property>
+         <obj_property name="label">txrx_state_r[3:0]</obj_property>
+         <obj_property name="CustomSignalColor">#FF00FF</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/tb_qick/qick_dut/u_xcom/u_xcom_txrx/u_tx_cmd/state_r">
+         <obj_property name="DisplayName">label</obj_property>
+         <obj_property name="ElementShortName">state_r[1:0]</obj_property>
+         <obj_property name="ObjectShortName">state_r[1:0]</obj_property>
+         <obj_property name="label">txcmd_state_r[1:0]</obj_property>
+         <obj_property name="CustomSignalColor">#FF00FF</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/tb_qick/qick_dut/u_xcom/u_xcom_txrx/u_tx_cmd/u_xcom_link_tx/state_r">
+         <obj_property name="DisplayName">label</obj_property>
+         <obj_property name="ElementShortName">state_r[1:0]</obj_property>
+         <obj_property name="ObjectShortName">state_r[1:0]</obj_property>
+         <obj_property name="label">tx_state_r[1:0]</obj_property>
+         <obj_property name="CustomSignalColor">#FF00FF</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/tb_qick/qick_dut/u_xcom/u_xcom_txrx/u_rx_cmd/state_r">
+         <obj_property name="DisplayName">label</obj_property>
+         <obj_property name="ElementShortName">state_r[1:0]</obj_property>
+         <obj_property name="ObjectShortName">state_r[1:0]</obj_property>
+         <obj_property name="label">rxcmd_state_r[1:0]</obj_property>
+         <obj_property name="CustomSignalColor">#FF00FF</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/tb_qick/qick_dut/u_xcom/u_xcom_txrx/u_rx_cmd/\RX[0].u_xcom_link_rx /state_r">
+         <obj_property name="DisplayName">label</obj_property>
+         <obj_property name="ElementShortName">state_r[2:0]</obj_property>
+         <obj_property name="ObjectShortName">state_r[2:0]</obj_property>
+         <obj_property name="label">rx0_state_r[2:0]</obj_property>
+         <obj_property name="CustomSignalColor">#FF00FF</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/tb_qick/qick_dut/u_xcom/u_xcom_txrx/u_rx_cmd/\RX[1].u_xcom_link_rx /state_r">
+         <obj_property name="DisplayName">label</obj_property>
+         <obj_property name="ElementShortName">state_r[2:0]</obj_property>
+         <obj_property name="ObjectShortName">state_r[2:0]</obj_property>
+         <obj_property name="label">rx1_state_r[2:0]</obj_property>
+         <obj_property name="CustomSignalColor">#FF00FF</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/tb_qick/qick_dut/u_xcom/u_xcom_txrx/u_rx_cmd/\RX[2].u_xcom_link_rx /state_r">
+         <obj_property name="DisplayName">label</obj_property>
+         <obj_property name="ElementShortName">state_r[2:0]</obj_property>
+         <obj_property name="ObjectShortName">state_r[2:0]</obj_property>
+         <obj_property name="label">rx2_state_r[2:0]</obj_property>
+         <obj_property name="CustomSignalColor">#FF00FF</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/tb_qick/qick_dut/u_xcom/s_cfg_auto_pha">
+         <obj_property name="ElementShortName">s_cfg_auto_pha</obj_property>
+         <obj_property name="ObjectShortName">s_cfg_auto_pha</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/tb_qick/qick_dut/u_xcom/u_xcom_txrx/u_rx_cmd/\RX[0].u_xcom_link_rx /s_auto_pha">
+         <obj_property name="ElementShortName">s_auto_pha[3:0]</obj_property>
+         <obj_property name="ObjectShortName">s_auto_pha[3:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/tb_qick/qick_dut/u_xcom/s_cfg_sync_dis">
+         <obj_property name="ElementShortName">s_cfg_sync_dis</obj_property>
+         <obj_property name="ObjectShortName">s_cfg_sync_dis</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/tb_qick/qick_dut/u_xcom/s_cfg_loopback">
+         <obj_property name="ElementShortName">s_cfg_loopback</obj_property>
+         <obj_property name="ObjectShortName">s_cfg_loopback</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/tb_qick/qick_dut/u_xcom/i_time_clk">
+         <obj_property name="ElementShortName">i_time_clk</obj_property>
+         <obj_property name="ObjectShortName">i_time_clk</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/tb_qick/qick_dut/u_xcom/o_proc_start">
+         <obj_property name="ElementShortName">o_proc_start</obj_property>
+         <obj_property name="ObjectShortName">o_proc_start</obj_property>
+      </wvobject>
    </wvobject>
    <wvobject type="group" fp_name="group1104">
       <obj_property name="label">XCOM_2</obj_property>
@@ -2752,5 +2847,41 @@
          <obj_property name="ElementShortName">i_xcom_data_p[1:0]</obj_property>
          <obj_property name="ObjectShortName">i_xcom_data_p[1:0]</obj_property>
       </wvobject>
+      <wvobject type="logic" fp_name="/tb_qick/qick_dut/u_xcom_ch2/s_cfg_auto_pha">
+         <obj_property name="ElementShortName">s_cfg_auto_pha</obj_property>
+         <obj_property name="ObjectShortName">s_cfg_auto_pha</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/tb_qick/qick_dut/u_xcom_ch2/s_cfg_sync_dis">
+         <obj_property name="ElementShortName">s_cfg_sync_dis</obj_property>
+         <obj_property name="ObjectShortName">s_cfg_sync_dis</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/tb_qick/qick_dut/u_xcom_ch2/i_time_clk">
+         <obj_property name="ElementShortName">i_time_clk</obj_property>
+         <obj_property name="ObjectShortName">i_time_clk</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/tb_qick/qick_dut/u_xcom_ch2/o_proc_start">
+         <obj_property name="ElementShortName">o_proc_start</obj_property>
+         <obj_property name="ObjectShortName">o_proc_start</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject type="array" fp_name="/tb_qick/qick_dut/AXIS_QPROC/QPROC/QPROC_xREG/TPROC_CTRL">
+      <obj_property name="ElementShortName">TPROC_CTRL[15:0]</obj_property>
+      <obj_property name="ObjectShortName">TPROC_CTRL[15:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/tb_qick/qick_dut/AXIS_QPROC/QPROC/QPROC_xREG/TPROC_CFG">
+      <obj_property name="ElementShortName">TPROC_CFG[15:0]</obj_property>
+      <obj_property name="ObjectShortName">TPROC_CFG[15:0]</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/tb_qick/qick_dut/AXIS_QPROC/trig_0_o">
+      <obj_property name="ElementShortName">trig_0_o</obj_property>
+      <obj_property name="ObjectShortName">trig_0_o</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/tb_qick/qick_dut/AXIS_QPROC/trig_1_o">
+      <obj_property name="ElementShortName">trig_1_o</obj_property>
+      <obj_property name="ObjectShortName">trig_1_o</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/tb_qick/qick_dut/AXIS_QPROC/trig_2_o">
+      <obj_property name="ElementShortName">trig_2_o</obj_property>
+      <obj_property name="ObjectShortName">trig_2_o</obj_property>
    </wvobject>
 </wave_config>

@@ -216,6 +216,16 @@ module qick_dut #(
    logic        qp1_flag;
    logic [31:0] qp1_dt [2];
 
+
+   // XCOM signals
+   wire                 xcom_proc_start;
+   wire                 xcom_proc_stop;
+   wire                 xcom_time_rst;
+   wire                 xcom_time_update;
+   wire [31:0]          xcom_time_update_data;
+   wire                 xcom_core_start;
+   wire                 xcom_core_stop;
+   
    wire [XCOM_NCH-1:0]  s_xcom_rx_clk_p;        
    wire [XCOM_NCH-1:0]  s_xcom_rx_clk_n;        
    wire [XCOM_NCH-1:0]  s_xcom_rx_data_p;        
@@ -306,14 +316,14 @@ module qick_dut #(
       .ps_resetn           ( ps_resetn            ),
       // External Control
       .ext_flag_i          ( ext_flag_i           ),
-      .proc_start_i        ( proc_start_i         ),
-      .proc_stop_i         ( proc_stop_i          ),
-      .core_start_i        ( core_start_i         ),
-      .core_stop_i         ( core_stop_i          ),
-      .time_rst_i          ( time_rst_i           ),
+      .proc_start_i        ( proc_start_i || xcom_proc_start ),
+      .proc_stop_i         ( proc_stop_i  || xcom_proc_stop),
+      .core_start_i        ( core_start_i || xcom_core_start ),
+      .core_stop_i         ( core_stop_i  || xcom_core_stop),
+      .time_rst_i          ( time_rst_i   || xcom_time_rst ),
       .time_init_i         ( time_init_i          ),
-      .time_updt_i         ( time_updt_i          ),
-      .time_dt_i           ( time_dt_i            ),
+      .time_updt_i         ( time_updt_i  || xcom_time_update ),
+      .time_dt_i           ( time_dt_i    || xcom_time_update_data),
       .t_time_abs_o        ( t_time_abs_o         ),
       .pulse_sync_o        ( pulse_sync_o         ),
       //QNET
@@ -1171,13 +1181,13 @@ module qick_dut #(
     .o_core_valid       ( qp1_vld               ),
     .o_core_flag        ( qp1_flag              ),   
     .i_sync             ( 1'b0                  ),   
-    .o_proc_start       (                       ),   
-    .o_proc_stop        (                       ),
-    .o_time_rst         (                       ),   
-    .o_time_update      (                       ),   
-    .o_time_update_data (                       ),
-    .o_core_start       (                       ),
-    .o_core_stop        (                       ),
+    .o_proc_start       ( xcom_proc_start       ),   
+    .o_proc_stop        ( xcom_proc_stop        ),
+    .o_time_rst         ( xcom_time_rst         ),
+    .o_time_update      ( xcom_time_update      ),
+    .o_time_update_data ( xcom_time_update_data ),
+    .o_core_start       ( xcom_core_start       ),
+    .o_core_stop        ( xcom_core_stop        ),
     .o_xcom_id          ( s_xcom_1_id           ),
     .i_xcom_clk_p       ( s_xcom_rx_clk_p       ),
     .i_xcom_clk_n       ( s_xcom_rx_clk_n       ),

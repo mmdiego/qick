@@ -61,6 +61,7 @@ module tx_cmd(
    // Config 
    input  logic [4-1:0]  i_cfg_tick ,
    input  logic          i_cfg_clk_pol,
+   input  logic          i_cfg_sync_dis,
    // Transmission 
    input  logic          i_req      ,
    input  logic [8-1:0]  i_header   ,
@@ -96,7 +97,8 @@ always_ff@(posedge i_clk) begin
 end
     
 assign sync_dly_n = i_sync;
-assign s_sync = !sync_dly_r & i_sync ;
+// Pulse on rising edge of i_sync
+assign s_sync = (!sync_dly_r & i_sync) || i_cfg_sync_dis ;
 
 
 // TX Control state

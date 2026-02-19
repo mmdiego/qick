@@ -156,6 +156,45 @@ assign c_time_updt    = time_update_p  | time_updt_core ;
 ///////////////////////////////////////////////////////////////////////////////
 // CORE CONTROL
 ///////////////////////////////////////////////////////////////////////////////
+logic proc_start_io_toggle;
+logic proc_stop_io_toggle;
+logic c_proc_start_io_sync, c_proc_start_io_sync_d;
+logic c_proc_stop_io_sync, c_proc_stop_io_sync_d;
+logic c_proc_start_io;
+logic c_proc_stop_io;
+
+always_ff @(posedge t_clk_i) begin
+   if (!t_rst_ni) begin
+      proc_start_io_toggle <= 'b0;
+      proc_stop_io_toggle  <= 'b0;
+   end 
+   else begin
+      if (t_proc_start_io) proc_start_io_toggle <= ~proc_start_io_toggle;
+      if (t_proc_stop_io)  proc_stop_io_toggle  <= ~proc_stop_io_toggle;
+   end
+end
+
+sync_reg # (.DW ( 2 ) ) proc_io_sync (
+   .dt_i      ( {proc_start_io_toggle, proc_stop_io_toggle} ) ,
+   .clk_i     ( c_clk_i   ) ,
+   .rst_ni    ( c_rst_ni  ) ,
+   .dt_o      ( {c_proc_start_io_sync, c_proc_stop_io_sync} )
+);
+
+always_ff @(posedge c_clk_i) begin
+   if (!c_rst_ni) begin
+      c_proc_start_io_sync_d <= 'b0;
+      c_proc_stop_io_sync_d  <= 'b0;
+   end else begin
+      c_proc_start_io_sync_d <= c_proc_start_io_sync;
+      c_proc_stop_io_sync_d  <= c_proc_stop_io_sync;
+   end
+end
+
+// Edge detect the toggles to generate a pulse for core control
+assign c_proc_start_io = c_proc_start_io_sync ^ c_proc_start_io_sync_d;
+assign c_proc_stop_io  = c_proc_stop_io_sync ^ c_proc_stop_io_sync_d;
+
 
 // Store Time_Update_Data from PROCESSOR or PYTHON in offset_dt_r
 reg [31:0] offset_dt_r;
@@ -168,8 +207,8 @@ always_ff @(posedge c_clk_i)
    end
 
 assign ctrl_c_rst_stop = core_rst_stop_p  ;
-assign ctrl_c_rst_run  = core_start_net | core_rst_run_p | t_proc_start_io ;  // FIXME: wrong domain
-assign ctrl_c_stop     = core_stop_net | core_stop_p  | t_proc_stop_io ;      // FIXME: wrong domain
+assign ctrl_c_rst_run  = core_start_net | core_rst_run_p | c_proc_start_io ;
+assign ctrl_c_stop     = core_stop_net | core_stop_p  | c_proc_stop_io ;
 assign ctrl_c_run      = core_run_p;
 assign ctrl_c_step     = core_step_p ;
 
@@ -178,7 +217,7 @@ assign ctrl_c_step     = core_step_p ;
 ///////////////////////////////////////////////////////////////////////////////
 enum {C_RST_STOP=0, C_RST_STOP_WAIT=1, C_RST_RUN=2, C_RST_RUN_WAIT=3, C_STOP=4, C_RUN=5, C_STEP=6, C_END_STEP=7} core_st_nxt, core_st;
 
-// Sequential Stante Machine
+// Sequential State Machine
 always_ff @(posedge c_clk_i)
    if (!c_rst_ni)   core_st  <= C_RST_STOP;
    else             core_st  <= core_st_nxt;

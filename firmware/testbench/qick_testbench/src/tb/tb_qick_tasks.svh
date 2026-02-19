@@ -1,42 +1,42 @@
 task WRITE_AXI_XCOM(integer PORT_AXI, DATA_AXI);
-   $display("Running WRITE_AXI_XCOM() Task");
-   //$display("PORT %d",  PORT_AXI);
-   //$display("DATA %d",  DATA_AXI);
+   $display("# %t - Running WRITE_AXI_XCOM() Task", $realtime());
+   $display("  ### PORT %d",  PORT_AXI);
+   $display("  ### DATA %d",  DATA_AXI);
    @(posedge s_ps_dma_aclk); #0.1;
    axi_mst_xcom_agent.AXI4LITE_WRITE_BURST(PORT_AXI, prot, DATA_AXI, resp);
 endtask
 
 task READ_AXI_XCOM(integer ADDR_AXI);
    integer DATA_RD;
-   $display("Running READ_AXI_XCOM() Task");
+   $display("# %t - Running READ_AXI_XCOM() Task", $realtime());
    //$display("ADDR %d",  ADDR_AXI);
    //$display("DATA %d",  DATA_AXI);
    @(posedge s_ps_dma_aclk); #0.1;
    axi_mst_xcom_agent.AXI4LITE_READ_BURST(ADDR_AXI, 0, DATA_RD, resp);
-   $display("   * READ AXI_DATA - reg addr: %h / data - dec: %d, hex: %x, bin: %32b", ADDR_AXI, DATA_RD, DATA_RD, DATA_RD);
+   $display("  ### READ AXI_DATA - reg addr: %h / data - dec: %d, hex: %x, bin: %32b", ADDR_AXI, DATA_RD, DATA_RD, DATA_RD);
 endtask
 
 task WRITE_AXI_TPROC(integer PORT_AXI, DATA_AXI);
-   $display("Running WRITE_AXI_TPROC() Task");
-   //$display("PORT %d",  PORT_AXI);
-   //$display("DATA %d",  DATA_AXI);
+   $display("# %t - Running WRITE_AXI_TPROC() Task", $realtime());
+   $display("  ### PORT %d",  PORT_AXI);
+   $display("  ### DATA %d",  DATA_AXI);
    @(posedge s_ps_dma_aclk); #0.1;
    axi_mst_tproc_agent.AXI4LITE_WRITE_BURST(PORT_AXI, prot, DATA_AXI, resp);
 endtask
 
 task READ_AXI_TPROC(integer ADDR_AXI);
    integer DATA_RD;
-   $display("Running READ_AXI_TPROC() Task");
+   $display("# %t - Running READ_AXI_TPROC() Task", $realtime());
    @(posedge s_ps_dma_aclk); #0.1;
    axi_mst_tproc_agent.AXI4LITE_READ_BURST(ADDR_AXI, 0, DATA_RD, resp);
-   $display("READ AXI_DATA %d",  DATA_RD);
+   $display("  ### READ AXI_DATA %d",  DATA_RD);
 endtask
 
 task tproc_load_mem(string test_name);
    string pmem_file, wmem_file, dmem_file;
 
-   $display("### Task tproc_load_mem() start ###");
-   $display("Loading Test: %s", test_name);
+   $display("# %t - Task tproc_load_mem() start ###", $realtime());
+   $display("  ### Loading Test: %s", test_name);
 
    pmem_file = {"../../../../src/tb/",test_name,"/pmem.mem"};
    wmem_file = {"../../../../src/tb/",test_name,"/wmem.mem"};
@@ -46,7 +46,7 @@ task tproc_load_mem(string test_name);
    $readmemh(wmem_file, qick_dut.AXIS_QPROC.QPROC.CORE_0.CORE_MEM.W_MEM.RAM);
    $readmemh(dmem_file, qick_dut.AXIS_QPROC.QPROC.CORE_0.CORE_MEM.D_MEM.RAM);
 
-   $display("### Task sg_load_mem() end ###");
+   $display("### Task tproc_load_mem() end ###");
 
 endtask
 
@@ -57,7 +57,7 @@ task sg_load_mem(string test_name) /*, input logic tb_load_mem, output logic tb_
    int fd,vali,valq;
    bit signed [15:0] ii,qq;
    
-   $display("### %t - Task sg_load_mem() start ###", $realtime());
+   $display("# %t - Task sg_load_mem() start ###", $realtime());
 
    sg_s0_axis_tvalid = 0;
    sg_s0_axis_tdata  = 0;
