@@ -419,13 +419,17 @@ class QickMetadata:
 
     def trace_clk_back(self, start_block, start_port):
         """Follow the clock backwards from a given block and port.
-        Compute the clock source, the frequency, and any limits imposed by the clock path.
-        Because it traces the clock back to its source, the frequency accounts for software changes.
+        Compute the clock source, the frequency, and any limits imposed by 
+        the clock path.
+        Because it traces the clock back to its source, the frequency accounts 
+        for software changes.
 
-        The clock source is assumed to be the Zynq PS or the RF data converter.
+        The clock source is assumed to be the Zynq PS, the RF data converter 
+        or a clk_wiz for MTS designs.
         Raise an error if the clock can't be traced back to either of those sources.
 
-        The clock path may pass through clocking wizards, which multiply the clock and impose limits on the frequency range.
+        The clock path may pass through clocking wizards, which multiply the 
+        clock and impose limits on the frequency range.
 
         Parameters
         ----------
@@ -437,10 +441,13 @@ class QickMetadata:
         Returns
         -------
         dict
-            source: The clock source ('PS', 'dac', 'adc'), and the channel number.
+            source: The clock source ('PS', 'dac', 'adc', 'clk_wiz'), 
+            and the channel number.
             f_clk: The clock frequency that the block sees (MHz).
-            Accounts for clock multipliers between the source and the given block, and for software changes to the source frequency.
-            src_range: None, or bounds (MHz) on the source clock's frequency.
+            Accounts for clock multipliers between the source and the 
+            given block, and for software changes to the source frequency.
+            src_range: None, or bounds (MHz) on the source clock's 
+            frequency.
         """
         clk_mult = 1.0
         src_range = None
@@ -467,7 +474,11 @@ class QickMetadata:
                     else:
                         src_range[0] = max(src_range[0], in_min)
                         src_range[1] = min(src_range[1], in_max)
-                    continue
+                    return {
+                            'source': ('clk_wiz', port),
+                            'f_clk': float(f_in*clk_mult),
+                            'src_range': src_range
+                            }
                 elif next_type == 'zynq_ultra_ps_e' and port.startswith('pl_clk'):
                     f_clk = self.get_fclk(block, port)
                     iClk = int(port[6:])
