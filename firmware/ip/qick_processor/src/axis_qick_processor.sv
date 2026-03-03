@@ -467,6 +467,7 @@ qick_processor# (
    .m_axis_tvalid       ( m_axis_tvalid_s [0:OUT_WPORT_QTY-1]  ) ,
    .m_axis_tready       ( m_axis_tready_s [0:OUT_WPORT_QTY-1]  ) ,
 //DEBUG
+   .tclk_out_en_dbg     ( tclk_out_en_dbg       ) ,
    .dport_di            ( port_tdata_so[0][3:0] ) ,
    .ps_debug_do         ( ps_debug_do           ) ,
    .c_time_usr_do       ( c_time_usr_do         ) ,
@@ -519,8 +520,8 @@ endgenerate
 
 ///// TRIGGERS
 assign trig_0_o  = port_trig_so[0]  ;
-assign trig_1_o  = port_trig_so[1]  ;
-assign trig_2_o  = port_trig_so[2]  ;
+assign trig_1_o  = !tclk_out_en_dbg ? port_trig_so[1] : t_time_abs_o[7] ;
+assign trig_2_o  = !tclk_out_en_dbg ? port_trig_so[2] : t_time_abs_o[4] ;
 assign trig_3_o  = port_trig_so[3]  ;
 assign trig_4_o  = port_trig_so[4]  ;
 assign trig_5_o  = port_trig_so[5]  ;

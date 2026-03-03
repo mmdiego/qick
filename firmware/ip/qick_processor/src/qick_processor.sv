@@ -103,7 +103,8 @@ module qick_processor # (
    output  wire            m_axis_tvalid [OUT_WPORT_QTY] ,
    input   wire            m_axis_tready [OUT_WPORT_QTY] ,
    
-// DEBUG INTERFACE   
+// DEBUG INTERFACE
+   output  logic           tclk_out_en_dbg ,
    input   wire [ 3:0]     dport_di        ,
    output  wire [31:0]     ps_debug_do    ,
    output  wire [31:0]     t_debug_do     ,
@@ -214,6 +215,7 @@ qproc_ctrl # (
    .c_debug_do          ( ctrl_c_ds          )
 );
 
+assign tclk_out_en_dbg = xreg_TPROC_CFG[12];
 
 ///////////////////////////////////////////////////////////////////////////////
 // Processor STATUS 
