@@ -27,6 +27,23 @@ from .drivers.xcom import *
 
 logger = logging.getLogger(__name__)
 
+CLOCKWIZARD_LOCK_ADDRESS = 0x0004
+CLOCKWIZARD_RESET_ADDRESS = 0x0000
+CLOCKWIZARD_RESET_TOKEN = 0x000A
+MTS_START_TILE = 0x01
+MAX_DAC_TILES = 4
+MAX_ADC_TILES = 4
+DAC_REF_TILE = 2
+ADC_REF_TILE = 2
+
+ZCU111_DAC_TILES = 0b1111
+ZCU111_ADC_TILES = 0b1111
+
+RFSOC4X2_DAC_TILES = 0b0101
+RFSOC4X2_ADC_TILES = 0b0101
+
+ZCU216_DAC_TILES = 0b1111
+ZCU216_ADC_TILES = 0b1111
 
 class AxisSwitch(SocIP):
     """
@@ -1088,8 +1105,10 @@ class QickSoc(Overlay, QickConfig):
                 else: # restore the default
                     xrfclk._lmk04208Config[lmk_freq][14] = 0x2302886D
             xrfclk.set_all_ref_clks(lmx_freq)
+            self.ACTIVE_DAC_TILES = ZCU111_DAC_TILES
+            self.ACTIVE_ADC_TILES = ZCU111_ADC_TILES
         elif self['board'] == 'ZCU216':
-            # master clock generator is LMK04828, which is used for DAC/ADC clocks
+            # master clock generator is LMK04828, which is used for DAC/ADC clocks (no MTS configuration)
             # only 245.76 available by default
             # LMX2594 is not used
             # available: 102.4, 204.8, 409.6, 491.52, 737.0
@@ -1107,6 +1126,8 @@ class QickSoc(Overlay, QickConfig):
                 # default value is 0x012C22
                 xrfclk.xrfclk._Config['lmk04828'][lmk_freq][55] = 0x012C02
             xrfclk.set_ref_clks(lmk_freq=lmk_freq, lmx_freq=lmx_freq)
+            self.ACTIVE_DAC_TILES = ZCU216_DAC_TILES
+            self.ACTIVE_ADC_TILES = ZCU216_ADC_TILES
         elif self['board'] == 'RFSoC4x2':
             # master clock generator is LMK04828, always outputs 245.76
             # DAC/ADC are clocked by LMX2594
@@ -1122,6 +1143,8 @@ class QickSoc(Overlay, QickConfig):
                 # default value is 0x01471A
                 xrfclk.xrfclk._Config['lmk04828'][lmk_freq][80] = 0x01470A
             xrfclk.set_ref_clks(lmk_freq=lmk_freq, lmx_freq=lmx_freq)
+            self.ACTIVE_DAC_TILES = RFSOC4X2_DAC_TILES
+            self.ACTIVE_ADC_TILES = RFSOC4X2_ADC_TILES
 
         # wait for the clock chips to lock
         time.sleep(1.0)
@@ -1132,6 +1155,77 @@ class QickSoc(Overlay, QickConfig):
         # or: reset PL, wait for reset
         #self.pl_reset(reinit=False)
         #time.sleep(1.0)
+        for name, ip in self.ip_dict.items():
+            if ip['driver'].__name__ == "RFDC":
+                self.xrfdc = getattr(self, name)
+                #print(f"Found RFDC: {name}")
+                break
+        self.xrfdc.mts_dac_config.RefTile = DAC_REF_TILE  # DAC tile distributing reference clock
+        self.xrfdc.mts_adc_config.RefTile = ADC_REF_TILE  # ADC
+
+    #MTS config
+    def sync_tiles(self, dacTarget=-1, adcTarget=-1):
+        """ Configures RFSoC MTS alignment"""
+        # Set which RF tiles use MTS and turn MTS off
+        if self.ACTIVE_DAC_TILES > 0:
+            self.xrfdc.mts_dac_config.Tiles = self.ACTIVE_DAC_TILES # group defined in binary 0b1111
+            self.xrfdc.mts_dac_config.SysRef_Enable = 1
+            self.xrfdc.mts_dac_config.Target_Latency = dacTarget
+            self.xrfdc.mts_dac()
+        else:
+            self.xrfdc.mts_dac_config.Tiles = 0x0
+            self.xrfdc.mts_dac_config.SysRef_Enable = 0
+        if self.ACTIVE_ADC_TILES > 0:
+            self.xrfdc.mts_adc_config.Tiles = self.ACTIVE_ADC_TILES
+            self.xrfdc.mts_adc_config.SysRef_Enable = 1
+            self.xrfdc.mts_adc_config.Target_Latency = adcTarget
+            self.xrfdc.mts_adc()
+        else:
+            self.xrfdc.mts_adc_config.Tiles = 0x0
+            self.xrfdc.mts_adc_config.SysRef_Enable = 0
+
+    def init_tile_sync(self):
+        """ Resets the MTS alignment engine"""
+        self.xrfdc.mts_dac_config.Tiles = 0b0001 # turn only one tile on first
+        self.xrfdc.mts_adc_config.Tiles = 0b0001
+        self.xrfdc.mts_dac_config.SysRef_Enable = 1
+        self.xrfdc.mts_adc_config.SysRef_Enable = 1
+        self.xrfdc.mts_dac_config.Target_Latency = -1
+        self.xrfdc.mts_adc_config.Target_Latency = -1
+
+        self.xrfdc.mts_dac()
+        self.xrfdc.mts_adc()
+
+        # Reset MTS ClockWizard MMCM - refer to PG065
+        self.clocktreeMTS.MTSclkwiz.mmio.write_reg(CLOCKWIZARD_RESET_ADDRESS, CLOCKWIZARD_RESET_TOKEN)
+        #if ADC clock and DAC clock differs, this is necessary
+        self.clocktreeMTS.MTSclkwiz_ADC.mmio.write_reg(CLOCKWIZARD_RESET_ADDRESS, CLOCKWIZARD_RESET_TOKEN)
+        time.sleep(0.1)
+
+        # Reset only user selected DAC tiles
+        bitvector = self.ACTIVE_DAC_TILES
+
+        for n in range(MAX_DAC_TILES):
+            if (bitvector & 0x1):
+                self.xrfdc.dac_tiles[n].Reset()
+            bitvector >>= 1
+        
+        # --- Step 4: Properly toggle ADC FIFOs ---
+        bitvector = self.ACTIVE_ADC_TILES
+        for n in range(MAX_ADC_TILES):
+            if bitvector & 0x1:
+                self.xrfdc.adc_tiles[n].SetupFIFOBoth(1)
+                self.xrfdc.adc_tiles[n].SetupFIFOBoth(0)
+            bitvector >>= 1
+
+    def verify_clock_tree(self):
+        """ Verify the PL and PL_SYSREF clocks are active by verifying an MMCM is in the LOCKED state"""
+        Xstatus = self.clocktreeMTS.MTSclkwiz.read(CLOCKWIZARD_LOCK_ADDRESS) # reads the LOCK register
+        # the ClockWizard AXILite registers are NOT fully mapped: refer to PG065
+        if (Xstatus != 1):
+            raise Exception("The MTS ClockTree has failed to LOCK. Please verify board clocking configuration")
+
+    #end of MTS config
 
     def pl_reset(self, reinit=True):
         """Reset all firmware IP blocks.
