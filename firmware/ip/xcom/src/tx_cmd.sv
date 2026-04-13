@@ -62,6 +62,7 @@ module tx_cmd(
    input  logic [4-1:0]  i_cfg_tick ,
    input  logic          i_cfg_clk_pol,
    input  logic          i_cfg_sync_dis,
+   input  logic [32-1:0] i_xcom_tx_oddr,
    // Transmission 
    input  logic          i_req      ,
    input  logic [8-1:0]  i_header   ,
@@ -81,6 +82,7 @@ logic s_xcmd_sync;
 logic s_sync;
 
 typedef enum logic [2-1:0]{ IDLE  = 2'b00, 
+                            BIST  = 2'b01,
                             WSYNC = 2'b10, 
                             WRDY  = 2'b11 
 } state_t;
@@ -113,45 +115,94 @@ always_comb begin
    s_tx_valid  = 1'b0;
    case (state_r)
       IDLE:  begin
+         if ( s_cfg_bist_en ) begin
+            state_n = BIST;
+         end
          if ( i_req ) begin
             if ( s_xcmd_sync ) begin
                state_n = WSYNC;     
             end else begin
                s_tx_valid = 1'b1;
                state_n    = WRDY;
-               //state_n    = WVLD;     
+               //state_n    = WVLD;
             end
          end
       end
-      //WVLD: begin
-      //   s_tx_valid = 1'b1;
-      //   state_n    = WRDY;
-      //end
       WSYNC:  begin
          if ( s_sync ) begin 
             s_tx_valid = 1'b1;
-            state_n    = WRDY;     
+            state_n    = WRDY;
          end
       end
       WRDY:  begin
-         if ( !i_req & s_ready ) state_n = IDLE;     
+         if ( !i_req & s_ready ) state_n = IDLE;
+      end
+      BIST: begin
+         if ( !s_cfg_bist_en ) state_n = IDLE;
+         s_tx_valid = 1'b1;
+
       end
       default: state_n = state_r;
    endcase
 end
 
+logic [8:0] s_oddr_dly_value;
+logic s_oddr_dly_ce, s_oddr_dly_inc;
+logic s_cfg_clk_boost;
+logic s_cfg_bist_en;
+
+assign s_cfg_clk_boost = i_xcom_tx_oddr[15];
+assign s_cfg_bist_en   = i_xcom_tx_oddr[31];
+
 xcom_link_tx u_xcom_link_tx(
-  .i_clk          ( i_clk           ),
-  .i_rstn         ( i_rstn          ),
-  .i_cfg_tick     ( i_cfg_tick      ),
-  .i_cfg_clk_pol  ( i_cfg_clk_pol   ),
-  .i_valid        ( s_tx_valid      ),
-  .i_header       ( i_header        ),
-  .i_data         ( i_data          ), 
-  .o_ready        ( s_ready         ),
-  .o_data         ( o_data          ),
-  .o_clk          ( o_clk           )
+  .i_clk             ( i_clk           ),
+  .i_rstn            ( i_rstn          ),
+  .i_cfg_tick        ( i_cfg_tick      ),
+  .i_cfg_clk_pol     ( i_cfg_clk_pol   ),
+  .i_cfg_clk_boost   ( s_cfg_clk_boost ),
+  .i_oddr_dly_ce     ( s_oddr_dly_ce  ),
+  .i_oddr_dly_inc    ( s_oddr_dly_inc ),
+  .i_valid           ( s_tx_valid      ),
+  .i_header          ( ~s_cfg_bist_en ? i_header : 8'hAA ),
+  .i_data            ( ~s_cfg_bist_en ? i_data : {~bist_cnt_r, bist_cnt_r} ),
+  .o_oddr_dly_value  ( s_oddr_dly_value ),
+  .o_ready           ( s_ready         ),
+  .o_data            ( o_data          ),
+  .o_clk             ( o_clk           )
 );
+
+logic [1:0] s_oddr_dly_busy;
+logic [3:0] bist_cnt_r;
+
+always_ff @(posedge i_clk) begin
+   if ( !i_rstn ) begin
+      s_oddr_dly_ce <= 0;
+      s_oddr_dly_inc <= 0;
+      s_oddr_dly_busy <= 0;
+      bist_cnt_r <= 0;
+   end else begin
+      if (s_oddr_dly_busy == 0 && s_oddr_dly_value != i_xcom_tx_oddr[8:0]) begin
+         s_oddr_dly_ce  <= 1;
+         s_oddr_dly_inc <= (s_oddr_dly_value < i_xcom_tx_oddr[8:0]) ? 1 : 0;
+         s_oddr_dly_busy <= 1;
+      end 
+      else begin
+         s_oddr_dly_busy <= {s_oddr_dly_busy[0], 1'b0};
+         s_oddr_dly_ce  <= 0;
+         s_oddr_dly_inc <= 0;
+      end
+      if (s_cfg_bist_en) begin
+         if (o_ready) begin
+            bist_cnt_r <= bist_cnt_r + 1;
+         end
+      end else begin
+         bist_cnt_r <= 0;
+      end
+   end
+   
+end
+
+
 
 // OUTPUTS
 assign o_ready     = s_ready;

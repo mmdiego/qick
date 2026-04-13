@@ -409,7 +409,7 @@ initial begin
       #10ns;
 
       // Configure XCOM clock frequency
-      WRITE_AXI_XCOM(REG_XCOM_CFG, 'd4 || (1<<28));
+      WRITE_AXI_XCOM(REG_XCOM_CFG, 'd0);
 
       //-----------------------------------------------------------------------
       // NOTE: This code writes and reads local memory using the LOC command
@@ -478,10 +478,11 @@ initial begin
       #100ns
 
       // Disable sync signal and enable loopback
-      WRITE_AXI_XCOM(REG_XCOM_CFG, 4 | (1 << 28) | (1 << 31) );
+      WRITE_AXI_XCOM(REG_XCOM_CFG, 'd0 | (1 << 28) /*| (1 << 31)*/ );
       #100ns
 
-      #10us;
+      #2us;
+      // #10us;
 
       // Send QRST_CMD
       WRITE_AXI_XCOM(REG_XCOM_AXI_DATA1, 0);

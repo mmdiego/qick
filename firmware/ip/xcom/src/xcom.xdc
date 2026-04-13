@@ -1,23 +1,24 @@
 # Create clocks for XCOM RX lanes
-create_clock -name xcom_rx_clk_0  -period 8.0 [get_ports i_xcom_clk_p[0]] -waveform {2.0 6.0}    ; # one interface must be always present
-create_clock -name xcom_rx_clk_1  -period 8.0 [get_ports i_xcom_clk_p[1]] -waveform {2.0 6.0} -quiet 
-create_clock -name xcom_rx_clk_2  -period 8.0 [get_ports i_xcom_clk_p[2]] -waveform {2.0 6.0} -quiet 
-create_clock -name xcom_rx_clk_3  -period 8.0 [get_ports i_xcom_clk_p[3]] -waveform {2.0 6.0} -quiet 
-create_clock -name xcom_rx_clk_4  -period 8.0 [get_ports i_xcom_clk_p[4]] -waveform {2.0 6.0} -quiet 
-create_clock -name xcom_rx_clk_5  -period 8.0 [get_ports i_xcom_clk_p[5]] -waveform {2.0 6.0} -quiet 
-create_clock -name xcom_rx_clk_6  -period 8.0 [get_ports i_xcom_clk_p[6]] -waveform {2.0 6.0} -quiet 
-create_clock -name xcom_rx_clk_7  -period 8.0 [get_ports i_xcom_clk_p[7]] -waveform {2.0 6.0} -quiet 
-create_clock -name xcom_rx_clk_8  -period 8.0 [get_ports i_xcom_clk_p[8]] -waveform {2.0 6.0} -quiet 
-create_clock -name xcom_rx_clk_9  -period 8.0 [get_ports i_xcom_clk_p[9]] -waveform {2.0 6.0} -quiet 
-create_clock -name xcom_rx_clk_10 -period 8.0 [get_ports i_xcom_clk_p[10]]-waveform {2.0 6.0} -quiet 
-create_clock -name xcom_rx_clk_11 -period 8.0 [get_ports i_xcom_clk_p[11]]-waveform {2.0 6.0} -quiet 
-create_clock -name xcom_rx_clk_12 -period 8.0 [get_ports i_xcom_clk_p[12]]-waveform {2.0 6.0} -quiet 
-create_clock -name xcom_rx_clk_13 -period 8.0 [get_ports i_xcom_clk_p[13]]-waveform {2.0 6.0} -quiet 
-create_clock -name xcom_rx_clk_14 -period 8.0 [get_ports i_xcom_clk_p[14]]-waveform {2.0 6.0} -quiet 
-create_clock -name xcom_rx_clk_15 -period 8.0 [get_ports i_xcom_clk_p[15]]-waveform {2.0 6.0} -quiet 
+set rx_clk_period 4.0
+create_clock -name xcom_rx_clk_0  -period $rx_clk_period [get_ports i_xcom_clk_p[0]] -waveform {1.0 3.0}    ; # one interface must be always present
+create_clock -name xcom_rx_clk_1  -period $rx_clk_period [get_ports i_xcom_clk_p[1]] -waveform {1.0 3.0} -quiet 
+create_clock -name xcom_rx_clk_2  -period $rx_clk_period [get_ports i_xcom_clk_p[2]] -waveform {1.0 3.0} -quiet 
+create_clock -name xcom_rx_clk_3  -period $rx_clk_period [get_ports i_xcom_clk_p[3]] -waveform {1.0 3.0} -quiet 
+create_clock -name xcom_rx_clk_4  -period $rx_clk_period [get_ports i_xcom_clk_p[4]] -waveform {1.0 3.0} -quiet 
+create_clock -name xcom_rx_clk_5  -period $rx_clk_period [get_ports i_xcom_clk_p[5]] -waveform {1.0 3.0} -quiet 
+create_clock -name xcom_rx_clk_6  -period $rx_clk_period [get_ports i_xcom_clk_p[6]] -waveform {1.0 3.0} -quiet 
+create_clock -name xcom_rx_clk_7  -period $rx_clk_period [get_ports i_xcom_clk_p[7]] -waveform {1.0 3.0} -quiet 
+create_clock -name xcom_rx_clk_8  -period $rx_clk_period [get_ports i_xcom_clk_p[8]] -waveform {1.0 3.0} -quiet 
+create_clock -name xcom_rx_clk_9  -period $rx_clk_period [get_ports i_xcom_clk_p[9]] -waveform {1.0 3.0} -quiet 
+create_clock -name xcom_rx_clk_10 -period $rx_clk_period [get_ports i_xcom_clk_p[10]]-waveform {1.0 3.0} -quiet 
+create_clock -name xcom_rx_clk_11 -period $rx_clk_period [get_ports i_xcom_clk_p[11]]-waveform {1.0 3.0} -quiet 
+create_clock -name xcom_rx_clk_12 -period $rx_clk_period [get_ports i_xcom_clk_p[12]]-waveform {1.0 3.0} -quiet 
+create_clock -name xcom_rx_clk_13 -period $rx_clk_period [get_ports i_xcom_clk_p[13]]-waveform {1.0 3.0} -quiet 
+create_clock -name xcom_rx_clk_14 -period $rx_clk_period [get_ports i_xcom_clk_p[14]]-waveform {1.0 3.0} -quiet 
+create_clock -name xcom_rx_clk_15 -period $rx_clk_period [get_ports i_xcom_clk_p[15]]-waveform {1.0 3.0} -quiet 
 
 # Virtual clock that drives the data of the External Source Device for XCOM RX lanes
-create_clock -name xcom_clk_virt -period 8.0 
+create_clock -name xcom_clk_virt -period $rx_clk_period 
 
 
 # Create generated clock for XCOM TX lane

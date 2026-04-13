@@ -45,6 +45,7 @@ module rx_cmd # (
    input  logic           i_cfg_clk_pha    ,
    input  logic           i_cfg_auto_pha   ,
    input  logic           i_cfg_loopback   ,
+   input  logic [32-1:0]  i_xcom_rx_iddr   ,
    // XCOM CNX
    input  logic [NCH-1:0] i_xcom_data      ,
    input  logic [NCH-1:0] i_xcom_clk       ,
@@ -82,18 +83,19 @@ genvar k;
 generate
    for (k=0; k < NCH ; k=k+1) begin: RX
       xcom_link_rx u_xcom_link_rx(
-         .i_clk      ( i_clk          ),
-         .i_rstn     ( i_rstn         ),
-         .i_id       ( i_id           ),
-         .i_pha      ( i_cfg_clk_pha  ),
-         .i_auto_pha ( i_cfg_auto_pha ),
-         .o_req      ( s_req[k]       ),
-         .i_ack      ( s_ack[k]       ),
-         .o_cmd      ( s_cmd[k]       ),
-         .o_data     ( s_data[k]      ),
-         .i_xcom_data( i_xcom_data[k] ),
-         .i_xcom_clk ( i_xcom_clk[k]  ),
-         .o_dbg_state( s_dbg_state[k] )
+         .i_clk               ( i_clk          ),
+         .i_rstn              ( i_rstn         ),
+         .i_id                ( i_id           ),
+         .i_pha               ( i_cfg_clk_pha  ),
+         .i_auto_pha          ( i_cfg_auto_pha ),
+         .i_xcom_rx_iddr      ( i_xcom_rx_iddr ),
+         .o_req               ( s_req[k]       ),
+         .i_ack               ( s_ack[k]       ),
+         .o_cmd               ( s_cmd[k]       ),
+         .o_data              ( s_data[k]      ),
+         .i_xcom_data         ( i_xcom_data[k] ),
+         .i_xcom_clk          ( i_xcom_clk[k]  ),
+         .o_dbg_state         ( s_dbg_state[k] )
       );
       //debug
       assign o_dbg_state[k]  = s_dbg_state[k];
@@ -109,6 +111,7 @@ generate
    if (LOOPBACK == 0) begin : GEN_NO_LOOPBACK
       assign s_req_int  = s_req ;
    end else begin : GEN_LOOPBACK
+      // when loopback is enabled, the req either comes from the real channel if cfg_loopback is 0, or from the loopback channel if cfg_loopback is 1.
       assign s_req_int  = ~i_cfg_loopback ? {1'b0,s_req[NCH-2:0]} : {s_req[NCH-1:1],1'b0};
    end
 endgenerate

@@ -46,6 +46,8 @@ module xcom_axil_slv #(
     output logic [C_S_AXI_DATA_WIDTH-1:0]   o_xcom_axi_data1, //out std_logic_vector (31 downto 0) ;
     output logic [C_S_AXI_DATA_WIDTH-1:0]   o_xcom_axi_data2, //out std_logic_vector (31 downto 0) ;
     output logic [C_S_AXI_DATA_WIDTH-1:0]   o_xcom_axi_addr,  //out std_logic_vector ( 3 downto 0) ;
+    output logic [C_S_AXI_DATA_WIDTH-1:0]   o_xcom_rx_iddr,   //out std_logic_vector ( 3 downto 0) ;
+    output logic [C_S_AXI_DATA_WIDTH-1:0]   o_xcom_tx_oddr,   //out std_logic_vector ( 3 downto 0) ;
     input  logic [C_S_AXI_DATA_WIDTH-1:0]   i_board_id,       //in  std_logic_vector ( 3 downto 0) ;
     input  logic [C_S_AXI_DATA_WIDTH-1:0]   i_xcom_flag,      //in  std_logic ;
     input  logic [C_S_AXI_DATA_WIDTH-1:0]   i_xcom_data1,     //in  std_logic_vector (31 downto 0) ;
@@ -427,5 +429,7 @@ module xcom_axil_slv #(
     assign o_xcom_axi_data1 = slave_registers[2];
     assign o_xcom_axi_data2 = slave_registers[3];
     assign o_xcom_axi_addr  = slave_registers[4];
+    assign o_xcom_rx_iddr   = slave_registers[5];
+    assign o_xcom_tx_oddr   = slave_registers[6];
 
 endmodule

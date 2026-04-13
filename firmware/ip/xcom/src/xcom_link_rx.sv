@@ -36,21 +36,22 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 module xcom_link_rx (
-    input  logic            i_clk          ,
-    input  logic            i_rstn         ,
-    input  logic  [4-1:0]   i_id           ,
-    input  logic            i_pha          ,
-    input  logic            i_auto_pha     ,
-    // Command Processing    
-    input  logic            i_ack          ,
-    output logic            o_req          ,
-    output logic  [4-1:0]   o_cmd          ,
-    output logic [32-1:0]   o_data         ,
-    // Xwire COM
-    input  logic            i_xcom_data    ,
-    input  logic            i_xcom_clk     ,
-    // XCOM RX DEBUG
-    output logic  [5-1:0]   o_dbg_state      
+   input  logic            i_clk          ,
+   input  logic            i_rstn         ,
+   input  logic  [4-1:0]   i_id           ,
+   input  logic            i_pha          ,
+   input  logic            i_auto_pha     ,
+   input  logic [32-1:0]   i_xcom_rx_iddr ,
+   // Command Processing    
+   input  logic            i_ack          ,
+   output logic            o_req          ,
+   output logic  [4-1:0]   o_cmd          ,
+   output logic [32-1:0]   o_data         ,
+   // Xwire COM
+   input  logic            i_xcom_data    ,
+   input  logic            i_xcom_clk     ,
+   // XCOM RX DEBUG
+   output logic  [5-1:0]   o_dbg_state      
 );
 
 
@@ -86,13 +87,15 @@ logic [1:0] data_cntr_r, data_cntr_n       ; // Receive up to 4 data words
 logic [3:0] s_auto_pha;
 logic       s_pha;
 
+logic ddr_last_toggle;
+logic ddr_last_toggle_pos;
+
+
 // DDR - RX Serial to Paralel
 ///////////////////////////////////////////////////////////////////////////////
 
 logic [3:0] ddr_data0_reg_pos, ddr_data0_reg_neg;
 logic [3:0] ddr_data1_reg_pos, ddr_data1_reg_neg;
-logic ddr_last_toggle;
-logic ddr_last_toggle_pos;
 always_ff @ (posedge i_xcom_clk) begin
    if (s_pha == 0)
       if (ddr_last_toggle == 0) begin
@@ -122,6 +125,119 @@ always_ff @ (negedge i_xcom_clk) begin
       end
 end
 
+logic [8:0] idly_cntvalueout;
+
+IDELAYE3 #(
+      .CASCADE           ("NONE"),              // Cascade setting (MASTER, NONE, SLAVE_END, SLAVE_MIDDLE)
+      // .DELAY_FORMAT   ("TIME"),                 // Units of the DELAY_VALUE (COUNT, TIME)
+      .DELAY_FORMAT      ("COUNT"),             // Units of the DELAY_VALUE (COUNT, TIME)
+      .DELAY_SRC         ("IDATAIN"),           // Delay input (DATAIN, IDATAIN)
+      // .DELAY_SRC      ("DATAIN"),               // Delay input (DATAIN, IDATAIN)
+      // .DELAY_TYPE        ("FIXED"),             // Set the type of tap delay line (FIXED, VARIABLE, VAR_LOAD)
+      .DELAY_TYPE        ("VARIABLE"),          // Set the type of tap delay line (FIXED, VARIABLE, VAR_LOAD)
+      .DELAY_VALUE       (0),                   // Input delay value setting
+      .IS_CLK_INVERTED   (1'b0),                // Optional inversion for CLK
+      .IS_RST_INVERTED   (1'b0),                // Optional inversion for RST
+      .REFCLK_FREQUENCY  (300.0),               // IDELAYCTRL clock input frequency in MHz (200.0-800.0)
+      .SIM_DEVICE        ("ULTRASCALE_PLUS"),   // Set the device version for simulation functionality (ULTRASCALE,
+                                                // ULTRASCALE_PLUS, ULTRASCALE_PLUS_ES1, ULTRASCALE_PLUS_ES2)
+      .UPDATE_MODE       ("ASYNC")              // Determines when updates to the delay will take effect (ASYNC, MANUAL,
+                                                // SYNC)
+   )
+   IDELAYE3_xcom_data (
+      // Outputs
+      .CASC_OUT         (),                     // 1-bit output: Cascade delay output to ODELAY input cascade
+      .CNTVALUEOUT      (idly_cntvalueout),     // 9-bit output: Counter value output
+      .DATAOUT          (i_xcom_data_delay),    // 1-bit output: Delayed data output
+      // Inputs
+      .CASC_IN          (1'b0),                 // 1-bit input: Cascade delay input from slave ODELAY CASCADE_OUT
+      .CASC_RETURN      (1'b0),                 // 1-bit input: Cascade delay returning from slave ODELAY DATAOUT
+      .CLK              (i_clk),                // 1-bit input: Clock input (UNUSED IN FIXED MODE)
+      .CE               (s_iddr_dly_ce),        // 1-bit input: Active-High enable increment/decrement input
+      .INC              (s_iddr_dly_inc),       // 1-bit input: Increment / Decrement tap delay input
+      .LOAD             (1'b0),                 // 1-bit input: Load DELAY_VALUE input
+      .CNTVALUEIN       (9'd0),                 // 9-bit input: Counter value input
+      .EN_VTC           (1'b0),                 // 1-bit input: Keep delay constant over VT
+      .IDATAIN          (i_xcom_data),          // 1-bit input: Data input from the IOBUF
+      .DATAIN           (1'b0),                 // 1-bit input: Data input from the logic
+      .RST              (~i_rstn)               // 1-bit input: Asynchronous Reset to the DELAY_VALUE
+   );
+
+
+logic iddr_data_reg_h;
+logic iddr_data_reg_l;
+
+// IDDRE1: Dedicated Double Data Rate (DDR) Input Register
+//         Virtex UltraScale+
+// Xilinx HDL Language Template, version 2023.1
+
+IDDRE1 #(
+   .DDR_CLK_EDGE     ("OPPOSITE_EDGE"),   // IDDRE1 mode (OPPOSITE_EDGE, SAME_EDGE, SAME_EDGE_PIPELINED)
+   .IS_C_INVERTED    (1'b0),              // Optional inversion for C
+   .IS_CB_INVERTED   (1'b1)               // Optional inversion for CB
+)
+IDDRE1_inst (
+   .R                (1'b0),              // 1-bit input: Active-High Async Reset
+   .CB               (i_xcom_clk),       // 1-bit input: Inversion of High-speed clock C
+   .C                (i_xcom_clk),        // 1-bit input: High-speed clock
+   .D                (i_xcom_data_delay),       // 1-bit input: Serial Data Input
+   .Q1               (iddr_data_reg_h),   // 1-bit output: Registered parallel output 1
+   .Q2               (iddr_data_reg_l)    // 1-bit output: Registered parallel output 2
+);
+
+
+// IDDR - RX Serial to Paralel
+///////////////////////////////////////////////////////////////////////////////
+
+logic [3:0] iddr_data0_reg_pos, iddr_data0_reg_neg;
+logic [3:0] iddr_data1_reg_pos, iddr_data1_reg_neg;
+always_ff @ (posedge i_xcom_clk) begin
+   if (s_pha == 0)
+      if (ddr_last_toggle == 0) begin
+         iddr_data0_reg_pos[3:1] <= {iddr_data0_reg_pos[2:1], iddr_data_reg_h};
+      end else begin
+         iddr_data1_reg_pos[3:1] <= {iddr_data1_reg_pos[2:1], iddr_data_reg_h};
+      end
+   else
+      if (ddr_last_toggle_pos == 0) begin
+         iddr_data0_reg_pos[3:1] <= {iddr_data0_reg_pos[2:1], iddr_data_reg_h};
+      end else begin
+         iddr_data1_reg_pos[3:1] <= {iddr_data1_reg_pos[2:1], iddr_data_reg_h};
+      end
+end
+always_ff @ (negedge i_xcom_clk) begin
+   if (s_pha == 0)
+      if (ddr_last_toggle == 0) begin
+         iddr_data0_reg_neg[3:1] <= {iddr_data0_reg_neg[2:1], iddr_data_reg_l};
+      end else begin
+         iddr_data1_reg_neg[3:1] <= {iddr_data1_reg_neg[2:1], iddr_data_reg_l};
+      end
+   else
+      if (ddr_last_toggle_pos == 0) begin
+         iddr_data0_reg_neg[3:1] <= {iddr_data0_reg_neg[2:1], iddr_data_reg_l};
+      end else begin
+         iddr_data1_reg_neg[3:1] <= {iddr_data1_reg_neg[2:1], iddr_data_reg_l};
+      end
+end
+assign iddr_data0_reg_pos[0] = iddr_data_reg_h;
+assign iddr_data0_reg_neg[0] = iddr_data_reg_l;
+assign iddr_data1_reg_pos[0] = iddr_data_reg_h;
+assign iddr_data1_reg_neg[0] = iddr_data_reg_l;
+
+
+logic [3:0] data0_reg_pos, data0_reg_neg;
+logic [3:0] data1_reg_pos, data1_reg_neg;
+// assign data0_reg_pos = ddr_data0_reg_pos;
+// assign data0_reg_neg = ddr_data0_reg_neg;
+// assign data1_reg_pos = ddr_data1_reg_pos;
+// assign data1_reg_neg = ddr_data1_reg_neg;
+
+assign data0_reg_pos = iddr_data0_reg_pos;
+assign data0_reg_neg = iddr_data0_reg_neg;
+assign data1_reg_pos = iddr_data1_reg_pos;
+assign data1_reg_neg = iddr_data1_reg_neg;
+
+
 
 // DDR Bit Counter
 ///////////////////////////////////////////////////////////////////////////////
@@ -141,28 +257,6 @@ logic ddr_first_bits;
 assign ddr_first_bits = ddr_bit_cntr[0];
 logic ddr_last_bits;
 assign ddr_last_bits  = ddr_bit_cntr[3];
-
-
-// // IDDR: Input Double Data Rate Input Register with Set, Reset
-// //       and Clock Enable.
-// //       7 Series
-// // Xilinx HDL Language Template, version 2025.1
-
-// IDDR #(
-//    .DDR_CLK_EDGE  ("OPPOSITE_EDGE"),   // "OPPOSITE_EDGE", "SAME_EDGE"
-//                                        //    or "SAME_EDGE_PIPELINED"
-//    .INIT_Q1       (1'b0),              // Initial value of Q1: 1'b0 or 1'b1
-//    .INIT_Q2       (1'b0),              // Initial value of Q2: 1'b0 or 1'b1
-//    .SRTYPE        ("SYNC")             // Set/Reset type: "SYNC" or "ASYNC"
-// ) IDDR_inst (
-//    .R             (1'b0),              // 1-bit reset
-//    .S             (1'b0),              // 1-bit set
-//    .CE            (1'b1),              // 1-bit clock enable input
-//    .C             (i_xcom_clk),        // 1-bit clock input
-//    .D             (i_xcom_data),       // 1-bit DDR data input
-//    .Q1            (ddr_data_reg_h),   // 1-bit output for positive edge of clock
-//    .Q2            (ddr_data_reg_l)    // 1-bit output for negative edge of clock
-// );
 
 
 always_ff @ (negedge i_xcom_clk, negedge i_rstn) begin
@@ -235,15 +329,15 @@ always_ff @ (posedge i_clk) begin
          ddr_data_dv      <= ddr_last_sync_edge;
          if (ddr_last_sync_edge) begin
             if (~ddr_last_toggle) begin
-               ddr_data_cdc   <= {ddr_data1_reg_pos[3], ddr_data1_reg_neg[3],
-                                    ddr_data1_reg_pos[2], ddr_data1_reg_neg[2],
-                                    ddr_data1_reg_pos[1], ddr_data1_reg_neg[1],
-                                    ddr_data1_reg_pos[0], ddr_data1_reg_neg[0]};
+               ddr_data_cdc   <= {data1_reg_pos[3], data1_reg_neg[3],
+                                    data1_reg_pos[2], data1_reg_neg[2],
+                                    data1_reg_pos[1], data1_reg_neg[1],
+                                    data1_reg_pos[0], data1_reg_neg[0]};
             end else begin
-               ddr_data_cdc   <= {ddr_data0_reg_pos[3], ddr_data0_reg_neg[3],
-                                    ddr_data0_reg_pos[2], ddr_data0_reg_neg[2],
-                                    ddr_data0_reg_pos[1], ddr_data0_reg_neg[1],
-                                    ddr_data0_reg_pos[0], ddr_data0_reg_neg[0]};
+               ddr_data_cdc   <= {data0_reg_pos[3], data0_reg_neg[3],
+                                    data0_reg_pos[2], data0_reg_neg[2],
+                                    data0_reg_pos[1], data0_reg_neg[1],
+                                    data0_reg_pos[0], data0_reg_neg[0]};
             end
          end
       end
@@ -251,15 +345,15 @@ always_ff @ (posedge i_clk) begin
          ddr_data_dv      <= ddr_last_pos_sync_edge;
          if (ddr_last_pos_sync_edge) begin
             if (~ddr_last_toggle_pos) begin
-               ddr_data_cdc   <= {ddr_data1_reg_neg[3], ddr_data1_reg_pos[3],
-                                    ddr_data1_reg_neg[2], ddr_data1_reg_pos[2],
-                                    ddr_data1_reg_neg[1], ddr_data1_reg_pos[1],
-                                    ddr_data1_reg_neg[0], ddr_data1_reg_pos[0]};
+               ddr_data_cdc   <= {data1_reg_neg[3], data1_reg_pos[3],
+                                    data1_reg_neg[2], data1_reg_pos[2],
+                                    data1_reg_neg[1], data1_reg_pos[1],
+                                    data1_reg_neg[0], data1_reg_pos[0]};
             end else begin
-               ddr_data_cdc   <= {ddr_data0_reg_neg[3], ddr_data0_reg_pos[3],
-                                    ddr_data0_reg_neg[2], ddr_data0_reg_pos[2],
-                                    ddr_data0_reg_neg[1], ddr_data0_reg_pos[1],
-                                    ddr_data0_reg_neg[0], ddr_data0_reg_pos[0]};
+               ddr_data_cdc   <= {data0_reg_neg[3], data0_reg_pos[3],
+                                    data0_reg_neg[2], data0_reg_pos[2],
+                                    data0_reg_neg[1], data0_reg_pos[1],
+                                    data0_reg_neg[0], data0_reg_pos[0]};
             end
          end
       end
@@ -424,5 +518,30 @@ assign o_dbg_state  = {2'b00,state_r};
 assign o_req        = s_rx_req;
 assign o_cmd        = s_header_shreg[7:4];
 assign o_data       = s_data_shreg;
+
+
+logic [1:0] s_iddr_dly_busy;
+logic s_iddr_dly_ce;
+logic s_iddr_dly_inc;
+
+always_ff @(posedge i_clk) begin
+   if ( !i_rstn ) begin
+      s_iddr_dly_ce <= 0;
+      s_iddr_dly_inc <= 0;
+      s_iddr_dly_busy <= 0;
+   end else begin
+      if (s_iddr_dly_busy == 0 && idly_cntvalueout != i_xcom_rx_iddr[8:0]) begin
+         s_iddr_dly_ce  <= 1;
+         s_iddr_dly_inc <= (idly_cntvalueout < i_xcom_rx_iddr[8:0]) ? 1 : 0;
+         s_iddr_dly_busy <= 1;
+      end 
+      else begin
+         s_iddr_dly_busy <= {s_iddr_dly_busy[0], 1'b0};
+         s_iddr_dly_ce  <= 0;
+         s_iddr_dly_inc <= 0;
+      end
+   end
    
+end
+
 endmodule

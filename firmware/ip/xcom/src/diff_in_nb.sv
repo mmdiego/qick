@@ -37,7 +37,10 @@ module i_diff_nb#(
   generate
     genvar i;
     for (i = 0; i < NB; i = i + 1) begin : ibufds_gen
-      IBUFDS ibuf_ds_inst (
+      IBUFDS #(
+        .DIFF_TERM ("TRUE")
+      ) 
+      ibuf_ds_inst (
         .O  (o_se[i]    ),
         .I  (i_diff_p[i]),
         .IB (i_diff_n[i])
