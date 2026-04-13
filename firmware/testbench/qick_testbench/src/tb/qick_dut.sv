@@ -25,7 +25,8 @@
 module qick_dut #(
    parameter N_DDS_SG = 16,
    parameter N_DDS_RO = 8,
-   parameter XCOM_NCH = 1
+   parameter XCOM_NCH = 1,
+   parameter MMCM_SIM_EN = 1  // Enable MMCM simulation
 )(
    // Core, Time and AXI CLK & RST. (match AXIS_QPROC port names)
    input  logic                t_clk,
@@ -1298,5 +1299,338 @@ module qick_dut #(
       .s_axi_rvalid       (/*s_axi_xcom_rvalid*/      ),
       .s_axi_rready       (/*s_axi_xcom_rready*/      )
    );
+
+generate
+   if (MMCM_SIM_EN) begin: gen_mmcm_sim
+      // MMCM simulation
+
+      localparam real PL_F_CLK      =  122.88;     // (122.88 MHz)
+      localparam real PL_F_SYSREF   =  7.68;      // (7.68 MHz)
+
+      logic mmcm1_pl_clk, mmcm1_rst;
+      logic mmcm1_locked;
+      logic mmcm1_clkfb, mmcm1_clkfb_loop;
+      logic mmcm1_clk0, mmcm1_clk1, mmcm1_clk2;
+
+      initial begin
+         mmcm1_pl_clk = 1'b0;
+         forever #((1.0/(2*PL_F_CLK))*1.0us) mmcm1_pl_clk = ~mmcm1_pl_clk;
+      end
+
+      assign mmcm1_rst = ~t_resetn;
+      // assign #1.1ns mmcm1_clkfb_loop = mmcm1_clkfb;
+      assign        mmcm1_clkfb_loop = mmcm1_clk2;
+
+      // MMCME4_ADV: Advanced Mixed Mode Clock Manager (MMCM)
+      //             Virtex UltraScale+
+      // Xilinx HDL Language Template, version 2023.1
+
+      MMCME4_ADV #(
+         .BANDWIDTH("OPTIMIZED"),        // Jitter programming
+         // .CLKFBOUT_MULT_F(12.25),          // Multiply value for all CLKOUT
+         .CLKFBOUT_MULT_F(21),           // Multiply value for all CLKOUT
+         .CLKFBOUT_PHASE(0.0),           // Phase offset in degrees of CLKFB
+         .CLKFBOUT_USE_FINE_PS("FALSE"), // Fine phase shift enable (TRUE/FALSE)
+         // .CLKIN1_PERIOD(8.138),          // Input clock period in ns to ps resolution (i.e., 33.333 is 30 MHz).
+         .CLKIN1_PERIOD(8.138*2),          // Input clock period in ns to ps resolution (i.e., 33.333 is 30 MHz).
+         .CLKIN2_PERIOD(0.0),            // Input clock period in ns to ps resolution (i.e., 33.333 is 30 MHz).
+         // .CLKOUT0_DIVIDE_F(3.5),         // Divide amount for CLKOUT0
+         .CLKOUT0_DIVIDE_F(3),           // Divide amount for CLKOUT0
+         .CLKOUT0_DUTY_CYCLE(0.5),       // Duty cycle for CLKOUT0
+         .CLKOUT0_PHASE(0.0),            // Phase offset for CLKOUT0
+         .CLKOUT0_USE_FINE_PS("FALSE"),  // Fine phase shift enable (TRUE/FALSE)
+         // .CLKOUT1_DIVIDE(7),             // Divide amount for CLKOUT (1-128)
+         .CLKOUT1_DIVIDE(6),             // Divide amount for CLKOUT (1-128)
+         .CLKOUT1_DUTY_CYCLE(0.5),       // Duty cycle for CLKOUT outputs (0.001-0.999).
+         .CLKOUT1_PHASE(0.0),            // Phase offset for CLKOUT outputs (-360.000-360.000).
+         .CLKOUT1_USE_FINE_PS("FALSE"),  // Fine phase shift enable (TRUE/FALSE)
+         .CLKOUT2_DIVIDE(21),            // Divide amount for CLKOUT (1-128)
+         .CLKOUT2_DUTY_CYCLE(0.5),       // Duty cycle for CLKOUT outputs (0.001-0.999).
+         .CLKOUT2_PHASE(0.0),            // Phase offset for CLKOUT outputs (-360.000-360.000).
+         .CLKOUT2_USE_FINE_PS("FALSE"),  // Fine phase shift enable (TRUE/FALSE)
+         .CLKOUT3_DIVIDE(1),             // Divide amount for CLKOUT (1-128)
+         .CLKOUT3_DUTY_CYCLE(0.5),       // Duty cycle for CLKOUT outputs (0.001-0.999).
+         .CLKOUT3_PHASE(0.0),            // Phase offset for CLKOUT outputs (-360.000-360.000).
+         .CLKOUT3_USE_FINE_PS("FALSE"),  // Fine phase shift enable (TRUE/FALSE)
+         .CLKOUT4_CASCADE("FALSE"),      // Divide amount for CLKOUT (1-128)
+         .CLKOUT4_DIVIDE(1),             // Divide amount for CLKOUT (1-128)
+         .CLKOUT4_DUTY_CYCLE(0.5),       // Duty cycle for CLKOUT outputs (0.001-0.999).
+         .CLKOUT4_PHASE(0.0),            // Phase offset for CLKOUT outputs (-360.000-360.000).
+         .CLKOUT4_USE_FINE_PS("FALSE"),  // Fine phase shift enable (TRUE/FALSE)
+         .CLKOUT5_DIVIDE(1),             // Divide amount for CLKOUT (1-128)
+         .CLKOUT5_DUTY_CYCLE(0.5),       // Duty cycle for CLKOUT outputs (0.001-0.999).
+         .CLKOUT5_PHASE(0.0),            // Phase offset for CLKOUT outputs (-360.000-360.000).
+         .CLKOUT5_USE_FINE_PS("FALSE"),  // Fine phase shift enable (TRUE/FALSE)
+         .CLKOUT6_DIVIDE(1),             // Divide amount for CLKOUT (1-128)
+         .CLKOUT6_DUTY_CYCLE(0.5),       // Duty cycle for CLKOUT outputs (0.001-0.999).
+         .CLKOUT6_PHASE(0.0),            // Phase offset for CLKOUT outputs (-360.000-360.000).
+         .CLKOUT6_USE_FINE_PS("FALSE"),  // Fine phase shift enable (TRUE/FALSE)
+         .COMPENSATION("AUTO"),          // Clock input compensation
+         .DIVCLK_DIVIDE(1),              // Master division value
+         // .DIVCLK_DIVIDE(2),              // Master division value
+         .IS_CLKFBIN_INVERTED(1'b0),     // Optional inversion for CLKFBIN
+         .IS_CLKIN1_INVERTED(1'b0),      // Optional inversion for CLKIN1
+         .IS_CLKIN2_INVERTED(1'b0),      // Optional inversion for CLKIN2
+         .IS_CLKINSEL_INVERTED(1'b0),    // Optional inversion for CLKINSEL
+         .IS_PSEN_INVERTED(1'b0),        // Optional inversion for PSEN
+         .IS_PSINCDEC_INVERTED(1'b0),    // Optional inversion for PSINCDEC
+         .IS_PWRDWN_INVERTED(1'b0),      // Optional inversion for PWRDWN
+         .IS_RST_INVERTED(1'b0),         // Optional inversion for RST
+         .REF_JITTER1(0.010),              // Reference input jitter in UI (0.000-0.999).
+         .REF_JITTER2(0.010),              // Reference input jitter in UI (0.000-0.999).
+         .SS_EN("FALSE"),                // Enables spread spectrum
+         .SS_MODE("CENTER_HIGH"),        // Spread spectrum frequency deviation and the spread type
+         .SS_MOD_PERIOD(10000),          // Spread spectrum modulation period (ns)
+         .STARTUP_WAIT("FALSE")          // Delays DONE until MMCM is locked
+      )
+      MMCME4_ADV_mmcm1 (
+         .CDDCDONE(),                     // 1-bit output: Clock dynamic divide done
+         .CLKFBOUT(mmcm1_clkfb),           // 1-bit output: Feedback clock
+         .CLKFBOUTB(),                    // 1-bit output: Inverted CLKFBOUT
+         .CLKFBSTOPPED(),                 // 1-bit output: Feedback clock stopped
+         .CLKINSTOPPED(),                 // 1-bit output: Input clock stopped
+         .CLKOUT0(mmcm1_clk0),             // 1-bit output: CLKOUT0
+         .CLKOUT0B(),                     // 1-bit output: Inverted CLKOUT0
+         .CLKOUT1(mmcm1_clk1),             // 1-bit output: CLKOUT1
+         .CLKOUT1B(),                     // 1-bit output: Inverted CLKOUT1
+         .CLKOUT2(mmcm1_clk2),             // 1-bit output: CLKOUT2
+         .CLKOUT2B(),                     // 1-bit output: Inverted CLKOUT2
+         .CLKOUT3(),              // 1-bit output: CLKOUT3
+         .CLKOUT3B(),                     // 1-bit output: Inverted CLKOUT3
+         .CLKOUT4(),                      // 1-bit output: CLKOUT4
+         .CLKOUT5(),                      // 1-bit output: CLKOUT5
+         .CLKOUT6(),                      // 1-bit output: CLKOUT6
+         .DO(),                           // 16-bit output: DRP data output
+         .DRDY(),                         // 1-bit output: DRP ready
+         .LOCKED(mmcm1_locked),            // 1-bit output: LOCK
+         .PSDONE(),                       // 1-bit output: Phase shift done
+         // Inputs
+         .CDDCREQ(1'b0),                  // 1-bit input: Request to dynamic divide clock
+         .CLKFBIN(mmcm1_clkfb_loop),            // 1-bit input: Feedback clock
+         // .CLKIN1(mmcm1_pl_clk),                 // 1-bit input: Primary clock
+         .CLKIN1(mmcm1_pl_clk_div),                 // 1-bit input: Primary clock
+         .CLKIN2(1'b0),                   // 1-bit input: Secondary clock
+         .CLKINSEL(1'b1),                 // 1-bit input: Clock select, High=CLKIN1 Low=CLKIN2
+         .DADDR(7'd0),                    // 7-bit input: DRP address
+         .DCLK(1'b0),                     // 1-bit input: DRP clock
+         .DEN(1'b0),                      // 1-bit input: DRP enable
+         .DI(1'b0),                       // 16-bit input: DRP data input
+         .DWE(1'b0),                      // 1-bit input: DRP write enable
+         .PSCLK(1'b0),                    // 1-bit input: Phase shift clock
+         .PSEN(1'b0),                     // 1-bit input: Phase shift enable
+         .PSINCDEC(1'b0),                 // 1-bit input: Phase shift increment/decrement
+         .PWRDWN(1'b0),                   // 1-bit input: Power-down
+         .RST(mmcm1_rst)                  // 1-bit input: Reset
+      );
+
+      logic mmcm2_pl_clk, mmcm2_rst;
+      logic mmcm2_locked;
+      logic mmcm2_clk0, mmcm2_clk1, mmcm2_clk2;
+      logic mmcm2_clkfb, mmcm2_clkfb_loop;
+
+      initial begin
+         mmcm2_rst = 1'b1;
+         #900.3ns;
+         mmcm2_rst = 1'b0;
+      end
+      assign        mmcm2_pl_clk  = mmcm1_pl_clk;
+
+      assign mmcm2_clkfb_loop = mmcm2_clkfb;
+      // assign #0.1ns mmcm2_clkfb_loop = mmcm2_clk2;
+      // assign #0.1ns mmcm2_clkfb_loop = 1'b0;
+
+      MMCME4_ADV #(
+         .BANDWIDTH("OPTIMIZED"),        // Jitter programming
+         // .CLKFBOUT_MULT_F(12.25),     // Multiply value for all CLKOUT
+         .CLKFBOUT_MULT_F(21),           // Multiply value for all CLKOUT
+         .CLKFBOUT_PHASE(0.0),           // Phase offset in degrees of CLKFB
+         .CLKFBOUT_USE_FINE_PS("FALSE"), // Fine phase shift enable (TRUE/FALSE)
+         // .CLKIN1_PERIOD(8.138),          // Input clock period in ns to ps resolution (i.e., 33.333 is 30 MHz).
+         .CLKIN1_PERIOD(8.138*2),          // Input clock period in ns to ps resolution (i.e., 33.333 is 30 MHz).
+         .CLKIN2_PERIOD(0.0),            // Input clock period in ns to ps resolution (i.e., 33.333 is 30 MHz).
+         // .CLKOUT0_DIVIDE_F(3.5),      // Divide amount for CLKOUT0
+         .CLKOUT0_DIVIDE_F(3),           // Divide amount for CLKOUT0
+         .CLKOUT0_DUTY_CYCLE(0.5),       // Duty cycle for CLKOUT0
+         .CLKOUT0_PHASE(0.0),            // Phase offset for CLKOUT0
+         .CLKOUT0_USE_FINE_PS("FALSE"),  // Fine phase shift enable (TRUE/FALSE)
+         // .CLKOUT1_DIVIDE(7),          // Divide amount for CLKOUT (1-128)
+         .CLKOUT1_DIVIDE(6),             // Divide amount for CLKOUT (1-128)
+         .CLKOUT1_DUTY_CYCLE(0.5),       // Duty cycle for CLKOUT outputs (0.001-0.999).
+         .CLKOUT1_PHASE(0.0),            // Phase offset for CLKOUT outputs (-360.000-360.000).
+         .CLKOUT1_USE_FINE_PS("FALSE"),  // Fine phase shift enable (TRUE/FALSE)
+         .CLKOUT2_DIVIDE(21),            // Divide amount for CLKOUT (1-128)
+         .CLKOUT2_DUTY_CYCLE(0.5),       // Duty cycle for CLKOUT outputs (0.001-0.999).
+         .CLKOUT2_PHASE(0.0),            // Phase offset for CLKOUT outputs (-360.000-360.000).
+         .CLKOUT2_USE_FINE_PS("FALSE"),  // Fine phase shift enable (TRUE/FALSE)
+         .CLKOUT3_DIVIDE(1),             // Divide amount for CLKOUT (1-128)
+         .CLKOUT3_DUTY_CYCLE(0.5),       // Duty cycle for CLKOUT outputs (0.001-0.999).
+         .CLKOUT3_PHASE(0.0),            // Phase offset for CLKOUT outputs (-360.000-360.000).
+         .CLKOUT3_USE_FINE_PS("FALSE"),  // Fine phase shift enable (TRUE/FALSE)
+         .CLKOUT4_CASCADE("FALSE"),      // Divide amount for CLKOUT (1-128)
+         .CLKOUT4_DIVIDE(1),             // Divide amount for CLKOUT (1-128)
+         .CLKOUT4_DUTY_CYCLE(0.5),       // Duty cycle for CLKOUT outputs (0.001-0.999).
+         .CLKOUT4_PHASE(0.0),            // Phase offset for CLKOUT outputs (-360.000-360.000).
+         .CLKOUT4_USE_FINE_PS("FALSE"),  // Fine phase shift enable (TRUE/FALSE)
+         .CLKOUT5_DIVIDE(1),             // Divide amount for CLKOUT (1-128)
+         .CLKOUT5_DUTY_CYCLE(0.5),       // Duty cycle for CLKOUT outputs (0.001-0.999).
+         .CLKOUT5_PHASE(0.0),            // Phase offset for CLKOUT outputs (-360.000-360.000).
+         .CLKOUT5_USE_FINE_PS("FALSE"),  // Fine phase shift enable (TRUE/FALSE)
+         .CLKOUT6_DIVIDE(1),             // Divide amount for CLKOUT (1-128)
+         .CLKOUT6_DUTY_CYCLE(0.5),       // Duty cycle for CLKOUT outputs (0.001-0.999).
+         .CLKOUT6_PHASE(0.0),            // Phase offset for CLKOUT outputs (-360.000-360.000).
+         .CLKOUT6_USE_FINE_PS("FALSE"),  // Fine phase shift enable (TRUE/FALSE)
+         .COMPENSATION("AUTO"),          // Clock input compensation
+         .DIVCLK_DIVIDE(1),              // Master division value
+         // .DIVCLK_DIVIDE(2),              // Master division value
+         .IS_CLKFBIN_INVERTED(1'b0),     // Optional inversion for CLKFBIN
+         .IS_CLKIN1_INVERTED(1'b0),      // Optional inversion for CLKIN1
+         .IS_CLKIN2_INVERTED(1'b0),      // Optional inversion for CLKIN2
+         .IS_CLKINSEL_INVERTED(1'b0),    // Optional inversion for CLKINSEL
+         .IS_PSEN_INVERTED(1'b0),        // Optional inversion for PSEN
+         .IS_PSINCDEC_INVERTED(1'b0),    // Optional inversion for PSINCDEC
+         .IS_PWRDWN_INVERTED(1'b0),      // Optional inversion for PWRDWN
+         .IS_RST_INVERTED(1'b0),         // Optional inversion for RST
+         .REF_JITTER1(0.010),            // Reference input jitter in UI (0.000-0.999).
+         .REF_JITTER2(0.010),            // Reference input jitter in UI (0.000-0.999).
+         .SS_EN("FALSE"),                // Enables spread spectrum
+         .SS_MODE("CENTER_HIGH"),        // Spread spectrum frequency deviation and the spread type
+         .SS_MOD_PERIOD(10000),          // Spread spectrum modulation period (ns)
+         .STARTUP_WAIT("FALSE")          // Delays DONE until MMCM is locked
+      )
+      MMCME4_ADV_mmcm2 (
+         .CDDCDONE(),                     // 1-bit output: Clock dynamic divide done
+         .CLKFBOUT(mmcm2_clkfb),          // 1-bit output: Feedback clock
+         .CLKFBOUTB(),                    // 1-bit output: Inverted CLKFBOUT
+         .CLKFBSTOPPED(),                 // 1-bit output: Feedback clock stopped
+         .CLKINSTOPPED(),                 // 1-bit output: Input clock stopped
+         .CLKOUT0(mmcm2_clk0),            // 1-bit output: CLKOUT0
+         .CLKOUT0B(),                     // 1-bit output: Inverted CLKOUT0
+         .CLKOUT1(mmcm2_clk1),            // 1-bit output: CLKOUT1
+         .CLKOUT1B(),                     // 1-bit output: Inverted CLKOUT1
+         .CLKOUT2(mmcm2_clk2),            // 1-bit output: CLKOUT2
+         .CLKOUT2B(),                     // 1-bit output: Inverted CLKOUT2
+         .CLKOUT3(),                      // 1-bit output: CLKOUT3
+         .CLKOUT3B(),                     // 1-bit output: Inverted CLKOUT3
+         .CLKOUT4(),                      // 1-bit output: CLKOUT4
+         .CLKOUT5(),                      // 1-bit output: CLKOUT5
+         .CLKOUT6(),                      // 1-bit output: CLKOUT6
+         .DO(),                           // 16-bit output: DRP data output
+         .DRDY(),                         // 1-bit output: DRP ready
+         .LOCKED(mmcm2_locked),           // 1-bit output: LOCK
+         .PSDONE(),                       // 1-bit output: Phase shift done
+         // Inputs
+         .CDDCREQ(1'b0),                  // 1-bit input: Request to dynamic divide clock
+         .CLKFBIN(mmcm2_clkfb_loop),      // 1-bit input: Feedback clock
+         // .CLKIN1(mmcm2_pl_clk),           // 1-bit input: Primary clock
+         .CLKIN1(mmcm2_pl_clk_div),           // 1-bit input: Primary clock
+         .CLKIN2(1'b0),                   // 1-bit input: Secondary clock
+         .CLKINSEL(1'b1),                 // 1-bit input: Clock select, High=CLKIN1 Low=CLKIN2
+         .DADDR(7'd0),                    // 7-bit input: DRP address
+         .DCLK(1'b0),                     // 1-bit input: DRP clock
+         .DEN(1'b0),                      // 1-bit input: DRP enable
+         .DI(1'b0),                       // 16-bit input: DRP data input
+         .DWE(1'b0),                      // 1-bit input: DRP write enable
+         .PSCLK(1'b0),                    // 1-bit input: Phase shift clock
+         .PSEN(1'b0),                     // 1-bit input: Phase shift enable
+         .PSINCDEC(1'b0),                 // 1-bit input: Phase shift increment/decrement
+         .PWRDWN(1'b0),                   // 1-bit input: Power-down
+         .RST(mmcm2_rst)                  // 1-bit input: Reset
+      );
+
+      logic mmcm1_sysref, mmcm2_sysref;
+      initial begin
+         mmcm1_sysref = 1'b0;
+         forever #((1.0/(2*PL_F_SYSREF))*1.0us) mmcm1_sysref = ~mmcm1_sysref;
+      end
+
+      assign mmcm2_sysref = mmcm1_sysref;
+
+      logic mmcm1_pl_clk_div, mmcm2_pl_clk_div;
+      logic mmcm1_sysref_d1, mmcm1_sysref_d2;
+      logic mmcm2_sysref_d1, mmcm2_sysref_d2;
+      logic mmcm1_sysref_redge, mmcm2_sysref_redge;
+      logic mmcm1_sysref_redge_en, mmcm2_sysref_redge_en;
+      logic mmcm1_sysref_en, mmcm2_sysref_en;
+
+      always_ff @(posedge mmcm1_pl_clk) begin
+         if (mmcm1_rst) begin
+            mmcm1_sysref_en <= 1'b0;
+            mmcm1_sysref_d1 <= 1'b0;
+            mmcm1_sysref_d2 <= 1'b0;
+            mmcm1_sysref_redge_en <= 1'b0;
+         end else begin
+            mmcm1_sysref_d1 <= mmcm1_sysref;
+            mmcm1_sysref_d2 <= mmcm1_sysref_d1;
+            if (mmcm1_sysref_redge) begin
+               mmcm1_sysref_redge_en <= 1'b1;
+            end
+            if (mmcm1_sysref_redge_en & mmcm1_sysref_redge) begin
+               mmcm1_sysref_en <= 1'b1;
+            end
+         end
+      end
+      assign mmcm1_sysref_redge = mmcm1_sysref_d1 & ~mmcm1_sysref_d2;
+
+
+      always_ff @(posedge mmcm2_pl_clk) begin
+         if (mmcm2_rst) begin
+            mmcm2_sysref_en <= 1'b0;
+            mmcm2_sysref_d1 <= 1'b0;
+            mmcm2_sysref_d2 <= 1'b0;
+            mmcm2_sysref_redge_en <= 1'b0;
+         end else begin
+            mmcm2_sysref_d1 <= mmcm2_sysref;
+            mmcm2_sysref_d2 <= mmcm2_sysref_d1;
+            if (mmcm2_sysref_redge) begin
+               mmcm2_sysref_redge_en <= 1'b1;
+            end
+            if (mmcm2_sysref_redge_en & mmcm2_sysref_redge) begin
+               mmcm2_sysref_en <= 1'b1;
+            end
+         end
+      end
+      assign mmcm2_sysref_redge = mmcm2_sysref_d1 & ~mmcm2_sysref_d2;
+
+
+      // BUFGCE_DIV: General Clock Buffer with Divide Function
+      //             Virtex UltraScale+
+      // Xilinx HDL Language Template, version 2023.1
+
+      BUFGCE_DIV #(
+         .BUFGCE_DIVIDE(2),              // 1-8
+         // Programmable Inversion Attributes: Specifies built-in programmable inversion on specific pins
+         .IS_CE_INVERTED(1'b0),          // Optional inversion for CE
+         .IS_CLR_INVERTED(1'b0),         // Optional inversion for CLR
+         .IS_I_INVERTED(1'b0),           // Optional inversion for I
+         .SIM_DEVICE("ULTRASCALE_PLUS")  // ULTRASCALE, ULTRASCALE_PLUS
+      )
+      BUFGCE_DIV_mmcm1 (
+         .O(mmcm1_pl_clk_div),     // 1-bit output: Buffer
+         .CE(mmcm1_sysref_en),   // 1-bit input: Buffer enable
+         .CLR(mmcm1_rst | ~mmcm1_sysref_en), // 1-bit input: Asynchronous clear
+         .I(mmcm1_pl_clk)      // 1-bit input: Buffer
+      );
+
+
+      // BUFGCE_DIV: General Clock Buffer with Divide Function
+      //             Virtex UltraScale+
+      // Xilinx HDL Language Template, version 2023.1
+
+      BUFGCE_DIV #(
+         .BUFGCE_DIVIDE(2),              // 1-8
+         // Programmable Inversion Attributes: Specifies built-in programmable inversion on specific pins
+         .IS_CE_INVERTED(1'b0),          // Optional inversion for CE
+         .IS_CLR_INVERTED(1'b0),         // Optional inversion for CLR
+         .IS_I_INVERTED(1'b0),           // Optional inversion for I
+         .SIM_DEVICE("ULTRASCALE_PLUS")  // ULTRASCALE, ULTRASCALE_PLUS
+      )
+      BUFGCE_DIV_mmcm2 (
+         .O(mmcm2_pl_clk_div),     // 1-bit output: Buffer
+         .CE(mmcm2_sysref_en),   // 1-bit input: Buffer enable
+         .CLR(mmcm2_rst | ~mmcm2_sysref_en), // 1-bit input: Asynchronous clear
+         .I(mmcm2_pl_clk)      // 1-bit input: Buffer
+      );
+   end
+endgenerate
 
 endmodule
