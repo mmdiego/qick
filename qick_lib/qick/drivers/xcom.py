@@ -20,6 +20,7 @@ class QICK_Xcom(SocIP):
     AXI_DT1         Write / Read 32-Bits
     AXI_DT2         Write / Read 32-Bits
     AXI_ADDR        Write / Read 32-Bits
+    TX_RX_DDR       Write / Read 32-Bits
     BOARD_ID        Read Only    32-Bits
     XCOM_FLAG       Read Only    32-Bits
     XCOM_DT1        Read Only    32-Bits
@@ -44,6 +45,7 @@ class QICK_Xcom(SocIP):
             'axi_dt1'   :2 ,
             'axi_dt2'   :3 ,
             'axi_addr'  :4 ,
+            'tx_rx_ddr' :5,
             'board_id'  :6 ,
             'flag'      :7 ,
             'dt1'       :8 ,
@@ -79,13 +81,13 @@ class QICK_Xcom(SocIP):
             'XCOM_CLEAR_FLAG'  : 0    #5'b0_0000  ;
         }
 
-
-    # Initial Values 
+        # Initial Values 
         self.xcom_ctrl  = 0
         self.xcom_cfg   = 0
         self.axi_dt1    = 0
         self.axi_dt2    = 0
         self.axi_addr   = 0
+        self.tx_rx_ddr  = 0
 
     def __str__(self):
         lines = []
@@ -179,8 +181,66 @@ class QICK_Xcom(SocIP):
             self.axi_dt1 = dt1
             self.axi_dt2 = dt2
             self.xcom_ctrl = 1+2*cmd
-            
-            
+
+    def xcom_cfg(self, auto_phase=True, clk_pha=False, clk_pol=False, sync_dis=True, loopback_en=False, clk_div=0):
+        '''
+        Configure XCOM settings
+            auto_phase: Enable Auto Phase detection to fix clock inversion in the hardware. Should be set to True for the first time you use the hardware.
+            clk_div: Configure XCOM clock speed (higher value, lower speed). Should be between 0 and 10.
+            clk_pol: Configure clock polarity. Inverts the polarity of the XCOM TX.
+            clk_pha: Configure clock phase. True to sample first bit on falling edge.
+            sync_dis: Disable external Sync signal for synchronization between boards.
+            loopback_en: Enable loopback mode for testing, which routes the transmitted signal back to the receiver internally without going through the physical pins.
+        '''
+        xcom_cfg = 0
+        if clk_div < 11:
+            xcom_cfg |= clk_div
+        else:
+            raise RuntimeError('Clock Divider should be between 0 and 10 - current Value : %d' % (clk_div))
+        if auto_phase:
+            xcom_cfg |= (1 << 10)
+        if clk_pol:
+            xcom_cfg |= (1 << 8)
+        if clk_pha:
+            xcom_cfg |= (1 << 9)
+        if sync_dis:
+            xcom_cfg |= (1 << 28)
+        if loopback_en:
+            xcom_cfg |= (1 << 31)
+        self.xcom_cfg = xcom_cfg
+
+    def tx_ddr_cfg(self, bist_en=False, clk_boost=False, tx_delay=0):
+        '''
+        Configure TX DDR settings
+            bist_en: Enable BIST mode, which sends a fixed pattern on the TX line for testing.
+            clk_boost: Enable TX clock boost, which doubles the XCOM clock frequency (~215 MHz)
+            tx_delay: Configure TX delay (higher value, more delay). Should be between 0 and 511.
+        '''
+        tx_rx_ddr = 0
+        if bist_en:
+            tx_rx_ddr |= (1 << 15)
+        if clk_boost:
+            tx_rx_ddr |= (1 << 11)
+        if tx_delay < pow(2,9):
+            tx_rx_ddr |= tx_delay
+        else:
+            raise RuntimeError('TX Delay should be between 0 and 511 - current Value : %d' % (tx_delay))
+        self.tx_rx_ddr &= ~(0xFFFF) # clear previous bist_en, clk_boost and delay value
+        self.tx_rx_ddr = tx_rx_ddr
+
+    def rx_ddr_cfg(self, rx_delay=0):
+        '''
+        Configure RX DDR settings
+            rx_delay: Configure RX delay (higher value, more delay). Should be between 0 and 511.
+        '''
+        tx_rx_ddr = 0
+        if rx_delay < pow(2,9):
+            tx_rx_ddr |= (rx_delay << 16)
+        else:
+            raise RuntimeError('RX Delay should be between 0 and 511 - current Value : %d' % (rx_delay))
+        self.tx_rx_ddr &= ~(0xFFFF << 16) # clear previous delay value
+        self.tx_rx_ddr = tx_rx_ddr
+
     def print_dt(self):
         print("FLAG:{}   DT1:{}   DT2:{}   ".format(self.flag, self.dt1, self.dt2))
     
