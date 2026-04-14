@@ -45,7 +45,7 @@ module rx_cmd # (
    input  logic           i_cfg_clk_pha    ,
    input  logic           i_cfg_auto_pha   ,
    input  logic           i_cfg_loopback   ,
-   input  logic [32-1:0]  i_xcom_rx_iddr   ,
+   input  logic [32-1:0]  i_xcom_tx_rx_ddr ,
    // XCOM CNX
    input  logic [NCH-1:0] i_xcom_data      ,
    input  logic [NCH-1:0] i_xcom_clk       ,
@@ -88,7 +88,7 @@ generate
          .i_id                ( i_id           ),
          .i_pha               ( i_cfg_clk_pha  ),
          .i_auto_pha          ( i_cfg_auto_pha ),
-         .i_xcom_rx_iddr      ( i_xcom_rx_iddr ),
+         .i_xcom_tx_rx_ddr    ( i_xcom_tx_rx_ddr ),
          .o_req               ( s_req[k]       ),
          .i_ack               ( s_ack[k]       ),
          .o_cmd               ( s_cmd[k]       ),

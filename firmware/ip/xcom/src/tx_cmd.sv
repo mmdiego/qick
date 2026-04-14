@@ -62,7 +62,7 @@ module tx_cmd(
    input  logic [4-1:0]  i_cfg_tick ,
    input  logic          i_cfg_clk_pol,
    input  logic          i_cfg_sync_dis,
-   input  logic [32-1:0] i_xcom_tx_oddr,
+   input  logic [32-1:0] i_xcom_tx_rx_ddr,
    // Transmission 
    input  logic          i_req      ,
    input  logic [8-1:0]  i_header   ,
@@ -139,8 +139,7 @@ always_comb begin
       end
       BIST: begin
          if ( !s_cfg_bist_en ) state_n = IDLE;
-         s_tx_valid = 1'b1;
-
+         s_tx_valid = s_ready & (bist_cnt_en_r == 0);
       end
       default: state_n = state_r;
    endcase
@@ -151,8 +150,8 @@ logic s_oddr_dly_ce, s_oddr_dly_inc;
 logic s_cfg_clk_boost;
 logic s_cfg_bist_en;
 
-assign s_cfg_clk_boost = i_xcom_tx_oddr[15];
-assign s_cfg_bist_en   = i_xcom_tx_oddr[31];
+assign s_cfg_clk_boost = i_xcom_tx_rx_ddr[11];
+assign s_cfg_bist_en   = i_xcom_tx_rx_ddr[15];
 
 xcom_link_tx u_xcom_link_tx(
   .i_clk             ( i_clk           ),
@@ -163,7 +162,7 @@ xcom_link_tx u_xcom_link_tx(
   .i_oddr_dly_ce     ( s_oddr_dly_ce  ),
   .i_oddr_dly_inc    ( s_oddr_dly_inc ),
   .i_valid           ( s_tx_valid      ),
-  .i_header          ( ~s_cfg_bist_en ? i_header : 8'hAA ),
+  .i_header          ( ~s_cfg_bist_en ? i_header : 8'hA0 ),
   .i_data            ( ~s_cfg_bist_en ? i_data : {~bist_cnt_r, bist_cnt_r} ),
   .o_oddr_dly_value  ( s_oddr_dly_value ),
   .o_ready           ( s_ready         ),
@@ -173,6 +172,7 @@ xcom_link_tx u_xcom_link_tx(
 
 logic [1:0] s_oddr_dly_busy;
 logic [3:0] bist_cnt_r;
+logic [3:0] bist_cnt_en_r;
 
 always_ff @(posedge i_clk) begin
    if ( !i_rstn ) begin
@@ -180,10 +180,11 @@ always_ff @(posedge i_clk) begin
       s_oddr_dly_inc <= 0;
       s_oddr_dly_busy <= 0;
       bist_cnt_r <= 0;
+      bist_cnt_en_r <= 0;
    end else begin
-      if (s_oddr_dly_busy == 0 && s_oddr_dly_value != i_xcom_tx_oddr[8:0]) begin
+      if (s_oddr_dly_busy == 0 && s_oddr_dly_value != i_xcom_tx_rx_ddr[0+:9]) begin
          s_oddr_dly_ce  <= 1;
-         s_oddr_dly_inc <= (s_oddr_dly_value < i_xcom_tx_oddr[8:0]) ? 1 : 0;
+         s_oddr_dly_inc <= (s_oddr_dly_value < i_xcom_tx_rx_ddr[0+:9]) ? 1 : 0;
          s_oddr_dly_busy <= 1;
       end 
       else begin
@@ -192,11 +193,19 @@ always_ff @(posedge i_clk) begin
          s_oddr_dly_inc <= 0;
       end
       if (s_cfg_bist_en) begin
-         if (o_ready) begin
+         if (o_ready & s_tx_valid) begin
             bist_cnt_r <= bist_cnt_r + 1;
          end
       end else begin
          bist_cnt_r <= 0;
+      end
+      if (s_cfg_bist_en) begin
+         if (o_ready) begin
+            bist_cnt_en_r <= bist_cnt_en_r + 1;
+         end
+      end
+      else begin
+         bist_cnt_en_r <= 0;
       end
    end
    

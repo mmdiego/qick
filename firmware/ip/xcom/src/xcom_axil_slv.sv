@@ -46,8 +46,7 @@ module xcom_axil_slv #(
     output logic [C_S_AXI_DATA_WIDTH-1:0]   o_xcom_axi_data1, //out std_logic_vector (31 downto 0) ;
     output logic [C_S_AXI_DATA_WIDTH-1:0]   o_xcom_axi_data2, //out std_logic_vector (31 downto 0) ;
     output logic [C_S_AXI_DATA_WIDTH-1:0]   o_xcom_axi_addr,  //out std_logic_vector ( 3 downto 0) ;
-    output logic [C_S_AXI_DATA_WIDTH-1:0]   o_xcom_rx_iddr,   //out std_logic_vector ( 3 downto 0) ;
-    output logic [C_S_AXI_DATA_WIDTH-1:0]   o_xcom_tx_oddr,   //out std_logic_vector ( 3 downto 0) ;
+    output logic [C_S_AXI_DATA_WIDTH-1:0]   o_xcom_tx_rx_ddr,
     input  logic [C_S_AXI_DATA_WIDTH-1:0]   i_board_id,       //in  std_logic_vector ( 3 downto 0) ;
     input  logic [C_S_AXI_DATA_WIDTH-1:0]   i_xcom_flag,      //in  std_logic ;
     input  logic [C_S_AXI_DATA_WIDTH-1:0]   i_xcom_data1,     //in  std_logic_vector (31 downto 0) ;
@@ -263,7 +262,7 @@ module xcom_axil_slv #(
                         REG_OFFSET_2:  rdata_reg <= slave_registers[2];
                         REG_OFFSET_3:  rdata_reg <= slave_registers[3];
                         REG_OFFSET_4:  rdata_reg <= slave_registers[4];
-                        REG_OFFSET_5:  rdata_reg <= '0;             //slave_registers[5];
+                        REG_OFFSET_5:  rdata_reg <= slave_registers[5];
                         REG_OFFSET_6:  rdata_reg <= i_board_id;     //slave_registers[6];
                         REG_OFFSET_7:  rdata_reg <= i_xcom_flag;    //slave_registers[7];
                         REG_OFFSET_8:  rdata_reg <= i_xcom_data1;   //slave_registers[8];
@@ -429,7 +428,6 @@ module xcom_axil_slv #(
     assign o_xcom_axi_data1 = slave_registers[2];
     assign o_xcom_axi_data2 = slave_registers[3];
     assign o_xcom_axi_addr  = slave_registers[4];
-    assign o_xcom_rx_iddr   = slave_registers[5];
-    assign o_xcom_tx_oddr   = slave_registers[6];
+    assign o_xcom_tx_rx_ddr = slave_registers[5];
 
 endmodule

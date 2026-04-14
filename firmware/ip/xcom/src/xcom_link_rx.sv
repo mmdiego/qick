@@ -35,13 +35,15 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-module xcom_link_rx (
+module xcom_link_rx #(
+   parameter USE_IDDR = 0     // Use IDDR implementation, but it doesn´t work with the TX clock boost feature
+)(
    input  logic            i_clk          ,
    input  logic            i_rstn         ,
    input  logic  [4-1:0]   i_id           ,
    input  logic            i_pha          ,
    input  logic            i_auto_pha     ,
-   input  logic [32-1:0]   i_xcom_rx_iddr ,
+   input  logic [32-1:0]   i_xcom_tx_rx_ddr ,
    // Command Processing    
    input  logic            i_ack          ,
    output logic            o_req          ,
@@ -91,40 +93,6 @@ logic ddr_last_toggle;
 logic ddr_last_toggle_pos;
 
 
-// DDR - RX Serial to Paralel
-///////////////////////////////////////////////////////////////////////////////
-
-logic [3:0] ddr_data0_reg_pos, ddr_data0_reg_neg;
-logic [3:0] ddr_data1_reg_pos, ddr_data1_reg_neg;
-always_ff @ (posedge i_xcom_clk) begin
-   if (s_pha == 0)
-      if (ddr_last_toggle == 0) begin
-         ddr_data0_reg_pos <= {ddr_data0_reg_pos[2:0], i_xcom_data};
-      end else begin
-         ddr_data1_reg_pos <= {ddr_data1_reg_pos[2:0], i_xcom_data};
-      end
-   else
-      if (ddr_last_toggle_pos == 0) begin
-         ddr_data0_reg_pos <= {ddr_data0_reg_pos[2:0], i_xcom_data};
-      end else begin
-         ddr_data1_reg_pos <= {ddr_data1_reg_pos[2:0], i_xcom_data};
-      end
-end
-always_ff @ (negedge i_xcom_clk) begin
-   if (s_pha == 0)
-      if (ddr_last_toggle == 0) begin
-         ddr_data0_reg_neg <= {ddr_data0_reg_neg[2:0], i_xcom_data};
-      end else begin
-         ddr_data1_reg_neg <= {ddr_data1_reg_neg[2:0], i_xcom_data};
-      end
-   else
-      if (ddr_last_toggle_pos == 0) begin
-         ddr_data0_reg_neg <= {ddr_data0_reg_neg[2:0], i_xcom_data};
-      end else begin
-         ddr_data1_reg_neg <= {ddr_data1_reg_neg[2:0], i_xcom_data};
-      end
-end
-
 logic [8:0] idly_cntvalueout;
 
 IDELAYE3 #(
@@ -163,80 +131,118 @@ IDELAYE3 #(
       .RST              (~i_rstn)               // 1-bit input: Asynchronous Reset to the DELAY_VALUE
    );
 
-
-logic iddr_data_reg_h;
-logic iddr_data_reg_l;
-
-// IDDRE1: Dedicated Double Data Rate (DDR) Input Register
-//         Virtex UltraScale+
-// Xilinx HDL Language Template, version 2023.1
-
-IDDRE1 #(
-   .DDR_CLK_EDGE     ("OPPOSITE_EDGE"),   // IDDRE1 mode (OPPOSITE_EDGE, SAME_EDGE, SAME_EDGE_PIPELINED)
-   .IS_C_INVERTED    (1'b0),              // Optional inversion for C
-   .IS_CB_INVERTED   (1'b1)               // Optional inversion for CB
-)
-IDDRE1_inst (
-   .R                (1'b0),              // 1-bit input: Active-High Async Reset
-   .CB               (i_xcom_clk),       // 1-bit input: Inversion of High-speed clock C
-   .C                (i_xcom_clk),        // 1-bit input: High-speed clock
-   .D                (i_xcom_data_delay),       // 1-bit input: Serial Data Input
-   .Q1               (iddr_data_reg_h),   // 1-bit output: Registered parallel output 1
-   .Q2               (iddr_data_reg_l)    // 1-bit output: Registered parallel output 2
-);
-
-
-// IDDR - RX Serial to Paralel
-///////////////////////////////////////////////////////////////////////////////
-
-logic [3:0] iddr_data0_reg_pos, iddr_data0_reg_neg;
-logic [3:0] iddr_data1_reg_pos, iddr_data1_reg_neg;
-always_ff @ (posedge i_xcom_clk) begin
-   if (s_pha == 0)
-      if (ddr_last_toggle == 0) begin
-         iddr_data0_reg_pos[3:1] <= {iddr_data0_reg_pos[2:1], iddr_data_reg_h};
-      end else begin
-         iddr_data1_reg_pos[3:1] <= {iddr_data1_reg_pos[2:1], iddr_data_reg_h};
-      end
-   else
-      if (ddr_last_toggle_pos == 0) begin
-         iddr_data0_reg_pos[3:1] <= {iddr_data0_reg_pos[2:1], iddr_data_reg_h};
-      end else begin
-         iddr_data1_reg_pos[3:1] <= {iddr_data1_reg_pos[2:1], iddr_data_reg_h};
-      end
-end
-always_ff @ (negedge i_xcom_clk) begin
-   if (s_pha == 0)
-      if (ddr_last_toggle == 0) begin
-         iddr_data0_reg_neg[3:1] <= {iddr_data0_reg_neg[2:1], iddr_data_reg_l};
-      end else begin
-         iddr_data1_reg_neg[3:1] <= {iddr_data1_reg_neg[2:1], iddr_data_reg_l};
-      end
-   else
-      if (ddr_last_toggle_pos == 0) begin
-         iddr_data0_reg_neg[3:1] <= {iddr_data0_reg_neg[2:1], iddr_data_reg_l};
-      end else begin
-         iddr_data1_reg_neg[3:1] <= {iddr_data1_reg_neg[2:1], iddr_data_reg_l};
-      end
-end
-assign iddr_data0_reg_pos[0] = iddr_data_reg_h;
-assign iddr_data0_reg_neg[0] = iddr_data_reg_l;
-assign iddr_data1_reg_pos[0] = iddr_data_reg_h;
-assign iddr_data1_reg_neg[0] = iddr_data_reg_l;
-
-
 logic [3:0] data0_reg_pos, data0_reg_neg;
 logic [3:0] data1_reg_pos, data1_reg_neg;
-// assign data0_reg_pos = ddr_data0_reg_pos;
-// assign data0_reg_neg = ddr_data0_reg_neg;
-// assign data1_reg_pos = ddr_data1_reg_pos;
-// assign data1_reg_neg = ddr_data1_reg_neg;
 
-assign data0_reg_pos = iddr_data0_reg_pos;
-assign data0_reg_neg = iddr_data0_reg_neg;
-assign data1_reg_pos = iddr_data1_reg_pos;
-assign data1_reg_neg = iddr_data1_reg_neg;
 
+// DDR - RX Serial to Paralel
+///////////////////////////////////////////////////////////////////////////////
+generate
+   if (USE_IDDR == 0) begin
+      logic [3:0] ddr_data0_reg_pos, ddr_data0_reg_neg;
+      logic [3:0] ddr_data1_reg_pos, ddr_data1_reg_neg;
+      always_ff @ (posedge i_xcom_clk) begin
+         if (s_pha == 0)
+            if (ddr_last_toggle == 0) begin
+               ddr_data0_reg_pos <= {ddr_data0_reg_pos[2:0], i_xcom_data_delay};
+            end else begin
+               ddr_data1_reg_pos <= {ddr_data1_reg_pos[2:0], i_xcom_data_delay};
+            end
+         else
+            if (ddr_last_toggle_pos == 0) begin
+               ddr_data0_reg_pos <= {ddr_data0_reg_pos[2:0], i_xcom_data_delay};
+            end else begin
+               ddr_data1_reg_pos <= {ddr_data1_reg_pos[2:0], i_xcom_data_delay};
+            end
+      end
+      always_ff @ (negedge i_xcom_clk) begin
+         if (s_pha == 0)
+            if (ddr_last_toggle == 0) begin
+               ddr_data0_reg_neg <= {ddr_data0_reg_neg[2:0], i_xcom_data_delay};
+            end else begin
+               ddr_data1_reg_neg <= {ddr_data1_reg_neg[2:0], i_xcom_data_delay};
+            end
+         else
+            if (ddr_last_toggle_pos == 0) begin
+               ddr_data0_reg_neg <= {ddr_data0_reg_neg[2:0], i_xcom_data_delay};
+            end else begin
+               ddr_data1_reg_neg <= {ddr_data1_reg_neg[2:0], i_xcom_data_delay};
+            end
+      end
+
+      // Use Fabric Registers
+      assign data0_reg_pos = ddr_data0_reg_pos;
+      assign data0_reg_neg = ddr_data0_reg_neg;
+      assign data1_reg_pos = ddr_data1_reg_pos;
+      assign data1_reg_neg = ddr_data1_reg_neg;
+   end
+   else begin
+      logic iddr_data_reg_h;
+      logic iddr_data_reg_l;
+
+      // IDDRE1: Dedicated Double Data Rate (DDR) Input Register
+      //         Virtex UltraScale+
+      // Xilinx HDL Language Template, version 2023.1
+
+      IDDRE1 #(
+         .DDR_CLK_EDGE     ("OPPOSITE_EDGE"),   // IDDRE1 mode (OPPOSITE_EDGE, SAME_EDGE, SAME_EDGE_PIPELINED)
+         .IS_C_INVERTED    (1'b0),              // Optional inversion for C
+         .IS_CB_INVERTED   (1'b1)               // Optional inversion for CB
+      )
+      IDDRE1_inst (
+         .R                (1'b0),              // 1-bit input: Active-High Async Reset
+         .CB               (i_xcom_clk),        // 1-bit input: Inversion of High-speed clock C
+         .C                (i_xcom_clk),        // 1-bit input: High-speed clock
+         .D                (i_xcom_data_delay), // 1-bit input: Serial Data Input
+         .Q1               (iddr_data_reg_h),   // 1-bit output: Registered parallel output 1
+         .Q2               (iddr_data_reg_l)    // 1-bit output: Registered parallel output 2
+      );
+
+
+      logic [3:0] iddr_data0_reg_pos, iddr_data0_reg_neg;
+      logic [3:0] iddr_data1_reg_pos, iddr_data1_reg_neg;
+
+      always_ff @ (posedge i_xcom_clk) begin
+         if (s_pha == 0)
+            if (ddr_last_toggle == 0) begin
+               iddr_data0_reg_pos[3:1] <= iddr_data0_reg_pos[2:0];
+            end else begin
+               iddr_data1_reg_pos[3:1] <= iddr_data1_reg_pos[2:0];
+            end
+         else
+            if (ddr_last_toggle_pos == 0) begin
+               iddr_data0_reg_pos[3:1] <= iddr_data0_reg_pos[2:0];
+            end else begin
+               iddr_data1_reg_pos[3:1] <= iddr_data1_reg_pos[2:0];
+            end
+      end
+      always_ff @ (negedge i_xcom_clk) begin
+         if (s_pha == 0)
+            if (ddr_last_toggle == 0) begin
+               iddr_data0_reg_neg[3:1] <= iddr_data0_reg_neg[2:0];
+            end else begin
+               iddr_data1_reg_neg[3:1] <= iddr_data1_reg_neg[2:0];
+            end
+         else
+            if (ddr_last_toggle_pos == 0) begin
+               iddr_data0_reg_neg[3:1] <= iddr_data0_reg_neg[2:0];
+            end else begin
+               iddr_data1_reg_neg[3:1] <= iddr_data1_reg_neg[2:0];
+            end
+      end
+
+      assign iddr_data0_reg_pos[0] = iddr_data_reg_h;
+      assign iddr_data0_reg_neg[0] = iddr_data_reg_l;
+      assign iddr_data1_reg_pos[0] = iddr_data_reg_h;
+      assign iddr_data1_reg_neg[0] = iddr_data_reg_l;
+
+      // Use IDDR registers
+      assign data0_reg_pos = iddr_data0_reg_pos;
+      assign data0_reg_neg = iddr_data0_reg_neg;
+      assign data1_reg_pos = iddr_data1_reg_pos;
+      assign data1_reg_neg = iddr_data1_reg_neg;
+   end
+endgenerate
 
 
 // DDR Bit Counter
@@ -530,9 +536,9 @@ always_ff @(posedge i_clk) begin
       s_iddr_dly_inc <= 0;
       s_iddr_dly_busy <= 0;
    end else begin
-      if (s_iddr_dly_busy == 0 && idly_cntvalueout != i_xcom_rx_iddr[8:0]) begin
+      if (s_iddr_dly_busy == 0 && idly_cntvalueout != i_xcom_tx_rx_ddr[16+:9]) begin
          s_iddr_dly_ce  <= 1;
-         s_iddr_dly_inc <= (idly_cntvalueout < i_xcom_rx_iddr[8:0]) ? 1 : 0;
+         s_iddr_dly_inc <= (idly_cntvalueout < i_xcom_tx_rx_ddr[16+:9]) ? 1 : 0;
          s_iddr_dly_busy <= 1;
       end 
       else begin
