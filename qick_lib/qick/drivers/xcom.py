@@ -231,7 +231,7 @@ class QICK_Xcom(SocIP):
         else:
             raise RuntimeError('TX Delay should be between 0 and 511 - current Value : %d' % (tx_delay))
         self.tx_rx_ddr &= ~(0xFFFF) # clear previous bist_en, clk_boost and delay value
-        self.tx_rx_ddr = tx_rx_ddr
+        self.tx_rx_ddr |= tx_rx_ddr
 
     def rx_ddr_cfg(self, rx_delay=0):
         '''
@@ -244,7 +244,7 @@ class QICK_Xcom(SocIP):
         else:
             raise RuntimeError('RX Delay should be between 0 and 511 - current Value : %d' % (rx_delay))
         self.tx_rx_ddr &= ~(0xFFFF << 16) # clear previous delay value
-        self.tx_rx_ddr = tx_rx_ddr
+        self.tx_rx_ddr |= tx_rx_ddr
 
     def print_dt(self):
         print("FLAG:{}   DT1:{}   DT2:{}   ".format(self.flag, self.dt1, self.dt2))
