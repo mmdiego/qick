@@ -90,7 +90,7 @@ class QICK_Xcom(SocIP):
         self.tx_rx_ddr  = 0
 
         # Initialize some configurations to default working values
-        self.xcom_cfg() # set default XCOM configuration
+        self.xcom_config() # set default XCOM configuration
         self.tx_ddr_cfg() # set default TX DDR configuration
         self.rx_ddr_cfg() # set default RX DDR configuration
 
@@ -187,7 +187,7 @@ class QICK_Xcom(SocIP):
             self.axi_dt2 = dt2
             self.xcom_ctrl = 1+2*cmd
 
-    def xcom_cfg(self, auto_phase=True, clk_pha=False, clk_pol=False, sync_dis=True, loopback_en=False, clk_div=0):
+    def xcom_config(self, auto_phase=True, clk_pha=False, clk_pol=False, sync_dis=True, loopback_en=False, clk_div=0):
         '''
         Configure XCOM settings
             auto_phase: Enable Auto Phase detection to fix clock inversion in the hardware. Should be set to True for the first time you use the hardware.
