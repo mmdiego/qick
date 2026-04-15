@@ -89,6 +89,11 @@ class QICK_Xcom(SocIP):
         self.axi_addr   = 0
         self.tx_rx_ddr  = 0
 
+        # Initialize some configurations to default working values
+        self.xcom_cfg() # set default XCOM configuration
+        self.tx_ddr_cfg() # set default TX DDR configuration
+        self.rx_ddr_cfg() # set default RX DDR configuration
+
     def __str__(self):
         lines = []
         lines.append('---------------------------------------------')
