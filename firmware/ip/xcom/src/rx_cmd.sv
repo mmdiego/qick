@@ -40,6 +40,8 @@ module rx_cmd # (
 )( 
    input  logic           i_clk            ,
    input  logic           i_rstn           ,
+   input  logic           i_ps_clk         ,
+   input  logic           i_ps_rstn        ,
    // XCOM CFG
    input  logic   [4-1:0] i_id             ,
    input  logic           i_cfg_clk_pha    ,
@@ -82,9 +84,15 @@ logic [5-1:0]           s_dbg_state [NCH];
 genvar k;
 generate
    for (k=0; k < NCH ; k=k+1) begin: RX
-      xcom_link_rx u_xcom_link_rx(
+      localparam DELAY_SRC = (LOOPBACK && (k==NCH-1)) ? "DATAIN" : "IDATAIN";
+      xcom_link_rx #(
+         .DELAY_SRC           (DELAY_SRC)
+      )
+      u_xcom_link_rx (
          .i_clk               ( i_clk          ),
          .i_rstn              ( i_rstn         ),
+         .i_ps_clk            ( i_ps_clk       ),
+         .i_ps_rstn           ( i_ps_rstn      ),
          .i_id                ( i_id           ),
          .i_pha               ( i_cfg_clk_pha  ),
          .i_auto_pha          ( i_cfg_auto_pha ),

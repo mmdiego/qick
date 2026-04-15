@@ -48,18 +48,18 @@
 module xcom_link_tx (
     input  logic          i_clk      ,
     input  logic          i_rstn     ,
+    input  logic          i_ps_clk,
+    input  logic          i_ps_rstn,
     // Config 
     input  logic [ 4-1:0] i_cfg_tick , 
     input  logic          i_cfg_clk_pol,
     input  logic          i_cfg_clk_boost,
-    input  logic          i_oddr_dly_ce,
-    input  logic          i_oddr_dly_inc,
+    input  logic [8:0]    i_oddr_dly_value,
     // Transmittion 
     input  logic          i_valid    ,
     input  logic [ 8-1:0] i_header   ,
     input  logic [32-1:0] i_data     ,
     output logic          o_ready    ,
-    output logic [8:0]    o_oddr_dly_value,
     // Xwire COM
     output logic [1:0]    o_data     ,
     output logic [1:0]    o_clk      
@@ -244,8 +244,12 @@ module xcom_link_tx (
     //           Virtex UltraScale+
     // Xilinx HDL Language Template, version 2023.1
 
-    logic [8:0] odly_cntvalueout;
     logic tx_data_out_pre_odly;
+
+    logic [8:0] odly_cntvalueout;
+    logic s_oddr_dly_ce;
+    logic s_oddr_dly_inc;
+    logic [1:0] s_oddr_dly_busy;
 
     ODELAYE3 #(
         .CASCADE("NONE"),               // Cascade setting (MASTER, NONE, SLAVE_END, SLAVE_MIDDLE)
@@ -263,14 +267,14 @@ module xcom_link_tx (
     ODELAYE3_xcom_data (
         // Outputs
         .CASC_OUT               (),                     // 1-bit output: Cascade delay output to IDELAY input cascade
-        .CNTVALUEOUT            (o_oddr_dly_value),     // 9-bit output: Counter value output
+        .CNTVALUEOUT            (odly_cntvalueout),     // 9-bit output: Counter value output
         .DATAOUT                (tx_data_out_r),        // 1-bit output: Delayed data from ODATAIN input port
         // Inputs
         .CASC_IN                (1'b0),                 // 1-bit input: Cascade delay input from slave IDELAY CASCADE_OUT
         .CASC_RETURN            (1'b0),                 // 1-bit input: Cascade delay returning from slave IDELAY DATAOUT
-        .CLK                    (i_clk),                // 1-bit input: Clock input
-        .CE                     (i_oddr_dly_ce),        // 1-bit input: Active-High enable increment/decrement input
-        .INC                    (i_oddr_dly_inc),       // 1-bit input: Increment/Decrement tap delay input
+        .CLK                    (i_ps_clk),             // 1-bit input: Clock input
+        .CE                     (s_oddr_dly_ce),        // 1-bit input: Active-High enable increment/decrement input
+        .INC                    (s_oddr_dly_inc),       // 1-bit input: Increment/Decrement tap delay input
         .LOAD                   (1'b0),                 // 1-bit input: Load DELAY_VALUE input
         .CNTVALUEIN             (9'd0),                 // 9-bit input: Counter value input
         .EN_VTC                 (1'b0),                 // 1-bit input: Keep delay constant over VT
@@ -452,5 +456,28 @@ module xcom_link_tx (
     assign o_data[1]  = tx_data_r[40-1];
     // assign #100ps o_data[1]  = tx_data_r[40-1];
     assign o_clk[1]   = tx_clk_r;
+
+
+
+    always_ff @(posedge i_ps_clk) begin
+        if ( !i_ps_rstn ) begin
+            s_oddr_dly_ce <= 0;
+            s_oddr_dly_inc <= 0;
+            s_oddr_dly_busy <= 0;
+        end 
+        else begin
+            if (s_oddr_dly_busy == 0 && odly_cntvalueout != i_oddr_dly_value) begin
+                s_oddr_dly_ce  <= 1;
+                s_oddr_dly_inc <= (odly_cntvalueout < i_oddr_dly_value) ? 1 : 0;
+                s_oddr_dly_busy <= 1;
+            end 
+            else begin
+                s_oddr_dly_busy <= {s_oddr_dly_busy[0], 1'b0};
+                s_oddr_dly_ce  <= 0;
+                s_oddr_dly_inc <= 0;
+            end
+        end
+    end
+
 
 endmodule

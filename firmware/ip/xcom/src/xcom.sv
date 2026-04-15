@@ -358,6 +358,8 @@ module xcom import qick_pkg::*;
   ) u_xcom_txrx(
     .i_clk             ( i_time_clk         ),
     .i_rstn            ( i_time_rstn        ),
+    .i_ps_clk          ( i_ps_clk           ),
+    .i_ps_rstn         ( i_ps_rstn          ),
     .i_sync            ( s_sync             ),
     .i_req_loc         ( s_req_loc          ),
     .i_req_net         ( s_req_net          ),

@@ -36,10 +36,13 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 module xcom_link_rx #(
-   parameter USE_IDDR = 0     // Use IDDR implementation, but it doesn´t work with the TX clock boost feature
+   parameter DELAY_SRC = "IDATAIN", // Delay input (DATAIN, IDATAIN)
+   parameter USE_IDDR = 0           // Use IDDR implementation, but it doesn´t work with the TX clock boost feature
 )(
    input  logic            i_clk          ,
    input  logic            i_rstn         ,
+   input  logic            i_ps_clk       ,
+   input  logic            i_ps_rstn      ,
    input  logic  [4-1:0]   i_id           ,
    input  logic            i_pha          ,
    input  logic            i_auto_pha     ,
@@ -94,12 +97,16 @@ logic ddr_last_toggle_pos;
 
 
 logic [8:0] idly_cntvalueout;
+logic [1:0] s_iddr_dly_busy;
+logic s_iddr_dly_ce;
+logic s_iddr_dly_inc;
 
 IDELAYE3 #(
       .CASCADE           ("NONE"),              // Cascade setting (MASTER, NONE, SLAVE_END, SLAVE_MIDDLE)
       // .DELAY_FORMAT   ("TIME"),                 // Units of the DELAY_VALUE (COUNT, TIME)
       .DELAY_FORMAT      ("COUNT"),             // Units of the DELAY_VALUE (COUNT, TIME)
-      .DELAY_SRC         ("IDATAIN"),           // Delay input (DATAIN, IDATAIN)
+      .DELAY_SRC         (DELAY_SRC),
+      // .DELAY_SRC      ("IDATAIN"),              // Delay input (DATAIN, IDATAIN)
       // .DELAY_SRC      ("DATAIN"),               // Delay input (DATAIN, IDATAIN)
       // .DELAY_TYPE        ("FIXED"),             // Set the type of tap delay line (FIXED, VARIABLE, VAR_LOAD)
       .DELAY_TYPE        ("VARIABLE"),          // Set the type of tap delay line (FIXED, VARIABLE, VAR_LOAD)
@@ -120,14 +127,14 @@ IDELAYE3 #(
       // Inputs
       .CASC_IN          (1'b0),                 // 1-bit input: Cascade delay input from slave ODELAY CASCADE_OUT
       .CASC_RETURN      (1'b0),                 // 1-bit input: Cascade delay returning from slave ODELAY DATAOUT
-      .CLK              (i_clk),                // 1-bit input: Clock input (UNUSED IN FIXED MODE)
+      .CLK              (i_ps_clk),             // 1-bit input: Clock input (UNUSED IN FIXED MODE)
       .CE               (s_iddr_dly_ce),        // 1-bit input: Active-High enable increment/decrement input
       .INC              (s_iddr_dly_inc),       // 1-bit input: Increment / Decrement tap delay input
       .LOAD             (1'b0),                 // 1-bit input: Load DELAY_VALUE input
       .CNTVALUEIN       (9'd0),                 // 9-bit input: Counter value input
       .EN_VTC           (1'b0),                 // 1-bit input: Keep delay constant over VT
-      .IDATAIN          (i_xcom_data),          // 1-bit input: Data input from the IOBUF
-      .DATAIN           (1'b0),                 // 1-bit input: Data input from the logic
+      .IDATAIN          ((DELAY_SRC == "IDATAIN") ? i_xcom_data : 1'b0), // 1-bit input: Data input from the IOBUF
+      .DATAIN           ((DELAY_SRC == "DATAIN")  ? i_xcom_data : 1'b0), // 1-bit input: Data input from the logic
       .RST              (~i_rstn)               // 1-bit input: Asynchronous Reset to the DELAY_VALUE
    );
 
@@ -526,12 +533,12 @@ assign o_cmd        = s_header_shreg[7:4];
 assign o_data       = s_data_shreg;
 
 
-logic [1:0] s_iddr_dly_busy;
-logic s_iddr_dly_ce;
-logic s_iddr_dly_inc;
+///////////////////////////////////////////////////////////////////////////////
+// IDELAY Control
+///////////////////////////////////////////////////////////////////////////////
 
-always_ff @(posedge i_clk) begin
-   if ( !i_rstn ) begin
+always_ff @(posedge i_ps_clk) begin
+   if ( !i_ps_rstn ) begin
       s_iddr_dly_ce <= 0;
       s_iddr_dly_inc <= 0;
       s_iddr_dly_busy <= 0;
@@ -547,7 +554,6 @@ always_ff @(posedge i_clk) begin
          s_iddr_dly_inc <= 0;
       end
    end
-   
 end
 
 endmodule
