@@ -81,6 +81,8 @@ module xcom_txrx import qick_pkg::*;
 )(
    input  logic             i_clk              ,
    input  logic             i_rstn             ,
+   input  logic             i_ps_clk           ,
+   input  logic             i_ps_rstn          ,
    input  logic             i_sync             ,
 // COMMAND INTERFACE
    input  logic             i_req_loc          ,
@@ -292,20 +294,24 @@ assign s_cmd_exec = s_loc_sid | s_wflg | s_wreg | s_wmem | s_rst;
 ///////////////////////////////////////////////////////////////////////////////
 
 tx_cmd u_tx_cmd(
-    .i_clk           ( i_clk           ),
-    .i_rstn          ( i_rstn          ),
-    .i_sync          ( i_sync          ),
-    .i_cfg_tick      ( i_cfg_tick      ),
-    .i_cfg_clk_pol   ( i_cfg_clk_pol   ),
-    .i_cfg_sync_dis  ( i_cfg_sync_dis  ),
-    .i_xcom_tx_rx_ddr  ( i_xcom_tx_rx_ddr  ),
-    .i_req           ( s_req_net       ),
-    .i_header        ( i_header        ),
-    .i_data          ( i_data          ),
-    .o_ready         ( s_tx_ready      ),
-    .o_data          ( o_xcom_data     ),
-    .o_clk           ( o_xcom_clk      ),
-    .o_dbg_state     ( s_tx_dbg_state  )
+   .i_clk            ( i_clk              ),
+   .i_rstn           ( i_rstn             ),
+   .i_ps_clk         ( i_ps_clk           ),
+   .i_ps_rstn        ( i_ps_rstn          ),
+   // Inputs
+   .i_sync           ( i_sync             ),
+   .i_cfg_tick       ( i_cfg_tick         ),
+   .i_cfg_clk_pol    ( i_cfg_clk_pol      ),
+   .i_cfg_sync_dis   ( i_cfg_sync_dis     ),
+   .i_xcom_tx_rx_ddr ( i_xcom_tx_rx_ddr   ),
+   .i_req            ( s_req_net          ),
+   .i_header         ( i_header           ),
+   .i_data           ( i_data             ),
+   // Outputs
+   .o_ready          ( s_tx_ready         ),
+   .o_data           ( o_xcom_data        ),
+   .o_clk            ( o_xcom_clk         ),
+   .o_dbg_state      ( s_tx_dbg_state     )
 );
 
 assign tx_auto_id   = s_req_net & (loc_cmd_op == XCOM_AUTO_ID); 
@@ -339,23 +345,25 @@ end
 // RX COMMAND
 ///////////////////////////////////////////////////////////////////////////////
 rx_cmd #(
-   .NCH(NCH),
-   .LOOPBACK(LOOPBACK)
+   .NCH              (NCH),
+   .LOOPBACK         (LOOPBACK)
 ) u_rx_cmd (
-   .i_clk           ( i_clk             ),
-   .i_rstn          ( i_rstn            ),
-   .i_id            ( board_id_r        ),
-   .i_cfg_clk_pha   ( i_cfg_clk_pha     ),
-   .i_cfg_auto_pha  ( i_cfg_auto_pha    ),
-   .i_cfg_loopback  ( i_cfg_loopback    ),
-   .i_xcom_tx_rx_ddr ( i_xcom_tx_rx_ddr ),
-   .i_xcom_data     ( i_xcom_data       ),
-   .i_xcom_clk      ( i_xcom_clk        ),
-   .o_valid         ( s_rx_valid        ),
-   .o_op            ( s_rx_op           ),
-   .o_data          ( s_rx_data         ),
-   .o_chid          ( s_rx_chid         ),
-   .o_dbg_state     ( s_rx_dbg_state    )
+   .i_clk            ( i_clk             ),
+   .i_rstn           ( i_rstn            ),
+   .i_ps_clk         ( i_ps_clk          ),
+   .i_ps_rstn        ( i_ps_rstn         ),
+   .i_id             ( board_id_r        ),
+   .i_cfg_clk_pha    ( i_cfg_clk_pha     ),
+   .i_cfg_auto_pha   ( i_cfg_auto_pha    ),
+   .i_cfg_loopback   ( i_cfg_loopback    ),
+   .i_xcom_tx_rx_ddr ( i_xcom_tx_rx_ddr  ),
+   .i_xcom_data      ( i_xcom_data       ),
+   .i_xcom_clk       ( i_xcom_clk        ),
+   .o_valid          ( s_rx_valid        ),
+   .o_op             ( s_rx_op           ),
+   .o_data           ( s_rx_data         ),
+   .o_chid           ( s_rx_chid         ),
+   .o_dbg_state      ( s_rx_dbg_state    )
 );
 
 // RX Decoding

@@ -98,6 +98,10 @@ set_false_path \
     -from [get_pins -filter {REF_PIN_NAME =~ C} -of_objects [get_cells -hier -filter {name =~ *u_xcom_link_rx/s_pha_reg}]] \
     -to [get_clocks -of_objects [get_nets i_xcom_clk_p*]]
 
+set_false_path -quiet \
+    -from [get_pins -filter {REF_PIN_NAME =~ C} -of_objects [get_cells -hier -filter {name =~ *u_xcom_link_rx/s_pha_reg}]] \
+    -to [get_clocks xcom_loop_clk]
+
 # AXI Interface from/to PS clock
 set_false_path \
     -from [get_clocks -of_objects [get_nets i_time_clk]] \
