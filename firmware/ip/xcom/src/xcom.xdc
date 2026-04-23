@@ -17,8 +17,8 @@
 #          - Board-level design documentation
 #
 # 2. INTERNAL CLOCKS (from parent module timing.xdc):
-#    - i_time_clk = clk_out1_d_1_MTSclkwiz_0 = 430.08 MHz (2.325 ns)
-#    - i_core_clk = clk_out2_d_1_MTSclkwiz_0 = 215.04 MHz (4.650 ns)  
+#    - i_time_clk = 430.08 MHz (2.325 ns)
+#    - i_core_clk = 215.04 MHz (4.650 ns)  
 #    - i_ps_clk = 100 MHz (10 ns) [from PS]
 #
 # 3. GENERATED TX CLOCK (o_xcom_clk_p):
@@ -51,9 +51,6 @@
 ###############################################################################
 
 set rx_clk_period 4.0
-# set rx_clk_period 5.0    ;# Alternative: 200 MHz
-# set rx_clk_period 8.0    ;# Alternative: 125 MHz
-# set rx_clk_period 10.0   ;# Alternative: 100 MHz
 
 
 ###############################################################################
@@ -66,17 +63,15 @@ set rx_clk_period 4.0
 #   - The physical RX clock arrives at the CENTER of the data eye.
 #   - Rising edge at 1.0 ns (offset by T/4 = 1.0 ns from data launch at 0.0 ns)
 #   - This offset defines the setup/hold requirement for Vivado's STA.
-#   - Together with xcom_clk_virt {0.0 2.0}, the Requirement becomes
+#   - Together with xcom_clk_virt {0.0 2.0}, the setup window becomes
 #     1.0 ns (half-period) + 1.0 ns (phase offset) = higher slack budget.
 #
 # Channels 0 is REQUIRED; channels 1-15 are OPTIONAL (use -quiet)
 ###############################################################################
 
-# Channel 0 - REQUIRED
 create_clock -name xcom_rx_clk_0 -period $rx_clk_period \
     [get_ports i_xcom_clk_p[0]] -waveform {1.0 3.0}
 
-# Channels 1-15 - OPTIONAL (suppress warnings if not present)
 create_clock -name xcom_rx_clk_1  -period $rx_clk_period \
     [get_ports i_xcom_clk_p[1]]  -waveform {1.0 3.0} -quiet
 create_clock -name xcom_rx_clk_2  -period $rx_clk_period \
@@ -147,11 +142,6 @@ create_clock -name xcom_clk_virt -period $rx_clk_period -waveform {0.0 2.0}
 #   - Asynchronous to i_time_clk due to ODDRE1→pad routing delay
 #   - Treated as independent clock domain for CDC analysis
 #   - Board-level propagation delay NOT included in this constraint
-#
-# NOTE: If o_xcom_clk_p does not appear at IOB in synthesis, verify:
-#   - xcom_link_tx module instantiation is correct
-#   - ODDRE1_tx_clk cell name matches exactly
-#   - Port o_xcom_clk_p is properly connected to ODDRE1 Q output
 ###############################################################################
 
 create_generated_clock \
@@ -167,11 +157,6 @@ create_generated_clock \
 ###############################################################################
 # Internal loopback clock for testing and CDC verification.
 # Only present if LOOPBACK parameter is enabled in xcom instantiation.
-# 
-# Used for:
-#   - Internal self-test loops
-#   - CDC (Clock Domain Crossing) validation
-#   - Debug/verification during development
 ###############################################################################
 
 create_generated_clock \
@@ -184,95 +169,15 @@ create_generated_clock \
 
 
 ###############################################################################
-# Section 5: ASYNCHRONOUS CLOCK DOMAIN CROSSINGS (CDC)
+# Section 5: CDC SYNCHRONIZER CONSTRAINTS (Specific Paths Only)
 ###############################################################################
-# The XCOM block integrates multiple asynchronous clock domains:
-#   - i_ps_clk (PS system clock, 100 MHz)
-#   - i_core_clk (QICK CORE processor clock, 215.04 MHz)
-#   - i_time_clk (DAC/timing reference clock, 430.08 MHz) ← PRIMARY
-#   - xcom_rx_clk_* (external RX clocks, 250 MHz each) ← ASYNCHRONOUS
-#   - xcom_tx_clk_out (generated TX clock, ~107.5 MHz) ← ASYNCHRONOUS
-#   - xcom_loop_clk (loopback test clock, ~107.5 MHz) ← ASYNCHRONOUS
+# All clock domain crossings use explicit multi-stage synchronizers in RTL.
+# Constraints below target ONLY the first-stage flip-flops where
+# metastability is managed by synchronizer chains.
 #
-# CDC Approach:
-#   ✓ All clock domain crossings are handled by explicit multi-stage
-#     synchronizers implemented in RTL (xcom_cdc.sv)
-#   ✓ These constraints cut false timing paths outside the synchronizers
-#   ✓ Synchronizer flip-flop chains eliminate metastability at first stage
-#
-# Vivado Behavior:
-#   - By default, would attempt to verify timing through synchronizers
-#   - set_false_path suppresses these checks, trusting RTL design
-#   - Metastability margin calculated separately in design review
-###############################################################################
-
-# --- TIME Domain <-> TX/Loopback Clocks (Asynchronous) ---
-# xcom_tx_clk_out and xcom_loop_clk are hierarchically derived from
-# clk_out1_d_1_MTSclkwiz_0 (i_time_clk), so set_clock_groups -asynchronous
-# is rejected by Vivado between related clocks. Use set_false_path instead.
-
-set_false_path \
-    -from [get_clocks clk_out1_d_1_MTSclkwiz_0] \
-    -to   [get_clocks xcom_tx_clk_out]
-
-set_false_path \
-    -from [get_clocks clk_out1_d_1_MTSclkwiz_0] \
-    -to   [get_clocks xcom_loop_clk]
-
-set_false_path \
-    -from [get_clocks xcom_tx_clk_out] \
-    -to   [get_clocks clk_out1_d_1_MTSclkwiz_0]
-
-set_false_path \
-    -from [get_clocks xcom_loop_clk] \
-    -to   [get_clocks clk_out1_d_1_MTSclkwiz_0]
-
-# --- CORE Domain <-> TIME Domain (Asynchronous) ---
-set_false_path \
-    -from [get_clocks -of_objects [get_nets i_core_clk]] \
-    -to   [get_clocks -of_objects [get_nets i_time_clk]]
-
-set_false_path \
-    -from [get_clocks -of_objects [get_nets i_time_clk]] \
-    -to   [get_clocks -of_objects [get_nets i_core_clk]]
-
-# --- PS Domain <-> TIME Domain (Asynchronous) ---
-# PS clock (100 MHz from ARM) is completely independent.
-
-set_false_path \
-    -from [get_clocks -of_objects [get_nets i_ps_clk]] \
-    -to   [get_clocks -of_objects [get_nets i_time_clk]]
-
-set_false_path \
-    -from [get_clocks -of_objects [get_nets i_time_clk]] \
-    -to   [get_clocks -of_objects [get_nets i_ps_clk]]
-
-# --- RX External Clocks <-> Internal Clocks (Asynchronous) ---
-# RX clocks only exist at IOB (IDELAYE3 input); internally fabric
-# registers sampled by i_time_clk. Valid DDR but no phase alignment.
-
-set_false_path \
-    -from [get_clocks xcom_rx_clk_*] \
-    -to   [get_clocks -of_objects [get_nets i_time_clk]]
-
-set_false_path \
-    -from [get_clocks -of_objects [get_nets i_time_clk]] \
-    -to   [get_clocks xcom_rx_clk_*]
-
-
-###############################################################################
-# Section 6: CDC SYNCHRONIZER CONSTRAINTS
-###############################################################################
-# All clock domain crossings use explicit multi-stage synchronizers.
-# First-stage flip-flops are "unsafe" from static timing view;
-# metastability risk resolved by subsequent pipeline stages.
-#
-# Synchronizer Architecture (xcom_cdc.sv):
-#   [ASYNC INPUT] → [FF_SYNC_0] → [FF_SYNC_1] → [FF_SYNC_2] → [SAFE OUTPUT]
-#                    ↑ SET_FALSE_PATH applies here
-#                    (2-3 cycles of target clock for synchronization)
-#
-# This is the standard Xilinx CDC methodology.
+# Philosophy: Cut timing on first stages only. If paths fail outside the
+# synchronizers, that indicates a design issue that must be fixed, not
+# hidden with blanket false_paths.
 ###############################################################################
 
 # Relax setup/hold on all first-stage CDC sync registers
@@ -316,17 +221,16 @@ set_false_path -quiet \
 
 
 ###############################################################################
-# Section 7: RX DATA INPUT DELAYS
+# Section 6: RX DATA INPUT DELAYS
 ###############################################################################
 # Center-aligned DDR input delay specification.
 #
 # Model:
 #   xcom_clk_virt  waveform {0.0 2.0}: data launched at t=0 and t=2 ns
-#   xcom_rx_clk_*  waveform {1.0 3.0}: clock arrives at t=1 ns (center of eye)
+#   xcom_rx_clk_*  waveform {1.0 3.0}: clock arrives at t=1 ns (center)
 #
 # The ±0.1 ns window models board-level skew between data and clock lines.
 # VALIDATE these values with oscilloscope measurements on actual hardware.
-# Tighter margin → more timing pressure on router. Loosen to 0.5 ns if needed.
 ###############################################################################
 
 # Rising edge data launch
@@ -341,29 +245,25 @@ set_input_delay -clock xcom_clk_virt -min -0.1 -clock_fall \
 
 
 ###############################################################################
-# Section 7b: RX DDR CENTER-ALIGNED TIMING EXCEPTIONS
+# Section 6b: RX DDR CENTER-ALIGNED TIMING EXCEPTIONS
 ###############################################################################
 # For center-aligned DDR, only cross-edge transfers are valid:
-#   VALID:   falling launch (virt) → rising capture (rx_clk)  [setup check]
-#   VALID:   rising launch (virt)  → falling capture (rx_clk) [setup check]
-#   INVALID: same-edge transfers   → hold checks are impossible
+#   VALID:   falling launch (virt) → rising capture (rx_clk)  [setup]
+#   VALID:   rising launch (virt)  → falling capture (rx_clk) [setup]
+#   INVALID: same-edge transfers → hold checks are impossible
 #
 # Cut the invalid checks to prevent false timing violations.
-# This is the standard Xilinx methodology for center-aligned DDR interfaces.
-# Reference: Xilinx UG949 "UltraFast Design Methodology Guide", Ch. 4.
+# Reference: Xilinx UG949, Ch. 4 (Center-Aligned DDR methodology)
 ###############################################################################
 
-# Rising launch → falling capture: not a valid setup check in center-aligned DDR
 set_false_path -setup \
     -rise_from [get_clocks xcom_clk_virt] \
     -fall_to   [get_clocks xcom_rx_clk_*]
 
-# Falling launch → rising capture: not a valid setup check in center-aligned DDR
 set_false_path -setup \
     -fall_from [get_clocks xcom_clk_virt] \
     -rise_to   [get_clocks xcom_rx_clk_*]
 
-# Same-edge hold checks: not applicable for center-aligned DDR
 set_false_path -hold \
     -rise_from [get_clocks xcom_clk_virt] \
     -rise_to   [get_clocks xcom_rx_clk_*]
@@ -374,11 +274,9 @@ set_false_path -hold \
 
 
 ###############################################################################
-# Section 8: TX DATA OUTPUT DELAYS
+# Section 7: TX DATA OUTPUT DELAYS
 ###############################################################################
 # DDR output delay specification at the IOB.
-# Valid window: ±500 ps (board propagation + receiver setup/hold).
-# Adjust based on actual board measurements if timing fails.
 #
 # Interface Properties:
 #   - Differential pairs: o_xcom_data_p / o_xcom_data_n
@@ -386,17 +284,6 @@ set_false_path -hold \
 #   - Launch method: ODDRE1 DDR flip-flops at IOB
 #   - Capture method: External receiver DDR registers
 #   - Valid window: ±500 ps (board propagation + receiver setup/hold)
-#
-# Delay Specification:
-#   Data valid window relative to xcom_tx_clk_out (capture clock):
-#     -max: setup margin (data available 500 ps after clock)
-#     -min: hold margin (data stable 500 ps before clock)
-#
-# NOTE: Board-level PCB propagation delay (trace delay) is NOT included
-#       in these constraints. If timing fails, consider:
-#       1. Measure actual trace delays with TDR (Time Domain Reflectometry)
-#       2. Adjust ODELAYE3 tap settings (variable delay on data line)
-#       3. Increase output_delay margins if receiver has slack
 ###############################################################################
 
 # Rising edge capture at external receiver
@@ -413,75 +300,41 @@ set_output_delay -clock [get_clocks xcom_tx_clk_out] -min -0.5 -clock_fall \
 
 
 ###############################################################################
-# Section 9: TX MULTICYCLE AND TIMING RELAXATION
+# Section 8: TX MULTICYCLE AND TIMING RELAXATION
 ###############################################################################
 # The TX data path spans from i_time_clk (430 MHz) to xcom_tx_clk_out (107.5 MHz).
-# This is a significant frequency ratio that requires careful analysis.
 #
 # Data Flow:
 #   i_time_clk → tx_clk_r (divide-by-4 logic) → ODDRE1 → o_xcom_data_p
 #
-# Timing Constraints:
-#   set_multicycle_path -start N:
-#     Shifts setup check window by (N-1) target clock cycles
-#     Allows data to be stable for multiple target cycles
-#
-#   set_multicycle_path -hold:
-#     Applies same shift to hold check
-#
-# If timing FAILS:
-#   1. Try -start 2: allows 2x target clock cycles for data valid window
-#   2. Uncomment set_false_path -setup: completely relaxes setup on falling edge
-#   3. Verify ODELAYE3 configuration (data line delay compensation)
-#   4. Check ODDRE1 D input timing (tx_data_d_r must be stable)
+# Constraints:
+#   set_multicycle_path -start 1:  data valid for 1 target cycle
+#   set_false_path -setup:         relax setup on falling edge of source
 ###############################################################################
 
-# TX data valid for one target clock cycle relative to xcom_tx_clk_out
 set_multicycle_path -to [get_ports o_xcom_data_p*] -start 1
-
-# Apply same shift to hold check (rising edge)
 set_multicycle_path -to [get_ports o_xcom_data_p*] -start 1 -hold
 
-# Relax setup on falling edge of DAC clock to TX output port
-# (active — needed to close timing on the DDR output path)
+# Relax setup on falling edge of i_time_clk to xcom_tx_clk_out
+# (IP-level port reference, agnóstic to parent clock naming)
 set_false_path -setup \
-    -fall_from [get_clocks clk_out1_d_1_MTSclkwiz_0] \
+    -fall_from [get_clocks -of_objects [get_nets i_time_clk]] \
     -to        [get_clocks xcom_tx_clk_out]
-# Optional: If setup timing fails on falling edge of i_time_clk, uncomment:
-# set_false_path -setup -fall_from [get_clocks i_time_clk] \
-#     -to [get_clocks xcom_tx_clk_out]
-
-# Alternative approach for aggressive relaxation (use if above fails):
-# set_false_path -setup \
-#     -from [get_clocks -of_objects [get_nets i_time_clk]] \
-#     -to [get_ports o_xcom_data_p*]
 
 
 ###############################################################################
-# Section 10: RX RESET CONTROL SIGNALS
+# Section 9: RX RESET CONTROL SIGNALS
 ###############################################################################
-# Asynchronous control signals from i_time_clk to RX bit counter resets.
-# These are NOT data paths; they are quasi-static control signals used
-# by state machines for synchronization and reset.
-#
-# Safe to declare as false paths because:
-#   1. Asserted infrequently (during state transitions only)
-#   2. Reset timing is not critical (always given priority)
-#   3. Vivado CDC tool would flag these as "low risk" crossings
-#
-# Affected Signals:
-#   - ddr_bit_cntr_reg[0] PRE: asynchronous preset input
-#   - ddr_bit_cntr_reg[*] CLR: asynchronous clear input
+# Asynchronous control signals (quasi-static resets).
+# Safe to declare as false paths — resets are low-frequency operations.
 ###############################################################################
 
-# Preset (PRE) signal to RX bit counter [0]
 set_false_path \
     -from [get_clocks -of_objects [get_nets i_time_clk]] \
     -to [get_pins -filter {REF_PIN_NAME =~ PRE} -of_objects \
         [get_cells -hier -filter \
             {name =~ *u_rx_cmd/RX[*].u_xcom_link_rx/ddr_bit_cntr_reg[0]}]]
 
-# Clear (CLR) signal to remaining RX bit counter stages
 set_false_path \
     -from [get_clocks -of_objects [get_nets i_time_clk]] \
     -to [get_pins -filter {REF_PIN_NAME =~ CLR} -of_objects \
@@ -491,11 +344,9 @@ set_false_path \
 
 
 ###############################################################################
-# Section 11: DEBUG PROBE CONSTRAINTS
+# Section 10: DEBUG PROBE CONSTRAINTS
 ###############################################################################
-# Low-speed debug probes (ILA/VIO) for post-implementation monitoring.
-# These are control/diagnostic signals; timing is not critical.
-# Safe to declare false paths without risk of functional failure.
+# Low-speed debug probes (ILA/VIO). Timing is not critical.
 ###############################################################################
 
 set_false_path -quiet \
